@@ -16,7 +16,7 @@ export const initDatabase = () => {
       );
     `);
 
-    // Criação da tabela de Avaliações de Marcha (vídeo)
+    // Criação da tabela de Avaliações (conectada ao paciente por id_paciente)
     db.execSync(`
       CREATE TABLE IF NOT EXISTS avaliacoes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,22 +24,6 @@ export const initDatabase = () => {
         angulo TEXT NOT NULL,
         data_avaliacao TEXT NOT NULL,
         video_uri TEXT,
-        FOREIGN KEY (id_paciente) REFERENCES pacientes (id) ON DELETE CASCADE
-      );
-    `);
-
-    // Criação da tabela de Avaliações Posturais (foto com pontos marcados)
-    db.execSync(`
-      CREATE TABLE IF NOT EXISTS avaliacoes_posturais (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        id_paciente INTEGER NOT NULL,
-        vista TEXT NOT NULL,
-        modo TEXT NOT NULL,
-        data_avaliacao TEXT NOT NULL,
-        foto_uri TEXT NOT NULL,
-        pontos_json TEXT NOT NULL,
-        medidas_json TEXT,
-        imagem_final_uri TEXT,
         FOREIGN KEY (id_paciente) REFERENCES pacientes (id) ON DELETE CASCADE
       );
     `);
