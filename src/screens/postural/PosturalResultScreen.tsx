@@ -25,7 +25,7 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         [pacienteId, vista, modo, dataHoje, fotoUri, JSON.stringify(pontos), JSON.stringify(desajustes)]
       );
       Alert.alert('Sucesso', 'Avaliação postural salva no histórico do paciente!', [
-        { text: 'OK', onPress: () => navigation.navigate('EvaluationHome') },
+        { text: 'OK', onPress: () => navigation.navigate('PosturalHome') },
       ]);
     } catch (error) {
       console.error('Erro ao salvar avaliação postural:', error);
@@ -84,17 +84,17 @@ function LinhaSegmento({ a, b }: { a: Ponto; b: Ponto }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 16, paddingBottom: 40 },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 12, overflow: 'hidden', marginBottom: 20 },
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#EF4444', borderWidth: 1, borderColor: '#FFF' },
-  linha: { position: 'absolute', height: 2, backgroundColor: '#38BDF8', transformOrigin: 'left' },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#94A3B8', marginBottom: 12 },
-  semDados: { color: '#64748B', textAlign: 'center', padding: 20 },
-  card: { backgroundColor: '#1E293B', padding: 14, borderRadius: 10, marginBottom: 10, borderWidth: 1, borderColor: '#334155', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  linha: { position: 'absolute', height: 2, backgroundColor: '#0284C7', transformOrigin: 'left' },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
+  semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
+  card: { backgroundColor: '#FFFFFF', padding: 14, borderRadius: 10, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardAlerta: { borderColor: '#F59E0B' },
-  cardLabel: { color: '#F8FAFC', fontSize: 14, flex: 1 },
+  cardLabel: { color: '#0F172A', fontSize: 14, flex: 1 },
   cardValor: { color: '#10B981', fontWeight: 'bold', fontSize: 15 },
   cardValorAlerta: { color: '#F59E0B' },
   btnSalvar: { backgroundColor: '#0284C7', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10 },

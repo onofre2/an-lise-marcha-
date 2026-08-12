@@ -7,12 +7,11 @@ interface Paciente {
   nome: string;
 }
 
-export default function EvaluationScreen() {
+export default function EvaluationScreen({ navigation }: any) {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [pacienteSelecionado, setPacienteSelecionado] = useState<number | null>(null);
   const [anguloSelecionado, setAnguloSelecionado] = useState<string | null>(null);
 
-  // Carrega os pacientes para o seletor da avaliação
   useEffect(() => {
     try {
       const resultado = db.getAllSync('SELECT id, nome FROM pacientes ORDER BY nome ASC') as Paciente[];
@@ -34,11 +33,10 @@ export default function EvaluationScreen() {
       Alert.alert("Atenção", "Por favor, selecione um paciente antes de iniciar.");
       return;
     }
-    Alert.alert(
-      "Câmera Pronta",
-      `Iniciando captura do ângulo [${anguloSelecionado?.toUpperCase()}] limitado a 15 segundos.`
-    );
-    // Próximo passo: Integração com o módulo de câmera e cache de vídeo
+    navigation.navigate('CameraCapture', {
+      pacienteId: pacienteSelecionado,
+      angulo: anguloSelecionado,
+    });
   };
 
   return (
@@ -87,7 +85,7 @@ export default function EvaluationScreen() {
 
       {anguloSelecionado && pacienteSelecionado && (
         <TouchableOpacity style={styles.actionButton} onPress={iniciarGravacao}>
-          <Text style={styles.actionButtonText}>Abrir Câmera (Máx 15s)</Text>
+          <Text style={styles.actionButtonText}>Abrir Câmera (Máx 25s)</Text>
         </TouchableOpacity>
       )}
     </ScrollView>
@@ -95,18 +93,18 @@ export default function EvaluationScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#94A3B8', marginTop: 20, marginBottom: 12 },
-  pickerContainer: { backgroundColor: '#1E293B', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#334155' },
-  pacienteItem: { padding: 12, borderRadius: 8, marginBottom: 6, backgroundColor: '#0F172A' },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
+  pickerContainer: { backgroundColor: '#FFFFFF', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+  pacienteItem: { padding: 12, borderRadius: 8, marginBottom: 6, backgroundColor: '#F8FAFC' },
   alertText: { color: '#EF4444', fontSize: 14, textAlign: 'center' },
-  protocolCard: { backgroundColor: '#1E293B', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#334155' },
-  protocolText: { fontSize: 14, color: '#F8FAFC', marginBottom: 6 },
+  protocolCard: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+  protocolText: { fontSize: 14, color: '#0F172A', marginBottom: 6 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  button: { width: '48%', backgroundColor: '#1E293B', padding: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#334155' },
-  buttonActive: { backgroundColor: '#0284C7', borderColor: '#38BDF8' },
-  buttonText: { color: '#94A3B8', fontWeight: 'bold', fontSize: 14 },
+  button: { width: '48%', backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  buttonActive: { backgroundColor: '#0284C7', borderColor: '#0284C7' },
+  buttonText: { color: '#64748B', fontWeight: 'bold', fontSize: 14 },
   buttonTextActive: { color: '#FFFFFF' },
   actionButton: { backgroundColor: '#EF4444', padding: 18, borderRadius: 12, marginTop: 24, alignItems: 'center' },
   actionButtonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 }

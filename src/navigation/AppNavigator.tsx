@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
+import PatientDetailScreen from '../screens/patient/PatientDetailScreen';
 import EvaluationScreen from '../screens/EvaluationScreen';
 import CameraCaptureScreen from '../screens/CameraCaptureScreen';
 import VideoEditScreen from '../screens/VideoEditScreen';
@@ -14,6 +15,15 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // Fluxo interno da aba de Avaliação de Marcha (Avaliação -> Câmera -> Edição)
+function PacientesStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="PacientesHome" component={HomeScreen} />
+      <Stack.Screen name="PatientDetail" component={PatientDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
 function EvaluationStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -40,14 +50,13 @@ export default function AppNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#1E293B' },
-        headerTintColor: '#F8FAFC',
-        tabBarStyle: { backgroundColor: '#1E293B', borderTopColor: '#334155' },
-        tabBarActiveTintColor: '#38BDF8',
+        headerShown: false,
+        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: '#E2E8F0' },
+        tabBarActiveTintColor: '#0284C7',
         tabBarInactiveTintColor: '#94A3B8',
       }}
     >
-      <Tab.Screen name="Pacientes" component={HomeScreen} options={{ title: 'Histórico' }} />
+      <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: 'Histórico' }} />
       <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: 'Postural' }} />
       <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha' }} />
     </Tab.Navigator>

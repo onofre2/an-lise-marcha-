@@ -87,17 +87,17 @@ export default function PosturalHomeScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#94A3B8', marginTop: 20, marginBottom: 12 },
-  card: { backgroundColor: '#1E293B', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#334155' },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
+  card: { backgroundColor: '#FFFFFF', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
   alertText: { color: '#EF4444', fontSize: 14, textAlign: 'center' },
-  item: { padding: 12, borderRadius: 8, marginBottom: 6, backgroundColor: '#0F172A' },
+  item: { padding: 12, borderRadius: 8, marginBottom: 6, backgroundColor: '#F8FAFC' },
   itemAtivo: { backgroundColor: '#0284C7' },
-  itemText: { color: '#94A3B8', fontWeight: 'bold', fontSize: 14 },
+  itemText: { color: '#64748B', fontWeight: 'bold', fontSize: 14 },
   itemTextAtivo: { color: '#FFFFFF' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  botaoGrid: { width: '48%', backgroundColor: '#1E293B', padding: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#334155' },
+  botaoGrid: { width: '48%', backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
   btnIniciar: { backgroundColor: '#10B981', padding: 18, borderRadius: 12, marginTop: 24, alignItems: 'center' },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });

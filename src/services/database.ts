@@ -11,8 +11,16 @@ export const initDatabase = () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT NOT NULL,
         idade INTEGER,
+        data_nascimento TEXT,
+        sexo TEXT,
         data_cadastro TEXT NOT NULL,
-        observacoes TEXT
+        observacoes TEXT,
+        diagnostico TEXT,
+        historico_medico TEXT,
+        anotacoes_clinicas TEXT,
+        conclusao_clinica TEXT,
+        objetivos_terapeuticos TEXT,
+        foto_uri TEXT
       );
     `);
 

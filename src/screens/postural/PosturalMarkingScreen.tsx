@@ -91,16 +91,16 @@ function MarcadorArrastavel({ id, ponto, onMove }: { id: string; ponto: Ponto; o
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
-  header: { padding: 16, backgroundColor: '#1E293B', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerText: { color: '#F8FAFC', fontWeight: 'bold', fontSize: 15, flex: 1 },
-  progresso: { color: '#38BDF8', fontWeight: 'bold', fontSize: 14 },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  header: { padding: 16, backgroundColor: '#FFFFFF', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
+  headerText: { color: '#0F172A', fontWeight: 'bold', fontSize: 15, flex: 1 },
+  progresso: { color: '#0284C7', fontWeight: 'bold', fontSize: 14 },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000' },
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 24, height: 24, borderRadius: 12, backgroundColor: '#EF4444', borderWidth: 2, borderColor: '#FFF' },
-  footer: { flexDirection: 'row', padding: 16, gap: 12 },
-  btnSecundario: { flex: 1, backgroundColor: '#475569', padding: 14, borderRadius: 8, alignItems: 'center' },
-  btnSecundarioText: { color: '#FFF', fontWeight: 'bold' },
+  footer: { flexDirection: 'row', padding: 16, gap: 12, backgroundColor: '#F8FAFC' },
+  btnSecundario: { flex: 1, backgroundColor: '#F1F5F9', padding: 14, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnSecundarioText: { color: '#0F172A', fontWeight: 'bold' },
   btnPrimario: { flex: 2, backgroundColor: '#10B981', padding: 14, borderRadius: 8, alignItems: 'center' },
   btnPrimarioText: { color: '#FFF', fontWeight: 'bold' },
 });

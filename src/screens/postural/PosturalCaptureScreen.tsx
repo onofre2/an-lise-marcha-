@@ -64,10 +64,10 @@ const styles = StyleSheet.create({
   btn: { backgroundColor: '#0284C7', padding: 14, borderRadius: 8, alignSelf: 'center' },
   btnText: { color: '#FFF', fontWeight: 'bold' },
   overlay: { flex: 1, justifyContent: 'space-between', padding: 20 },
-  header: { backgroundColor: 'rgba(15,23,42,0.8)', padding: 12, borderRadius: 8, marginTop: 10, alignSelf: 'center' },
-  headerText: { color: '#38BDF8', fontWeight: 'bold', fontSize: 14 },
+  header: { backgroundColor: 'rgba(248,250,252,0.92)', padding: 12, borderRadius: 8, marginTop: 10, alignSelf: 'center' },
+  headerText: { color: '#0284C7', fontWeight: 'bold', fontSize: 14 },
   guideBox: { borderStyle: 'dashed', borderWidth: 2, borderColor: '#10B981', borderRadius: 12, flex: 1, marginVertical: 20 },
-  guideText: { color: '#10B981', textAlign: 'center', marginTop: 10, fontWeight: 'bold' },
+  guideText: { color: '#FFFFFF', textAlign: 'center', marginTop: 10, fontWeight: 'bold', textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 4 },
   captureButton: { width: 74, height: 74, borderRadius: 37, backgroundColor: 'rgba(255,255,255,0.3)', justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: '#FFF', alignSelf: 'center', marginBottom: 20 },
   captureInner: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#10B981' },
 });
