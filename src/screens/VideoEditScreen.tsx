@@ -1,66 +1,72 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView } from 'react-native';
 import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import db from '../services/database';
+import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
+import { calcularFase, Ponto, PontosFase } from '../services/marchaCalculations';
 
-interface Ponto { x: number; y: number; }
-
-const VIDEO_HEIGHT = Dimensions.get('window').height * 0.4;
+const VIDEO_HEIGHT = Dimensions.get('window').height * 0.38;
 
 export default function VideoEditScreen({ route, navigation }: any) {
   const { videoUri, pacienteId, angulo } = route.params as {
     videoUri: string; pacienteId: number; angulo: string;
   };
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [rate, setRate] = useState(1.0);
-  const [pontos, setPontos] = useState<Ponto[]>([]);
-
   const videoRef = useRef<Video>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [posicao, setPosicao] = useState(0);
+  const [rate, setRate] = useState(1.0);
 
-  const alterarVelocidade = async (velocidade: number) => {
-    setRate(velocidade);
-    if (videoRef.current) {
-      await videoRef.current.setRateAsync(velocidade, true);
+  const [faseIndice, setFaseIndice] = useState(0);
+  const [pontosFaseAtual, setPontosFaseAtual] = useState<PontosFase>({});
+  const [marcacoes, setMarcacoes] = useState<Record<string, PontosFase>>({});
+
+  const fase = FASES_MARCHA[faseIndice];
+  const pontoIndice = Object.keys(pontosFaseAtual).length;
+  const pontoAtual = pontoIndice < PONTOS_FASE.length ? PONTOS_FASE[pontoIndice] : null;
+  const faseCompleta = pontoAtual === null;
+  const todasFasesFeitas = Object.keys(marcacoes).length === FASES_MARCHA.length;
+
+  const onStatusUpdate = (status: AVPlaybackStatus) => {
+    if (status.isLoaded) {
+      setIsPlaying(status.isPlaying);
+      setPosicao(status.positionMillis || 0);
     }
   };
 
   const alternarPlayPause = async () => {
     if (!videoRef.current) return;
-    if (isPlaying) {
-      await videoRef.current.pauseAsync();
-    } else {
-      await videoRef.current.playAsync();
-    }
+    if (isPlaying) await videoRef.current.pauseAsync();
+    else await videoRef.current.playAsync();
   };
 
-  const onStatusUpdate = (status: AVPlaybackStatus) => {
-    if (status.isLoaded) {
-      setIsPlaying(status.isPlaying);
-    }
+  const pular = async (ms: number) => {
+    if (!videoRef.current) return;
+    await videoRef.current.pauseAsync();
+    const nova = Math.max(0, posicao + ms);
+    await videoRef.current.setPositionAsync(nova);
+  };
+
+  const alterarVelocidade = async (v: number) => {
+    setRate(v);
+    if (videoRef.current) await videoRef.current.setRateAsync(v, true);
   };
 
   const marcarPonto = (evt: any) => {
-    if (pontos.length >= 3) return;
+    if (faseCompleta) return;
     const { locationX, locationY } = evt.nativeEvent;
-    setPontos(prev => [...prev, { x: locationX, y: locationY }]);
+    setPontosFaseAtual(prev => ({ ...prev, [pontoAtual!.id]: { x: locationX, y: locationY } }));
   };
 
-  const limparPontos = () => setPontos([]);
+  const limparFase = () => setPontosFaseAtual({});
 
-  const anguloCalculado = (): number | null => {
-    if (pontos.length < 3) return null;
-    const [a, vertice, c] = pontos;
-    const v1x = a.x - vertice.x;
-    const v1y = a.y - vertice.y;
-    const v2x = c.x - vertice.x;
-    const v2y = c.y - vertice.y;
-    const produto = v1x * v2x + v1y * v2y;
-    const mod1 = Math.sqrt(v1x * v1x + v1y * v1y);
-    const mod2 = Math.sqrt(v2x * v2x + v2y * v2y);
-    if (mod1 === 0 || mod2 === 0) return null;
-    const cos = Math.max(-1, Math.min(1, produto / (mod1 * mod2)));
-    return Number((Math.acos(cos) * (180 / Math.PI)).toFixed(1));
+  const confirmarFase = () => {
+    const novas = { ...marcacoes, [fase.id]: pontosFaseAtual };
+    setMarcacoes(novas);
+    setPontosFaseAtual({});
+    if (faseIndice < FASES_MARCHA.length - 1) {
+      setFaseIndice(faseIndice + 1);
+    }
   };
 
   const salvar = () => {
@@ -70,19 +76,19 @@ export default function VideoEditScreen({ route, navigation }: any) {
         'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri) VALUES (?, ?, ?, ?)',
         [pacienteId, angulo, dataHoje, videoUri]
       );
-      Alert.alert('Sucesso', 'Avaliacao de marcha salva no historico do paciente!', [
+      Alert.alert('Sucesso', 'Avaliacao de marcha salva no historico!', [
         { text: 'OK', onPress: () => navigation.navigate('EvaluationHome') },
       ]);
     } catch (error) {
-      console.error('Erro ao salvar avaliacao de marcha:', error);
+      console.error('Erro ao salvar marcha:', error);
       Alert.alert('Erro', 'Nao foi possivel salvar a avaliacao.');
     }
   };
 
-  const ang = anguloCalculado();
+  const segundos = (posicao / 1000).toFixed(1);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.videoContainer}>
         <Video
           ref={videoRef}
@@ -94,77 +100,147 @@ export default function VideoEditScreen({ route, navigation }: any) {
           onPlaybackStatusUpdate={onStatusUpdate}
         />
         <TouchableOpacity activeOpacity={1} style={styles.overlay} onPress={marcarPonto}>
-          {!isPlaying && pontos.length === 0 && <Text style={styles.playIcon}>Toque para marcar</Text>}
-          {pontos.length >= 2 && <Linha a={pontos[1]} b={pontos[0]} />}
-          {pontos.length >= 3 && <Linha a={pontos[1]} b={pontos[2]} />}
-          {pontos.map((p, i) => (
-            <View key={i} style={[styles.marcador, { left: p.x - 8, top: p.y - 8 }]} />
+          {Object.entries(pontosFaseAtual).map(([id, p]) => (
+            <View key={id} style={[styles.marcador, { left: p.x - 8, top: p.y - 8 }]} />
           ))}
+          <Segmentos pontos={pontosFaseAtual} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.rowBetween}>
-        <TouchableOpacity style={styles.btnPlay} onPress={alternarPlayPause}>
-          <Text style={styles.btnPlayText}>{isPlaying ? 'Pausar' : 'Reproduzir'}</Text>
+      <View style={styles.controles}>
+        <TouchableOpacity style={styles.btnCtrl} onPress={() => pular(-100)}>
+          <Text style={styles.btnCtrlText}>-0,1s</Text>
         </TouchableOpacity>
-        {ang !== null && (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{ang} graus</Text>
+        <TouchableOpacity style={styles.btnCtrl} onPress={alternarPlayPause}>
+          <Text style={styles.btnCtrlText}>{isPlaying ? 'Pausar' : 'Play'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.btnCtrl} onPress={() => pular(100)}>
+          <Text style={styles.btnCtrlText}>+0,1s</Text>
+        </TouchableOpacity>
+        <View style={styles.tempo}><Text style={styles.tempoText}>{segundos}s</Text></View>
+      </View>
+
+      <View style={styles.rowVel}>
+        {[1.0, 0.5, 0.3].map(v => (
+          <TouchableOpacity key={v} style={[styles.btnVel, rate === v && styles.btnVelAtivo]} onPress={() => alterarVelocidade(v)}>
+            <Text style={[styles.btnVelText, rate === v && styles.btnVelTextAtivo]}>{v === 1.0 ? '1x' : v === 0.5 ? '2x Lento' : '3x Lento'}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {!todasFasesFeitas ? (
+        <View style={styles.cardFase}>
+          <Text style={styles.faseNome}>{fase.nome}</Text>
+          <Text style={styles.faseDesc}>{fase.descricao}</Text>
+          {pontoAtual ? (
+            <Text style={styles.instrucao}>Avance ate a fase e toque em: {pontoAtual.nome}</Text>
+          ) : (
+            <Text style={styles.instrucao}>Todos os pontos marcados nesta fase.</Text>
+          )}
+          <View style={styles.badgeProgresso}>
+            <Text style={styles.badgeProgressoText}>{pontoIndice}/{PONTOS_FASE.length} pontos</Text>
           </View>
-        )}
-      </View>
-
-      <Text style={styles.label}>Velocidade da Marcha</Text>
-      <View style={styles.row}>
-        <TouchableOpacity style={[styles.btnMin, rate === 1.0 && styles.activeBtn]} onPress={() => alterarVelocidade(1.0)}>
-          <Text style={[styles.btnText, rate === 1.0 && styles.activeBtnText]}>1x</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.btnMin, rate === 0.5 && styles.activeBtn]} onPress={() => alterarVelocidade(0.5)}>
-          <Text style={[styles.btnText, rate === 0.5 && styles.activeBtnText]}>2x Lento</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.btnMin, rate === 0.3 && styles.activeBtn]} onPress={() => alterarVelocidade(0.3)}>
-          <Text style={[styles.btnText, rate === 0.3 && styles.activeBtnText]}>3x Lento</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.label}>Marcacao ({pontos.length}/3 pontos)</Text>
-      <TouchableOpacity style={styles.btnLimpar} onPress={limparPontos}>
-        <Text style={styles.btnText}>Limpar Marcacao</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.captureButton} onPress={salvar}>
-        <Text style={styles.captureText}>Salvar no Historico do Paciente</Text>
-      </TouchableOpacity>
-    </View>
+          <View style={styles.rowBtns}>
+            <TouchableOpacity style={styles.btnSec} onPress={limparFase}>
+              <Text style={styles.btnSecText}>Limpar</Text>
+            </TouchableOpacity>
+            {faseCompleta && (
+              <TouchableOpacity style={styles.btnPri} onPress={confirmarFase}>
+                <Text style={styles.btnPriText}>Confirmar Fase</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      ) : (
+        <View>
+          <Text style={styles.tituloResultado}>Resultado por Fase</Text>
+          {FASES_MARCHA.map(f => (
+            <View key={f.id} style={styles.blocoFase}>
+              <Text style={styles.blocoFaseNome}>{f.nome}</Text>
+              {calcularFase(f.id, marcacoes[f.id] || {}).map((r, i) => (
+                <View key={i} style={styles.linhaRes}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.resNome}>{r.nome}</Text>
+                    <Text style={styles.resRef}>Esperado: {r.referencia}</Text>
+                  </View>
+                  <View style={[styles.badge, r.dentroFaixa ? styles.badgeOk : styles.badgeAlerta]}>
+                    <Text style={[styles.badgeText, r.dentroFaixa ? styles.badgeTextOk : styles.badgeTextAlerta]}>{r.valor} graus</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ))}
+          <TouchableOpacity style={styles.btnSalvar} onPress={salvar}>
+            <Text style={styles.btnSalvarText}>Salvar no Historico do Paciente</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </ScrollView>
   );
 }
 
-function Linha({ a, b }: { a: Ponto; b: Ponto }) {
-  const comprimento = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
-  const rot = Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
-  return <View style={[styles.linha, { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: rot + 'deg' }] }]} />;
+function Segmentos({ pontos }: { pontos: PontosFase }) {
+  const pares: [string, string][] = [
+    ['tronco', 'quadril'],
+    ['quadril', 'joelho'],
+    ['joelho', 'tornozelo'],
+    ['tornozelo', 'pe'],
+  ];
+  return (
+    <>
+      {pares.map(([a, b], i) => {
+        const pa = pontos[a];
+        const pb = pontos[b];
+        if (!pa || !pb) return null;
+        const comp = Math.sqrt((pb.x - pa.x) ** 2 + (pb.y - pa.y) ** 2);
+        const rot = Math.atan2(pb.y - pa.y, pb.x - pa.x) * (180 / Math.PI);
+        return <View key={i} style={[styles.linha, { left: pa.x, top: pa.y, width: comp, transform: [{ rotate: rot + 'deg' }] }]} />;
+      })}
+    </>
+  );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  videoContainer: { width: '100%', height: VIDEO_HEIGHT, backgroundColor: '#000', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 12, overflow: 'hidden' },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  content: { padding: 16, paddingBottom: 40 },
+  videoContainer: { width: '100%', height: VIDEO_HEIGHT, backgroundColor: '#000', borderRadius: 14, overflow: 'hidden', marginBottom: 12 },
   video: { width: '100%', height: '100%' },
-  overlay: { position: 'absolute', width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' },
-  playIcon: { fontSize: 16, color: 'rgba(255,255,255,0.85)', fontWeight: 'bold' },
+  overlay: { position: 'absolute', width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF' },
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  btnPlay: { backgroundColor: '#FFFFFF', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0' },
-  btnPlayText: { color: '#0F172A', fontWeight: 'bold', fontSize: 13 },
-  badge: { backgroundColor: '#DCFCE7', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
-  badgeText: { color: '#16A34A', fontWeight: 'bold', fontSize: 14 },
-  label: { fontSize: 14, color: '#64748B', fontWeight: 'bold', marginTop: 12, marginBottom: 8 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  btnMin: { flex: 1, backgroundColor: '#FFFFFF', padding: 10, borderRadius: 8, alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#E2E8F0' },
-  activeBtn: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
-  btnText: { color: '#0F172A', fontSize: 12, fontWeight: 'bold' },
-  activeBtnText: { color: '#FFFFFF' },
-  btnLimpar: { backgroundColor: '#F1F5F9', padding: 12, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
-  captureButton: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 16 },
-  captureText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' }
+  controles: { flexDirection: 'row', gap: 6, marginBottom: 10, alignItems: 'center' },
+  btnCtrl: { flex: 1, backgroundColor: '#FFFFFF', paddingVertical: 11, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnCtrlText: { color: '#0F172A', fontWeight: 'bold', fontSize: 12 },
+  tempo: { backgroundColor: '#F1F5F9', paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10 },
+  tempoText: { color: '#64748B', fontWeight: 'bold', fontSize: 12 },
+  rowVel: { flexDirection: 'row', gap: 6, marginBottom: 16 },
+  btnVel: { flex: 1, backgroundColor: '#FFFFFF', paddingVertical: 10, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnVelAtivo: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
+  btnVelText: { color: '#475569', fontWeight: 'bold', fontSize: 12 },
+  btnVelTextAtivo: { color: '#FFFFFF' },
+  cardFase: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#E2E8F0' },
+  faseNome: { fontSize: 17, fontWeight: 'bold', color: '#0F172A' },
+  faseDesc: { fontSize: 12, color: '#94A3B8', marginTop: 3, marginBottom: 12 },
+  instrucao: { fontSize: 14, color: '#16A34A', fontWeight: '600', marginBottom: 10 },
+  badgeProgresso: { backgroundColor: '#DCFCE7', alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, marginBottom: 14 },
+  badgeProgressoText: { color: '#16A34A', fontWeight: 'bold', fontSize: 12 },
+  rowBtns: { flexDirection: 'row', gap: 10 },
+  btnSec: { flex: 1, backgroundColor: '#F1F5F9', padding: 13, borderRadius: 11, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnSecText: { color: '#0F172A', fontWeight: 'bold', fontSize: 13 },
+  btnPri: { flex: 2, backgroundColor: '#22C55E', padding: 13, borderRadius: 11, alignItems: 'center' },
+  btnPriText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },
+  tituloResultado: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
+  blocoFase: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 12 },
+  blocoFaseNome: { fontSize: 14, fontWeight: 'bold', color: '#0F172A', marginBottom: 10 },
+  linhaRes: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderTopWidth: 1, borderTopColor: '#F1F5F9' },
+  resNome: { fontSize: 13, color: '#334155', fontWeight: '600' },
+  resRef: { fontSize: 11, color: '#94A3B8', marginTop: 1 },
+  badge: { paddingHorizontal: 11, paddingVertical: 5, borderRadius: 20, minWidth: 74, alignItems: 'center' },
+  badgeOk: { backgroundColor: '#DCFCE7' },
+  badgeAlerta: { backgroundColor: '#FEF3C7' },
+  badgeText: { fontWeight: 'bold', fontSize: 12 },
+  badgeTextOk: { color: '#16A34A' },
+  badgeTextAlerta: { color: '#D97706' },
+  btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 6 },
+  btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 },
 });
