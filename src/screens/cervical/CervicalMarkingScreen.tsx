@@ -5,6 +5,7 @@ interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.62;
 const PONTOS_SEQUENCIA = [
+  { id: 'c7', nome: 'Processo Espinhoso de C7' },
   { id: 'trago', nome: 'Trago (orelha)' },
   { id: 'acromio', nome: 'Acrômio (ombro)' },
 ];
