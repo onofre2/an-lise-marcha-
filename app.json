@@ -13,7 +13,7 @@
       "adaptiveIcon": {
         "backgroundColor": "#F8FAFC"
       },
-      "package": "com.seuusuario.analisemarcha",
+      "package": "com.fisionofre.posturalglobal",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
