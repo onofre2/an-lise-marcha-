@@ -53,11 +53,13 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         <Text style={styles.semDados}>Nenhum desajuste calculável com os pontos marcados.</Text>
       ) : (
         desajustes.map((d, i) => (
-          <View key={i} style={[styles.card, d.alerta && styles.cardAlerta]}>
+          <View key={i} style={styles.card}>
             <Text style={styles.cardLabel}>{d.label}</Text>
-            <Text style={[styles.cardValor, d.alerta && styles.cardValorAlerta]}>
-              {d.valor}{d.unidade} {d.alerta ? '⚠️' : '✓'}
-            </Text>
+            <View style={[styles.badge, d.alerta ? styles.badgeAlerta : styles.badgeOk]}>
+              <Text style={[styles.badgeText, d.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+                {d.valor}{d.unidade}
+              </Text>
+            </View>
           </View>
         ))
       )}
@@ -86,17 +88,20 @@ function LinhaSegmento({ a, b }: { a: Ponto; b: Ponto }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 16, paddingBottom: 40 },
-  imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 12, overflow: 'hidden', marginBottom: 20 },
+  imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   image: { width: '100%', height: '100%' },
-  marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#EF4444', borderWidth: 1, borderColor: '#FFF' },
-  linha: { position: 'absolute', height: 2, backgroundColor: '#0284C7', transformOrigin: 'left' },
+  marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
+  linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
-  card: { backgroundColor: '#FFFFFF', padding: 14, borderRadius: 10, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardAlerta: { borderColor: '#F59E0B' },
-  cardLabel: { color: '#0F172A', fontSize: 14, flex: 1 },
-  cardValor: { color: '#10B981', fontWeight: 'bold', fontSize: 15 },
-  cardValorAlerta: { color: '#F59E0B' },
-  btnSalvar: { backgroundColor: '#0284C7', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10 },
+  card: { backgroundColor: '#FFFFFF', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  cardLabel: { color: '#334155', fontSize: 14, flex: 1, fontWeight: '500' },
+  badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, minWidth: 56, alignItems: 'center' },
+  badgeOk: { backgroundColor: '#DCFCE7' },
+  badgeAlerta: { backgroundColor: '#FEF3C7' },
+  badgeText: { fontWeight: 'bold', fontSize: 13 },
+  badgeTextOk: { color: '#16A34A' },
+  badgeTextAlerta: { color: '#D97706' },
+  btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10, shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });

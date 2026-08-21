@@ -9,7 +9,6 @@ export default function PosturalHomeScreen({ navigation }: any) {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [pacienteSelecionado, setPacienteSelecionado] = useState<number | null>(null);
   const [vistaSelecionada, setVistaSelecionada] = useState<Vista | null>(null);
-  const [modo, setModo] = useState<'rapida' | 'completa'>('rapida');
 
   useEffect(() => {
     try {
@@ -32,7 +31,7 @@ export default function PosturalHomeScreen({ navigation }: any) {
       Alert.alert('Atenção', 'Selecione o paciente e a vista antes de continuar.');
       return;
     }
-    navigation.navigate('PosturalCapture', { pacienteId: pacienteSelecionado, vista: vistaSelecionada, modo });
+    navigation.navigate('PosturalCapture', { pacienteId: pacienteSelecionado, vista: vistaSelecionada, modo: 'completa' });
   };
 
   return (
@@ -59,22 +58,12 @@ export default function PosturalHomeScreen({ navigation }: any) {
         {vistas.map((v) => (
           <TouchableOpacity
             key={v.id}
-            style={[styles.botaoGrid, vistaSelecionada === v.id && styles.itemAtivo]}
+            style={[styles.botaoGrid, vistaSelecionada === v.id && styles.botaoGridAtivo]}
             onPress={() => setVistaSelecionada(v.id)}
           >
             <Text style={[styles.itemText, vistaSelecionada === v.id && styles.itemTextAtivo]}>{v.label}</Text>
           </TouchableOpacity>
         ))}
-      </View>
-
-      <Text style={styles.sectionTitle}>3. Modo de Análise</Text>
-      <View style={styles.grid}>
-        <TouchableOpacity style={[styles.botaoGrid, modo === 'rapida' && styles.itemAtivo]} onPress={() => setModo('rapida')}>
-          <Text style={[styles.itemText, modo === 'rapida' && styles.itemTextAtivo]}>Análise Rápida</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.botaoGrid, modo === 'completa' && styles.itemAtivo]} onPress={() => setModo('completa')}>
-          <Text style={[styles.itemText, modo === 'completa' && styles.itemTextAtivo]}>Postura Completa</Text>
-        </TouchableOpacity>
       </View>
 
       {pacienteSelecionado && vistaSelecionada && (
@@ -90,14 +79,15 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 20, paddingBottom: 40 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
-  card: { backgroundColor: '#FFFFFF', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+  card: { backgroundColor: '#FFFFFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   alertText: { color: '#EF4444', fontSize: 14, textAlign: 'center' },
-  item: { padding: 12, borderRadius: 8, marginBottom: 6, backgroundColor: '#F8FAFC' },
-  itemAtivo: { backgroundColor: '#0284C7' },
-  itemText: { color: '#64748B', fontWeight: 'bold', fontSize: 14 },
+  item: { padding: 14, borderRadius: 10, marginBottom: 6, backgroundColor: '#F8FAFC' },
+  itemAtivo: { backgroundColor: '#22C55E' },
+  itemText: { color: '#475569', fontWeight: '600', fontSize: 14 },
   itemTextAtivo: { color: '#FFFFFF' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  botaoGrid: { width: '48%', backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
-  btnIniciar: { backgroundColor: '#10B981', padding: 18, borderRadius: 12, marginTop: 24, alignItems: 'center' },
+  botaoGrid: { width: '48%', backgroundColor: '#FFFFFF', padding: 18, borderRadius: 16, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  botaoGridAtivo: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
+  btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 24, alignItems: 'center', shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });

@@ -46,7 +46,9 @@ export default function PosturalMarkingScreen({ route, navigation }: any) {
         ) : (
           <Text style={styles.headerText}>Ajuste os pontos se necessário</Text>
         )}
-        <Text style={styles.progresso}>{Object.keys(pontosMarcados).length}/{pontosSequencia.length}</Text>
+        <View style={styles.progressoBadge}>
+          <Text style={styles.progresso}>{Object.keys(pontosMarcados).length}/{pontosSequencia.length}</Text>
+        </View>
       </View>
 
       <TouchableOpacity activeOpacity={1} onPress={handleImagePress} style={styles.imageContainer}>
@@ -94,13 +96,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   header: { padding: 16, backgroundColor: '#FFFFFF', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
   headerText: { color: '#0F172A', fontWeight: 'bold', fontSize: 15, flex: 1 },
-  progresso: { color: '#0284C7', fontWeight: 'bold', fontSize: 14 },
+  progressoBadge: { backgroundColor: '#DCFCE7', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  progresso: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000' },
   image: { width: '100%', height: '100%' },
-  marcador: { position: 'absolute', width: 24, height: 24, borderRadius: 12, backgroundColor: '#EF4444', borderWidth: 2, borderColor: '#FFF' },
+  marcador: { position: 'absolute', width: 24, height: 24, borderRadius: 12, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF' },
   footer: { flexDirection: 'row', padding: 16, gap: 12, backgroundColor: '#F8FAFC' },
-  btnSecundario: { flex: 1, backgroundColor: '#F1F5F9', padding: 14, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnSecundario: { flex: 1, backgroundColor: '#F1F5F9', padding: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
   btnSecundarioText: { color: '#0F172A', fontWeight: 'bold' },
-  btnPrimario: { flex: 2, backgroundColor: '#10B981', padding: 14, borderRadius: 8, alignItems: 'center' },
+  btnPrimario: { flex: 2, backgroundColor: '#22C55E', padding: 14, borderRadius: 12, alignItems: 'center' },
   btnPrimarioText: { color: '#FFF', fontWeight: 'bold' },
 });
