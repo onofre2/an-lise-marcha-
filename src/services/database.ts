@@ -52,6 +52,19 @@ export const initDatabase = () => {
       );
     `);
 
+    // Criação da tabela de Avaliações Cervicais (ângulo do pescoço)
+    db.execSync(`
+      CREATE TABLE IF NOT EXISTS avaliacoes_cervicais (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_paciente INTEGER NOT NULL,
+        data_avaliacao TEXT NOT NULL,
+        foto_uri TEXT NOT NULL,
+        pontos_json TEXT NOT NULL,
+        angulo REAL NOT NULL,
+        FOREIGN KEY (id_paciente) REFERENCES pacientes (id) ON DELETE CASCADE
+      );
+    `);
+
     console.log("Banco de dados inicializado com sucesso!");
   } catch (error) {
     console.error("Erro ao inicializar o banco de dados:", error);

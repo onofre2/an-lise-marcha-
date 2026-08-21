@@ -10,6 +10,10 @@ import PosturalHomeScreen from '../screens/postural/PosturalHomeScreen';
 import PosturalCaptureScreen from '../screens/postural/PosturalCaptureScreen';
 import PosturalMarkingScreen from '../screens/postural/PosturalMarkingScreen';
 import PosturalResultScreen from '../screens/postural/PosturalResultScreen';
+import CervicalHomeScreen from '../screens/cervical/CervicalHomeScreen';
+import CervicalCaptureScreen from '../screens/cervical/CervicalCaptureScreen';
+import CervicalMarkingScreen from '../screens/cervical/CervicalMarkingScreen';
+import CervicalResultScreen from '../screens/cervical/CervicalResultScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -46,6 +50,18 @@ function PosturalStack() {
   );
 }
 
+// Fluxo interno da aba de Avaliação Cervical (Início -> Câmera -> Marcação -> Resultado)
+function CervicalStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="CervicalHome" component={CervicalHomeScreen} />
+      <Stack.Screen name="CervicalCapture" component={CervicalCaptureScreen} />
+      <Stack.Screen name="CervicalMarking" component={CervicalMarkingScreen} />
+      <Stack.Screen name="CervicalResult" component={CervicalResultScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export default function AppNavigator() {
   return (
     <Tab.Navigator
@@ -58,6 +74,7 @@ export default function AppNavigator() {
     >
       <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: 'Histórico' }} />
       <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: 'Postural' }} />
+      <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical' }} />
       <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha' }} />
     </Tab.Navigator>
   );
