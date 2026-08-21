@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import db from '../../services/database';
+import { gerarRelatorioCompleto } from '../../services/pdfService';
 
 interface Paciente {
   id: number;
@@ -232,6 +233,16 @@ export default function PatientDetailScreen() {
           </TouchableOpacity>
         </View>
 
+        <TouchableOpacity style={styles.btnPdf} onPress={async () => {
+          try {
+            await gerarRelatorioCompleto(paciente.id);
+          } catch (e) {
+            Alert.alert('Erro', 'Nao foi possivel gerar o relatorio.');
+          }
+        }}>
+          <Text style={styles.btnPdfText}>Gerar Relatorio PDF</Text>
+        </TouchableOpacity>
+
         {(paciente.diagnostico || paciente.historico_medico) ? (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Informações Clínicas</Text>
@@ -361,6 +372,8 @@ const styles = StyleSheet.create({
   nome: { fontSize: 20, fontWeight: 'bold', color: '#0F172A' },
   subInfo: { fontSize: 14, color: '#64748B', marginTop: 2 },
   cadastroInfo: { fontSize: 12, color: '#94A3B8', marginTop: 8 },
+  btnPdf: { backgroundColor: '#22C55E', marginHorizontal: 20, marginBottom: 16, padding: 15, borderRadius: 14, alignItems: 'center' },
+  btnPdfText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 },
   actionsRow: { flexDirection: 'row', paddingHorizontal: 20, marginTop: 12, gap: 8 },
   actionBtn: { flex: 1, backgroundColor: '#0284C7', paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
   actionBtnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 13 },

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dim
 import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes } from '../../services/posturalCalculations';
 import db from '../../services/database';
+import { gerarRelatorioPostural } from '../../services/pdfService';
 
 interface Ponto { x: number; y: number; }
 
@@ -24,8 +25,20 @@ export default function PosturalResultScreen({ route, navigation }: any) {
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [pacienteId, vista, modo, dataHoje, fotoUri, JSON.stringify(pontos), JSON.stringify(desajustes)]
       );
-      Alert.alert('Sucesso', 'Avaliação postural salva no histórico do paciente!', [
-        { text: 'OK', onPress: () => navigation.navigate('PosturalHome') },
+      const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+      Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
+        { text: 'Agora nao', onPress: () => navigation.navigate('PosturalHome') },
+        {
+          text: 'Gerar PDF',
+          onPress: async () => {
+            try {
+              await gerarRelatorioPostural(nova.id);
+            } catch (e) {
+              Alert.alert('Erro', 'Nao foi possivel gerar o PDF.');
+            }
+            navigation.navigate('PosturalHome');
+          },
+        },
       ]);
     } catch (error) {
       console.error('Erro ao salvar avaliação postural:', error);

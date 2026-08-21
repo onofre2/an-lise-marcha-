@@ -37,7 +37,8 @@
           "cameraPermission": "Permita o acesso à câmera para realizar as avaliações posturais e de marcha."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-sharing"
     ],
     "extra": {
       "eas": {
