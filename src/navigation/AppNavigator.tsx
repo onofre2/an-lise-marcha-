@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
@@ -88,11 +89,11 @@ export default function AppNavigator() {
         tabBarInactiveTintColor: '#94A3B8',
       }}
     >
-      <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: 'Histórico' }} />
-      <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: 'Postural' }} />
-      <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical' }} />
-      <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: 'ADM' }} />
-      <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha' }} />
+      <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: 'Histórico', tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} /> }} />
+      <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: 'Postural', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="human-handsdown" size={size} color={color} /> }} />
+      <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="human" size={size} color={color} /> }} />
+      <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: 'ADM', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="angle-acute" size={size} color={color} /> }} />
+      <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="walk" size={size} color={color} /> }} />
     </Tab.Navigator>
   );
 }
