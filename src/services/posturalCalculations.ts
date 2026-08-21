@@ -1,6 +1,11 @@
 // Cálculos de desvios posturais baseados no protocolo SAPO (Duarte et al., 2005)
 // Índices de simetria de tronco POTSI/ATSI adaptados de Suzuki et al. (1999)
 
+// Limiar de alerta para alinhamentos (graus).
+// Base: obliquidade de ombro em postura normal 1,9 +/- 1,4 graus (2 desvios-padrao = ~4,7)
+// e limite de 5 graus adotado na medicao com escoliometro.
+const LIMIAR_ALINHAMENTO = 5;
+
 interface Ponto { x: number; y: number; }
 type Pontos = Record<string, Ponto>;
 
@@ -81,15 +86,15 @@ function calcularAnterior(p: Pontos): Desajuste[] {
 
   if (p.trago_d && p.trago_e) {
     const ang = anguloComHorizontal(p.trago_d, p.trago_e);
-    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > 3 });
+    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
   }
   if (p.acromio_d && p.acromio_e) {
     const ang = anguloComHorizontal(p.acromio_d, p.acromio_e);
-    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > 3 });
+    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
   }
   if (p.eias_d && p.eias_e) {
     const ang = anguloComHorizontal(p.eias_d, p.eias_e);
-    resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > 3 });
+    resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
   }
 
   const atsi = calcularATSI(p);
@@ -103,15 +108,15 @@ function calcularPosterior(p: Pontos): Desajuste[] {
 
   if (p.trago_d && p.trago_e) {
     const ang = anguloComHorizontal(p.trago_d, p.trago_e);
-    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > 3 });
+    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
   }
   if (p.acromio_d && p.acromio_e) {
     const ang = anguloComHorizontal(p.acromio_d, p.acromio_e);
-    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > 3 });
+    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
   }
   if (p.eips_d && p.eips_e) {
     const ang = anguloComHorizontal(p.eips_d, p.eips_e);
-    resultado.push({ label: 'Alinhamento da Pelve (EIPS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > 3 });
+    resultado.push({ label: 'Alinhamento da Pelve (EIPS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
   }
   if (p.c7 && p.acromio_d && p.acromio_e) {
     const centroOmbros = { x: (p.acromio_d.x + p.acromio_e.x) / 2, y: (p.acromio_d.y + p.acromio_e.y) / 2 };
