@@ -121,7 +121,9 @@ function calcularPosterior(p: Pontos): Desajuste[] {
   if (p.c7 && p.acromio_d && p.acromio_e) {
     const centroOmbros = { x: (p.acromio_d.x + p.acromio_e.x) / 2, y: (p.acromio_d.y + p.acromio_e.y) / 2 };
     const desvio = Math.abs(p.c7.x - centroOmbros.x);
-    resultado.push({ label: 'Desvio Lateral da Coluna (C7)', valor: Number(desvio.toFixed(1)), unidade: 'px', alerta: desvio > 15 });
+    const larguraOmbros = distancia(p.acromio_d, p.acromio_e);
+    const desvioRel = larguraOmbros > 0 ? (desvio / larguraOmbros) * 100 : 0;
+    resultado.push({ label: 'Desvio Lateral da Coluna (C7)', valor: Number(desvioRel.toFixed(1)), unidade: '% da largura dos ombros', alerta: desvioRel > 5 });
   }
 
   const potsi = calcularPOTSI(p);
@@ -138,9 +140,17 @@ function calcularLateral(p: Pontos): Desajuste[] {
     const dxAcromio = p.acromio.x - p.maleolo.x;
     const dxTrocanter = p.trocanter.x - p.maleolo.x;
 
-    resultado.push({ label: 'Desvio da Cabeça (linha de prumo)', valor: Number(dxTrago.toFixed(1)), unidade: 'px', alerta: Math.abs(dxTrago) > 20 });
-    resultado.push({ label: 'Desvio do Ombro (linha de prumo)', valor: Number(dxAcromio.toFixed(1)), unidade: 'px', alerta: Math.abs(dxAcromio) > 20 });
-    resultado.push({ label: 'Desvio do Quadril (linha de prumo)', valor: Number(dxTrocanter.toFixed(1)), unidade: 'px', alerta: Math.abs(dxTrocanter) > 20 });
+    // Referencia de escala da propria foto: altura do acromio ao maleolo
+    const alturaCorpo = Math.abs(p.maleolo.y - p.acromio.y);
+    const rel = (v: number) => alturaCorpo > 0 ? Number(((v / alturaCorpo) * 100).toFixed(1)) : 0;
+
+    const relTrago = rel(dxTrago);
+    const relAcromio = rel(dxAcromio);
+    const relTrocanter = rel(dxTrocanter);
+
+    resultado.push({ label: 'Desvio da Cabeça (linha de prumo)', valor: relTrago, unidade: '% da altura', alerta: Math.abs(relTrago) > 4 });
+    resultado.push({ label: 'Desvio do Ombro (linha de prumo)', valor: relAcromio, unidade: '% da altura', alerta: Math.abs(relAcromio) > 4 });
+    resultado.push({ label: 'Desvio do Quadril (linha de prumo)', valor: relTrocanter, unidade: '% da altura', alerta: Math.abs(relTrocanter) > 4 });
   }
 
   return resultado;
