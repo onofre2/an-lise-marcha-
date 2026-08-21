@@ -14,6 +14,10 @@ import CervicalHomeScreen from '../screens/cervical/CervicalHomeScreen';
 import CervicalCaptureScreen from '../screens/cervical/CervicalCaptureScreen';
 import CervicalMarkingScreen from '../screens/cervical/CervicalMarkingScreen';
 import CervicalResultScreen from '../screens/cervical/CervicalResultScreen';
+import ADMHomeScreen from '../screens/adm/ADMHomeScreen';
+import ADMCaptureScreen from '../screens/adm/ADMCaptureScreen';
+import ADMMarkingScreen from '../screens/adm/ADMMarkingScreen';
+import ADMResultScreen from '../screens/adm/ADMResultScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -62,6 +66,18 @@ function CervicalStack() {
   );
 }
 
+// Fluxo interno da aba de Amplitude de Movimento
+function ADMStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ADMHome" component={ADMHomeScreen} />
+      <Stack.Screen name="ADMCapture" component={ADMCaptureScreen} />
+      <Stack.Screen name="ADMMarking" component={ADMMarkingScreen} />
+      <Stack.Screen name="ADMResult" component={ADMResultScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export default function AppNavigator() {
   return (
     <Tab.Navigator
@@ -75,6 +91,7 @@ export default function AppNavigator() {
       <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: 'Histórico' }} />
       <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: 'Postural' }} />
       <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical' }} />
+      <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: 'ADM' }} />
       <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha' }} />
     </Tab.Navigator>
   );

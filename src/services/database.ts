@@ -65,6 +65,21 @@ export const initDatabase = () => {
       );
     `);
 
+    // Criação da tabela de Avaliações de Amplitude de Movimento (ADM)
+    db.execSync(`
+      CREATE TABLE IF NOT EXISTS avaliacoes_adm (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_paciente INTEGER NOT NULL,
+        movimento TEXT NOT NULL,
+        data_avaliacao TEXT NOT NULL,
+        foto_uri TEXT NOT NULL,
+        pontos_json TEXT NOT NULL,
+        angulo REAL NOT NULL,
+        referencia REAL NOT NULL,
+        FOREIGN KEY (id_paciente) REFERENCES pacientes (id) ON DELETE CASCADE
+      );
+    `);
+
     console.log("Banco de dados inicializado com sucesso!");
   } catch (error) {
     console.error("Erro ao inicializar o banco de dados:", error);
