@@ -3,6 +3,7 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import db from './database';
+import { diagramaAmplitude, diagramaAlinhamento } from './diagramaSvg';
 
 interface Paciente {
   id: number;
@@ -36,6 +37,8 @@ const ESTILO = `
     .ok { color: #16A34A; font-weight: bold; }
     .alerta { color: #D97706; font-weight: bold; }
     .bloco { background: #F8FAFC; border-left: 3px solid #22C55E; padding: 10px 14px; margin: 10px 0; font-size: 12px; }
+    .diagramas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .diagrama { border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px; background: #FFFFFF; }
     .rodape { margin-top: 34px; font-size: 10px; color: #94A3B8; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 12px; }
   </style>
 `;
@@ -67,6 +70,16 @@ function tabelaMedidas(medidas: Medida[]): string {
   return `<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>${linhas}</table>`;
 }
 
+// Gera diagramas visuais para as medidas expressas em graus
+function diagramasMedidas(medidas: Medida[]): string {
+  if (!medidas || medidas.length === 0) return '';
+  const svgs = medidas
+    .filter(m => m.unidade === '\u00b0')
+    .map(m => '<div class="diagrama">' + diagramaAlinhamento(m.label, m.valor, 5) + '</div>')
+    .join('');
+  return svgs ? '<div class="diagramas">' + svgs + '</div>' : '';
+}
+
 function rodape(): string {
   return '<div class="rodape">Relatorio gerado pelo aplicativo Analise Marcha. Documento de apoio clinico, nao substitui avaliacao presencial.</div>';
 }
@@ -92,6 +105,7 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
       ${cabecalho(p, 'Relatorio de Avaliacao Postural')}
       <h2>Avaliacao ${av.vista.replace('_', ' ')} - ${av.data_avaliacao}</h2>
       ${tabelaMedidas(medidas)}
+      ${diagramasMedidas(medidas)}
       ${rodape()}
     </body></html>
   `;
@@ -124,6 +138,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       const medidas: Medida[] = av.medidas_json ? JSON.parse(av.medidas_json) : [];
       corpo += `<div class="bloco"><b>${av.vista.replace('_', ' ')}</b> - ${av.data_avaliacao}</div>`;
       corpo += tabelaMedidas(medidas);
+      corpo += diagramasMedidas(medidas);
     });
   }
 
@@ -143,6 +158,11 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.movimento}</td><td>${av.angulo} graus</td><td>${av.referencia} graus</td><td class="${deficit > 10 ? 'alerta' : 'ok'}">${deficit} graus</td></tr>`;
     });
     corpo += '</table>';
+    corpo += '<div class="diagramas">';
+    adms.forEach(av => {
+      corpo += '<div class="diagrama">' + diagramaAmplitude(av.movimento, av.angulo, av.referencia) + '</div>';
+    });
+    corpo += '</div>';
   }
 
   if (marchas.length > 0) {
