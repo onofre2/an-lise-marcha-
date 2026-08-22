@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking } from 'react-native';
 import db from '../services/database';
 import { useNavigation } from '@react-navigation/native';
 
@@ -160,12 +160,14 @@ export default function HomeScreen() {
           <Text style={styles.subEmptyText}>
             {busca.trim() ? 'Tente outro termo de busca.' : 'Toque no botão abaixo para adicionar.'}
           </Text>
+          <AssinaturaCriador />
         </View>
       ) : (
         <FlatList
           data={pacientesExibidos}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ paddingBottom: 100 }}
+          ListFooterComponent={<AssinaturaCriador />}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.card}
@@ -312,7 +314,28 @@ export default function HomeScreen() {
   );
 }
 
+function AssinaturaCriador() {
+  return (
+    <View style={styles.assinatura}>
+      <Image source={require('../../assets/marca/criador.png')} style={styles.assinaturaImg} resizeMode="contain" />
+      <Text style={styles.assinaturaApp}>Analise Marcha</Text>
+      <Text style={styles.assinaturaAutor}>Desenvolvido por @fisionofre</Text>
+      <TouchableOpacity onPress={() => Linking.openURL('mailto:jrferreiraa22@gmail.com')}>
+        <Text style={styles.assinaturaLink}>jrferreiraa22@gmail.com</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => Linking.openURL('tel:+5532984143217')}>
+        <Text style={styles.assinaturaLink}>(32) 98414-3217</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  assinatura: { alignItems: 'center', paddingVertical: 28, marginTop: 20, borderTopWidth: 1, borderTopColor: '#E2E8F0' },
+  assinaturaImg: { width: 88, height: 132, marginBottom: 10 },
+  assinaturaApp: { fontSize: 15, fontWeight: 'bold', color: '#0F172A' },
+  assinaturaAutor: { fontSize: 12, color: '#64748B', marginTop: 3, marginBottom: 8 },
+  assinaturaLink: { fontSize: 12, color: '#16A34A', fontWeight: '600', marginTop: 3 },
   container: { flex: 1, backgroundColor: '#F8FAFC', padding: 20 },
   title: { fontSize: 22, fontWeight: 'bold', color: '#0F172A', marginBottom: 12, marginTop: 10 },
   searchInput: { backgroundColor: '#FFFFFF', color: '#0F172A', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 12 },
