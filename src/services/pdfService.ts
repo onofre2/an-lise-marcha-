@@ -4,6 +4,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import db from './database';
 import { diagramaAmplitude, diagramaAlinhamento } from './diagramaSvg';
+import { REFERENCIA_BASE64 } from './referenciaImagem';
 
 interface Paciente {
   id: number;
@@ -80,6 +81,15 @@ function diagramasMedidas(medidas: Medida[]): string {
   return svgs ? '<div class="diagramas">' + svgs + '</div>' : '';
 }
 
+function paginaReferencias(): string {
+  return `
+    <div style="page-break-before: always;"></div>
+    <h2>Valores de Referencia</h2>
+    <div class="info">Parametros normativos utilizados por este aplicativo para identificar desajustes.</div>
+    <img src="${REFERENCIA_BASE64}" style="width: 100%; margin-top: 12px; border: 1px solid #E2E8F0; border-radius: 6px;" />
+  `;
+}
+
 function rodape(): string {
   return '<div class="rodape">Relatorio gerado pelo aplicativo Analise Marcha. Documento de apoio clinico, nao substitui avaliacao presencial.</div>';
 }
@@ -106,6 +116,7 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
       <h2>Avaliacao ${av.vista.replace('_', ' ')} - ${av.data_avaliacao}</h2>
       ${tabelaMedidas(medidas)}
       ${diagramasMedidas(medidas)}
+      ${paginaReferencias()}
       ${rodape()}
     </body></html>
   `;
@@ -189,6 +200,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       ${cabecalho(p, 'Historico Completo do Paciente')}
       ${clinico}
       ${corpo}
+      ${paginaReferencias()}
       ${rodape()}
     </body></html>
   `;
