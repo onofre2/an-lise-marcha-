@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import db from '../services/database';
+import CardReferencia from '../components/CardReferencia';
 
 interface Paciente {
   id: number;
@@ -82,6 +83,8 @@ export default function EvaluationScreen({ navigation }: any) {
           </TouchableOpacity>
         ))}
       </View>
+
+      <CardReferencia card="marcha" />
 
       {anguloSelecionado && pacienteSelecionado && (
         <TouchableOpacity style={styles.actionButton} onPress={iniciarGravacao}>

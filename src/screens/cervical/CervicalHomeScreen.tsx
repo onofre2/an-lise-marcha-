@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import db from '../../services/database';
+import CardReferencia from '../../components/CardReferencia';
 
 interface Paciente { id: number; nome: string; }
 
@@ -43,6 +44,8 @@ export default function CervicalHomeScreen({ navigation }: any) {
           ))
         )}
       </View>
+
+      <CardReferencia card="cervical" />
 
       {pacienteSelecionado && (
         <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>

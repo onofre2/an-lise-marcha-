@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import db from '../../services/database';
 import { MOVIMENTOS } from '../../constants/movimentos';
+import CardReferencia from '../../components/CardReferencia';
 
 interface Paciente { id: number; nome: string; }
 
@@ -58,6 +59,8 @@ export default function ADMHomeScreen({ navigation }: any) {
           </TouchableOpacity>
         ))}
       </View>
+
+      <CardReferencia card="adm" />
 
       {pacienteSelecionado && movimentoSelecionado && (
         <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>

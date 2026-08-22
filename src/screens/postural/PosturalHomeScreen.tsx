@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import db from '../../services/database';
 import { Vista } from '../../constants/posturalPoints';
+import CardReferencia, { CardId } from '../../components/CardReferencia';
 
 interface Paciente { id: number; nome: string; }
 
@@ -65,6 +66,10 @@ export default function PosturalHomeScreen({ navigation }: any) {
           </TouchableOpacity>
         ))}
       </View>
+
+      {vistaSelecionada && (
+        <CardReferencia card={(vistaSelecionada === 'anterior' ? 'anterior' : vistaSelecionada === 'posterior' ? 'posterior' : 'lateral') as CardId} />
+      )}
 
       {pacienteSelecionado && vistaSelecionada && (
         <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
