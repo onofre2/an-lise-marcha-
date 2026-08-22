@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView } from 'react-native';
-import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useEvent } from 'expo';
 import db from '../services/database';
 import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
-import { calcularFase, Ponto, PontosFase } from '../services/marchaCalculations';
+import { calcularFase, PontosFase } from '../services/marchaCalculations';
 
 const VIDEO_HEIGHT = Dimensions.get('window').height * 0.38;
 
@@ -12,11 +13,16 @@ export default function VideoEditScreen({ route, navigation }: any) {
     videoUri: string; pacienteId: number; angulo: string;
   };
 
-  const videoRef = useRef<Video>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [posicao, setPosicao] = useState(0);
-  const [rate, setRate] = useState(1.0);
+  const player = useVideoPlayer(videoUri, p => {
+    p.loop = true;
+    p.timeUpdateEventInterval = 0.1;
+  });
 
+  const { isPlaying } = useEvent(player, 'playingChange', { isPlaying: player.playing });
+  const timeUpdate = useEvent(player, 'timeUpdate');
+  const currentTime = timeUpdate ? timeUpdate.currentTime : 0;
+
+  const [rate, setRate] = useState(1.0);
   const [faseIndice, setFaseIndice] = useState(0);
   const [pontosFaseAtual, setPontosFaseAtual] = useState<PontosFase>({});
   const [marcacoes, setMarcacoes] = useState<Record<string, PontosFase>>({});
@@ -27,29 +33,20 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const faseCompleta = pontoAtual === null;
   const todasFasesFeitas = Object.keys(marcacoes).length === FASES_MARCHA.length;
 
-  const onStatusUpdate = (status: AVPlaybackStatus) => {
-    if (status.isLoaded) {
-      setIsPlaying(status.isPlaying);
-      setPosicao(status.positionMillis || 0);
-    }
+  const alternarPlayPause = () => {
+    if (isPlaying) player.pause();
+    else player.play();
   };
 
-  const alternarPlayPause = async () => {
-    if (!videoRef.current) return;
-    if (isPlaying) await videoRef.current.pauseAsync();
-    else await videoRef.current.playAsync();
+  const pular = (segundos: number) => {
+    player.pause();
+    const nova = Math.max(0, currentTime + segundos);
+    player.currentTime = nova;
   };
 
-  const pular = async (ms: number) => {
-    if (!videoRef.current) return;
-    await videoRef.current.pauseAsync();
-    const nova = Math.max(0, posicao + ms);
-    await videoRef.current.setPositionAsync(nova);
-  };
-
-  const alterarVelocidade = async (v: number) => {
+  const alterarVelocidade = (v: number) => {
     setRate(v);
-    if (videoRef.current) await videoRef.current.setRateAsync(v, true);
+    player.playbackRate = v;
   };
 
   const marcarPonto = (evt: any) => {
@@ -61,12 +58,9 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const limparFase = () => setPontosFaseAtual({});
 
   const confirmarFase = () => {
-    const novas = { ...marcacoes, [fase.id]: pontosFaseAtual };
-    setMarcacoes(novas);
+    setMarcacoes({ ...marcacoes, [fase.id]: pontosFaseAtual });
     setPontosFaseAtual({});
-    if (faseIndice < FASES_MARCHA.length - 1) {
-      setFaseIndice(faseIndice + 1);
-    }
+    if (faseIndice < FASES_MARCHA.length - 1) setFaseIndice(faseIndice + 1);
   };
 
   const salvar = () => {
@@ -85,20 +79,10 @@ export default function VideoEditScreen({ route, navigation }: any) {
     }
   };
 
-  const segundos = (posicao / 1000).toFixed(1);
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.videoContainer}>
-        <Video
-          ref={videoRef}
-          source={{ uri: videoUri }}
-          style={styles.video}
-          resizeMode={ResizeMode.CONTAIN}
-          useNativeControls={false}
-          isLooping
-          onPlaybackStatusUpdate={onStatusUpdate}
-        />
+        <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
         <TouchableOpacity activeOpacity={1} style={styles.overlay} onPress={marcarPonto}>
           {Object.entries(pontosFaseAtual).map(([id, p]) => (
             <View key={id} style={[styles.marcador, { left: p.x - 8, top: p.y - 8 }]} />
@@ -108,16 +92,16 @@ export default function VideoEditScreen({ route, navigation }: any) {
       </View>
 
       <View style={styles.controles}>
-        <TouchableOpacity style={styles.btnCtrl} onPress={() => pular(-100)}>
+        <TouchableOpacity style={styles.btnCtrl} onPress={() => pular(-0.1)}>
           <Text style={styles.btnCtrlText}>-0,1s</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.btnCtrl} onPress={alternarPlayPause}>
           <Text style={styles.btnCtrlText}>{isPlaying ? 'Pausar' : 'Play'}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.btnCtrl} onPress={() => pular(100)}>
+        <TouchableOpacity style={styles.btnCtrl} onPress={() => pular(0.1)}>
           <Text style={styles.btnCtrlText}>+0,1s</Text>
         </TouchableOpacity>
-        <View style={styles.tempo}><Text style={styles.tempoText}>{segundos}s</Text></View>
+        <View style={styles.tempo}><Text style={styles.tempoText}>{currentTime.toFixed(1)}s</Text></View>
       </View>
 
       <View style={styles.rowVel}>
