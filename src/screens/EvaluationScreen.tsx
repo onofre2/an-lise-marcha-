@@ -1,26 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import db from '../services/database';
 import CardReferencia from '../components/CardReferencia';
-
-interface Paciente {
-  id: number;
-  nome: string;
-}
+import { usePacienteAtivo } from '../context/PacienteAtivoContext';
 
 export default function EvaluationScreen({ navigation }: any) {
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [pacienteSelecionado, setPacienteSelecionado] = useState<number | null>(null);
+  const { pacienteAtivo } = usePacienteAtivo();
   const [anguloSelecionado, setAnguloSelecionado] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      const resultado = db.getAllSync('SELECT id, nome FROM pacientes ORDER BY nome ASC') as Paciente[];
-      setPacientes(resultado);
-    } catch (error) {
-      console.error("Erro ao carregar pacientes para avaliação:", error);
-    }
-  }, []);
 
   const angulos = [
     { id: 'anterior', label: 'Anterior' },
@@ -30,38 +15,33 @@ export default function EvaluationScreen({ navigation }: any) {
   ];
 
   const iniciarGravacao = () => {
-    if (!pacienteSelecionado) {
-      Alert.alert("Atenção", "Por favor, selecione um paciente antes de iniciar.");
+    if (!pacienteAtivo) {
+      Alert.alert("Atenção", "Selecione o paciente na aba Histórico antes de continuar.");
       return;
     }
     navigation.navigate('CameraCapture', {
-      pacienteId: pacienteSelecionado,
+      pacienteId: pacienteAtivo.id,
       angulo: anguloSelecionado,
     });
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.sectionTitle}>1. Selecione o Paciente</Text>
-      <View style={styles.pickerContainer}>
-        {pacientes.length === 0 ? (
-          <Text style={styles.alertText}>Nenhum paciente cadastrado. Cadastre na aba inicial primeiro!</Text>
-        ) : (
-          pacientes.map((p) => (
-            <TouchableOpacity
-              key={p.id}
-              style={[styles.pacienteItem, pacienteSelecionado === p.id && styles.buttonActive]}
-              onPress={() => setPacienteSelecionado(p.id)}
-            >
-              <Text style={[styles.buttonText, pacienteSelecionado === p.id && styles.buttonTextActive]}>
-                {p.nome}
-              </Text>
-            </TouchableOpacity>
-          ))
-        )}
-      </View>
+      <Text style={styles.sectionTitle}>Paciente</Text>
+      {pacienteAtivo ? (
+        <View style={styles.cardPacienteAtivo}>
+          <Text style={styles.pacienteAtivoNome}>{pacienteAtivo.nome}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Pacientes')}>
+            <Text style={styles.trocarLink}>Trocar</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.avisoSemPaciente}>
+          <Text style={styles.avisoTexto}>Nenhum paciente ativo. Vá até a aba Histórico e toque em "Ativar" no paciente desejado.</Text>
+        </View>
+      )}
 
-      <Text style={styles.sectionTitle}>2. Protocolo de Posicionamento</Text>
+      <Text style={styles.sectionTitle}>Protocolo de Posicionamento</Text>
       <View style={styles.protocolCard}>
         <Text style={styles.protocolText}>• Paciente deve estar **Descalço**</Text>
         <Text style={styles.protocolText}>• Caminhando em **Fundo Branco**</Text>
@@ -69,7 +49,7 @@ export default function EvaluationScreen({ navigation }: any) {
         <Text style={styles.protocolText}>• Gravação **da Cintura para Baixo**</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>3. Selecione o Ângulo da Marcha</Text>
+      <Text style={styles.sectionTitle}>Selecione o Ângulo da Marcha</Text>
       <View style={styles.grid}>
         {angulos.map((ang) => (
           <TouchableOpacity
@@ -86,7 +66,7 @@ export default function EvaluationScreen({ navigation }: any) {
 
       <CardReferencia card="marcha" />
 
-      {anguloSelecionado && pacienteSelecionado && (
+      {anguloSelecionado && (
         <TouchableOpacity style={styles.actionButton} onPress={iniciarGravacao}>
           <Text style={styles.actionButtonText}>Abrir Câmera (Máx 25s)</Text>
         </TouchableOpacity>
@@ -99,9 +79,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 20, paddingBottom: 40 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
-  pickerContainer: { backgroundColor: '#FFFFFF', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
-  pacienteItem: { padding: 12, borderRadius: 8, marginBottom: 6, backgroundColor: '#F8FAFC' },
-  alertText: { color: '#EF4444', fontSize: 14, textAlign: 'center' },
+  cardPacienteAtivo: { backgroundColor: '#F0FDF4', padding: 16, borderRadius: 16, borderWidth: 2, borderColor: '#22C55E', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pacienteAtivoNome: { fontSize: 16, fontWeight: 'bold', color: '#0F172A' },
+  trocarLink: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
+  avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
+  avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
   protocolCard: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
   protocolText: { fontSize: 14, color: '#0F172A', marginBottom: 6 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },

@@ -1,27 +1,12 @@
-import React, { useState, useCallback } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import db from '../../services/database';
 import { Vista } from '../../constants/posturalPoints';
 import CardReferencia, { CardId } from '../../components/CardReferencia';
-
-interface Paciente { id: number; nome: string; }
+import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
 
 export default function PosturalHomeScreen({ navigation }: any) {
-  const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [pacienteSelecionado, setPacienteSelecionado] = useState<number | null>(null);
+  const { pacienteAtivo } = usePacienteAtivo();
   const [vistaSelecionada, setVistaSelecionada] = useState<Vista | null>(null);
-
-  useFocusEffect(
-    useCallback(() => {
-    try {
-      const resultado = db.getAllSync('SELECT id, nome FROM pacientes ORDER BY nome ASC') as Paciente[];
-      setPacientes(resultado);
-    } catch (error) {
-      console.error('Erro ao carregar pacientes:', error);
-    }
-    }, [])
-  );
 
   const vistas: { id: Vista; label: string }[] = [
     { id: 'anterior', label: 'Anterior' },
@@ -31,33 +16,30 @@ export default function PosturalHomeScreen({ navigation }: any) {
   ];
 
   const iniciar = () => {
-    if (!pacienteSelecionado || !vistaSelecionada) {
-      Alert.alert('Atenção', 'Selecione o paciente e a vista antes de continuar.');
+    if (!pacienteAtivo || !vistaSelecionada) {
+      Alert.alert('Atenção', 'Selecione o paciente na aba Histórico e a vista antes de continuar.');
       return;
     }
-    navigation.navigate('PosturalCapture', { pacienteId: pacienteSelecionado, vista: vistaSelecionada, modo: 'completa' });
+    navigation.navigate('PosturalCapture', { pacienteId: pacienteAtivo.id, vista: vistaSelecionada, modo: 'completa' });
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.sectionTitle}>1. Selecione o Paciente</Text>
-      <View style={styles.card}>
-        {pacientes.length === 0 ? (
-          <Text style={styles.alertText}>Nenhum paciente cadastrado.</Text>
-        ) : (
-          pacientes.map((p) => (
-            <TouchableOpacity
-              key={p.id}
-              style={[styles.item, pacienteSelecionado === p.id && styles.itemAtivo]}
-              onPress={() => setPacienteSelecionado(p.id)}
-            >
-              <Text style={[styles.itemText, pacienteSelecionado === p.id && styles.itemTextAtivo]}>{p.nome}</Text>
-            </TouchableOpacity>
-          ))
-        )}
-      </View>
+      <Text style={styles.sectionTitle}>Paciente</Text>
+      {pacienteAtivo ? (
+        <View style={styles.cardPacienteAtivo}>
+          <Text style={styles.pacienteAtivoNome}>{pacienteAtivo.nome}</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('Pacientes')}>
+            <Text style={styles.trocarLink}>Trocar</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <View style={styles.avisoSemPaciente}>
+          <Text style={styles.avisoTexto}>Nenhum paciente ativo. Vá até a aba Histórico e toque em "Ativar" no paciente desejado.</Text>
+        </View>
+      )}
 
-      <Text style={styles.sectionTitle}>2. Selecione a Vista</Text>
+      <Text style={styles.sectionTitle}>Selecione a Vista</Text>
       <View style={styles.grid}>
         {vistas.map((v) => (
           <TouchableOpacity
@@ -74,7 +56,7 @@ export default function PosturalHomeScreen({ navigation }: any) {
         <CardReferencia card={(vistaSelecionada === 'anterior' ? 'anterior' : vistaSelecionada === 'posterior' ? 'posterior' : 'lateral') as CardId} />
       )}
 
-      {vistaSelecionada && (  // botao sempre visivel, validacao do paciente no iniciar()
+      {vistaSelecionada && (
         <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
           <Text style={styles.btnIniciarText}>Abrir Câmera</Text>
         </TouchableOpacity>
@@ -87,6 +69,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 20, paddingBottom: 40 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
+  cardPacienteAtivo: { backgroundColor: '#F0FDF4', padding: 16, borderRadius: 16, borderWidth: 2, borderColor: '#22C55E', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pacienteAtivoNome: { fontSize: 16, fontWeight: 'bold', color: '#0F172A' },
+  trocarLink: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
+  avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
+  avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
   card: { backgroundColor: '#FFFFFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   alertText: { color: '#EF4444', fontSize: 14, textAlign: 'center' },
   item: { padding: 14, borderRadius: 10, marginBottom: 6, backgroundColor: '#F8FAFC' },

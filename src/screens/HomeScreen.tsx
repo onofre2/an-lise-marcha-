@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking } from 'react-native';
 import db from '../services/database';
 import { useNavigation } from '@react-navigation/native';
+import { usePacienteAtivo } from '../context/PacienteAtivoContext';
 
 interface Paciente {
   id: number;
@@ -24,6 +25,7 @@ type AbaOrdenacao = 'recentes' | 'az' | 'sessoes';
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
+  const { pacienteAtivo, definirPacienteAtivo } = usePacienteAtivo();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [busca, setBusca] = useState('');
   const [aba, setAba] = useState<AbaOrdenacao>('recentes');
@@ -171,24 +173,34 @@ export default function HomeScreen() {
           contentContainerStyle={{ paddingBottom: 100 }}
           ListFooterComponent={<AssinaturaCriador />}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => navigation.navigate('PatientDetail', { id: item.id })}
-              activeOpacity={0.7}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={styles.cardNome}>{item.nome}</Text>
-                <Text style={styles.cardDetalhes}>Idade: {item.idade ? `${item.idade} anos` : 'Não informada'}</Text>
-              </View>
-              <View style={styles.cardRight}>
-                <Text style={styles.cardData}>{item.data_cadastro}</Text>
-                <View style={styles.sessoesBadge}>
-                  <Text style={styles.sessoesBadgeText}>
-                    {item.total_avaliacoes} {item.total_avaliacoes === 1 ? 'sessão' : 'sessões'}
-                  </Text>
+            <View style={[styles.card, pacienteAtivo?.id === item.id && styles.cardAtivo]}>
+              <TouchableOpacity
+                style={{ flex: 1, flexDirection: 'row' }}
+                onPress={() => navigation.navigate('PatientDetail', { id: item.id })}
+                activeOpacity={0.7}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardNome}>{item.nome}</Text>
+                  <Text style={styles.cardDetalhes}>Idade: {item.idade ? `${item.idade} anos` : 'Não informada'}</Text>
                 </View>
-              </View>
-            </TouchableOpacity>
+                <View style={styles.cardRight}>
+                  <Text style={styles.cardData}>{item.data_cadastro}</Text>
+                  <View style={styles.sessoesBadge}>
+                    <Text style={styles.sessoesBadgeText}>
+                      {item.total_avaliacoes} {item.total_avaliacoes === 1 ? 'sessão' : 'sessões'}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btnAtivar, pacienteAtivo?.id === item.id && styles.btnAtivarOn]}
+                onPress={() => definirPacienteAtivo(pacienteAtivo?.id === item.id ? null : { id: item.id, nome: item.nome })}
+              >
+                <Text style={[styles.btnAtivarText, pacienteAtivo?.id === item.id && styles.btnAtivarTextOn]}>
+                  {pacienteAtivo?.id === item.id ? 'Ativo' : 'Ativar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           )}
         />
       )}
@@ -350,6 +362,11 @@ const styles = StyleSheet.create({
   emptyText: { color: '#64748B', fontSize: 16, fontWeight: 'bold' },
   subEmptyText: { color: '#94A3B8', fontSize: 14, marginTop: 4 },
   card: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  cardAtivo: { borderColor: '#22C55E', borderWidth: 2, backgroundColor: '#F0FDF4' },
+  btnAtivar: { marginLeft: 10, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnAtivarOn: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
+  btnAtivarText: { fontSize: 11, fontWeight: 'bold', color: '#475569' },
+  btnAtivarTextOn: { color: '#FFFFFF' },
   cardNome: { fontSize: 16, fontWeight: 'bold', color: '#0F172A' },
   cardDetalhes: { fontSize: 14, color: '#64748B', marginTop: 4 },
   cardRight: { alignItems: 'flex-end' },
