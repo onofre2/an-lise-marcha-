@@ -1,13 +1,31 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, PanResponder } from 'react-native';
 import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
-import { calcularDesajustes } from '../../services/posturalCalculations';
+import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
 import db from '../../services/database';
 import { gerarRelatorioPostural } from '../../services/pdfService';
 
 interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
+
+// Mapeia pares de pontos para o rotulo do desajuste correspondente (vistas anterior/posterior)
+const MAPA_LABEL: Record<string, string> = {
+  'trago_d|trago_e': 'Alinhamento da Cabeça',
+  'acromio_d|acromio_e': 'Alinhamento dos Ombros',
+  'eias_d|eias_e': 'Alinhamento da Pelve (EIAS)',
+  'eips_d|eips_e': 'Alinhamento da Pelve (EIPS)',
+  'joelho_d|joelho_e': 'Alinhamento dos Joelhos',
+  'tornozelo_d|tornozelo_e': 'Alinhamento dos Tornozelos',
+};
+
+// Mapeia ponto individual para o rotulo do desvio correspondente (vista lateral)
+const MAPA_LATERAL: Record<string, string> = {
+  trago: 'Desvio da Cabeça',
+  acromio: 'Desvio do Ombro',
+  trocanter: 'Desvio do Quadril',
+  joelho: 'Desvio do Joelho',
+};
 
 export default function PosturalResultScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, vista, modo, pontos } = route.params as {
@@ -16,6 +34,21 @@ export default function PosturalResultScreen({ route, navigation }: any) {
 
   const desajustes = useMemo(() => calcularDesajustes(vista, pontos), [vista, pontos]);
   const segmentos = SEGMENTOS_RAPIDA[vista];
+  const ehLateral = vista.startsWith('lateral');
+  const alterados = desajustes.filter(d => d.alerta);
+  const resumo = useMemo(() => gerarResumoClinico(alterados), [alterados]);
+
+  const buscarDesajusteSegmento = (idA: string, idB: string): Desajuste | undefined => {
+    const label = MAPA_LABEL[`${idA}|${idB}`] || MAPA_LABEL[`${idB}|${idA}`];
+    if (!label) return undefined;
+    return desajustes.find(d => d.label === label);
+  };
+
+  const buscarDesajustePonto = (id: string): Desajuste | undefined => {
+    const termo = MAPA_LATERAL[id];
+    if (!termo) return undefined;
+    return desajustes.find(d => d.label.includes(termo));
+  };
 
   const salvarAvaliacao = () => {
     try {
@@ -48,14 +81,39 @@ export default function PosturalResultScreen({ route, navigation }: any) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {resumo && (
+        <View style={[styles.resumoCard, alterados.length > 0 ? styles.resumoAlerta : styles.resumoOk]}>
+          <Text style={[styles.resumoTexto, alterados.length > 0 ? styles.resumoTextoAlerta : styles.resumoTextoOk]}>{resumo}</Text>
+        </View>
+      )}
+
       <View style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
+
+        {ehLateral && pontos.maleolo && (
+          <View style={[styles.linhaPrumo, { left: pontos.maleolo.x }]} />
+        )}
+
         {segmentos.map(([idA, idB], i) => {
           const a = pontos[idA];
           const b = pontos[idB];
           if (!a || !b) return null;
-          return <LinhaSegmento key={i} a={a} b={b} />;
+          const d = !ehLateral ? buscarDesajusteSegmento(idA, idB) : undefined;
+          return (
+            <React.Fragment key={i}>
+              {d && <LinhaReferenciaHorizontal a={a} b={b} />}
+              <LinhaSegmento a={a} b={b} alerta={d?.alerta} />
+              {d && <BadgeNaLinha a={a} b={b} desajuste={d} />}
+            </React.Fragment>
+          );
         })}
+
+        {ehLateral && Object.entries(pontos).map(([id, p]) => {
+          const d = buscarDesajustePonto(id);
+          if (!d) return null;
+          return <BadgeNoPonto key={id} p={p} desajuste={d} />;
+        })}
+
         {Object.values(pontos).map((p, i) => (
           <View key={i} style={[styles.marcador, { left: p.x - 6, top: p.y - 6 }]} />
         ))}
@@ -67,7 +125,10 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       ) : (
         desajustes.map((d, i) => (
           <View key={i} style={styles.card}>
-            <Text style={styles.cardLabel}>{d.label}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>{d.label}</Text>
+              <Text style={styles.cardDescricao}>{descreverAchado(d)}</Text>
+            </View>
             <View style={[styles.badge, d.alerta ? styles.badgeAlerta : styles.badgeOk]}>
               <Text style={[styles.badgeText, d.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
                 {d.valor}{d.unidade}
@@ -84,31 +145,100 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   );
 }
 
-function LinhaSegmento({ a, b }: { a: Ponto; b: Ponto }) {
+function gerarResumoClinico(alterados: Desajuste[]): string {
+  if (alterados.length === 0) {
+    return 'Nenhum desajuste significativo encontrado nesta avaliação.';
+  }
+  const nomes = alterados.map(d => d.label.replace('Alinhamento d', 'd').toLowerCase());
+  return `${alterados.length} desajuste${alterados.length > 1 ? 's' : ''} detectado${alterados.length > 1 ? 's' : ''}: ${nomes.join(', ')}. Recomenda-se avaliação clínica complementar.`;
+}
+
+function descreverAchado(d: Desajuste): string {
+  if (!d.alerta) return 'Dentro dos parâmetros esperados.';
+  return `Desvio acima da referência (${d.valor}${d.unidade}).`;
+}
+
+function LinhaSegmento({ a, b, alerta }: { a: Ponto; b: Ponto; alerta?: boolean }) {
   const comprimento = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
   const angulo = Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
-
   return (
     <View
       style={[
         styles.linha,
+        alerta ? styles.linhaAlerta : styles.linhaOk,
         { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: `${angulo}deg` }] },
       ]}
     />
   );
 }
 
+function LinhaReferenciaHorizontal({ a, b }: { a: Ponto; b: Ponto }) {
+  const [offsetY, setOffsetY] = useState(0);
+  const startOffset = React.useRef(0);
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => { startOffset.current = offsetY; },
+      onPanResponderMove: (evt, g) => setOffsetY(startOffset.current + g.dy),
+    })
+  ).current;
+
+  const yMedio = (a.y + b.y) / 2 + offsetY;
+  const largura = Math.abs(b.x - a.x) + 30;
+  const esquerda = Math.min(a.x, b.x) - 15;
+
+  return (
+    <View {...panResponder.panHandlers} style={[styles.linhaRefArea, { left: esquerda, top: yMedio - 10, width: largura }]}>
+      <View style={styles.linhaRefTraco} />
+    </View>
+  );
+}
+
+function BadgeNaLinha({ a, b, desajuste }: { a: Ponto; b: Ponto; desajuste: Desajuste }) {
+  const x = (a.x + b.x) / 2;
+  const y = (a.y + b.y) / 2;
+  const texto = desajuste.unidade === '°' ? `${desajuste.valor}°` : `${desajuste.valor}%`;
+  return (
+    <View style={[styles.badgeFlutuante, desajuste.alerta ? styles.badgeAlerta : styles.badgeOk, { left: x - 24, top: y - 30 }]}>
+      <Text style={[styles.badgeFlutuanteTexto, desajuste.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{texto}</Text>
+    </View>
+  );
+}
+
+function BadgeNoPonto({ p, desajuste }: { p: Ponto; desajuste: Desajuste }) {
+  const texto = desajuste.unidade === '°' ? `${desajuste.valor}°` : `${desajuste.valor}%`;
+  return (
+    <View style={[styles.badgeFlutuante, desajuste.alerta ? styles.badgeAlerta : styles.badgeOk, { left: p.x + 10, top: p.y - 14 }]}>
+      <Text style={[styles.badgeFlutuanteTexto, desajuste.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{texto}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 16, paddingBottom: 40 },
+  resumoCard: { padding: 14, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
+  resumoOk: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  resumoAlerta: { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
+  resumoTexto: { fontSize: 13, lineHeight: 19 },
+  resumoTextoOk: { color: '#166534' },
+  resumoTextoAlerta: { color: '#92400E' },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
-  linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
+  linha: { position: 'absolute', height: 3, transformOrigin: 'left' },
+  linhaOk: { backgroundColor: '#4ADE80' },
+  linhaAlerta: { backgroundColor: '#F59E0B' },
+  linhaPrumo: { position: 'absolute', width: 2, height: '100%', backgroundColor: 'rgba(74,222,128,0.6)' },
+  linhaRefArea: { position: 'absolute', height: 20, justifyContent: 'center' },
+  linhaRefTraco: { height: 1.5, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', width: '100%' },
+  badgeFlutuante: { position: 'absolute', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, minWidth: 40, alignItems: 'center' },
+  badgeFlutuanteTexto: { fontSize: 11, fontWeight: 'bold' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
   card: { backgroundColor: '#FFFFFF', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  cardLabel: { color: '#334155', fontSize: 14, flex: 1, fontWeight: '500' },
+  cardLabel: { color: '#334155', fontSize: 14, fontWeight: '600' },
+  cardDescricao: { color: '#94A3B8', fontSize: 11, marginTop: 2 },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, minWidth: 56, alignItems: 'center' },
   badgeOk: { backgroundColor: '#DCFCE7' },
   badgeAlerta: { backgroundColor: '#FEF3C7' },
