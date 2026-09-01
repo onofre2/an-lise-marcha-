@@ -50,7 +50,7 @@ export default function CervicalHomeScreen({ navigation }: any) {
 
       <CardReferencia card="cervical" />
 
-      {pacienteSelecionado && (
+      {true && (  // botao sempre visivel, validacao do paciente no iniciar()
         <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
           <Text style={styles.btnIniciarText}>Abrir Câmera</Text>
         </TouchableOpacity>

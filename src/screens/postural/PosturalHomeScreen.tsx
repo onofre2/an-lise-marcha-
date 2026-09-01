@@ -74,7 +74,7 @@ export default function PosturalHomeScreen({ navigation }: any) {
         <CardReferencia card={(vistaSelecionada === 'anterior' ? 'anterior' : vistaSelecionada === 'posterior' ? 'posterior' : 'lateral') as CardId} />
       )}
 
-      {pacienteSelecionado && vistaSelecionada && (
+      {vistaSelecionada && (  // botao sempre visivel, validacao do paciente no iniciar()
         <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
           <Text style={styles.btnIniciarText}>Abrir Câmera</Text>
         </TouchableOpacity>

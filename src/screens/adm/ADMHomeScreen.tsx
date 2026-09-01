@@ -65,7 +65,7 @@ export default function ADMHomeScreen({ navigation }: any) {
 
       <CardReferencia card="adm" />
 
-      {pacienteSelecionado && movimentoSelecionado && (
+      {movimentoSelecionado && (  // botao sempre visivel, validacao do paciente no iniciar()
         <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
           <Text style={styles.btnIniciarText}>Abrir Camera</Text>
         </TouchableOpacity>
