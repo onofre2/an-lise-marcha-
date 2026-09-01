@@ -22,7 +22,7 @@ interface Paciente {
 
 interface ItemAvaliacao {
   id: number;
-  tipo: 'marcha' | 'postural';
+  tipo: 'marcha' | 'postural' | 'cervical' | 'adm';
   data_avaliacao: string;
   detalhe: string;
   info_extra?: string;
