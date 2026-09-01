@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import db from '../../services/database';
 import { MOVIMENTOS } from '../../constants/movimentos';
@@ -11,14 +12,16 @@ export default function ADMHomeScreen({ navigation }: any) {
   const [pacienteSelecionado, setPacienteSelecionado] = useState<number | null>(null);
   const [movimentoSelecionado, setMovimentoSelecionado] = useState<string | null>(null);
 
-  useEffect(() => {
+  useFocusEffect(
+    useCallback(() => {
     try {
       const resultado = db.getAllSync('SELECT id, nome FROM pacientes ORDER BY nome ASC') as Paciente[];
       setPacientes(resultado);
     } catch (error) {
       console.error('Erro ao carregar pacientes:', error);
     }
-  }, []);
+    }, [])
+  );
 
   const iniciar = () => {
     if (!pacienteSelecionado || !movimentoSelecionado) {
