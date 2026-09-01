@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, PanResponder } from 'react-native';
 import db from '../../services/database';
 
 interface Ponto { x: number; y: number; }
@@ -32,6 +32,16 @@ export default function CervicalResultScreen({ route, navigation }: any) {
   // Referencias clinicas: CVA normal >= 48 graus; angulo do ombro normal > 52 graus
   const alertaCva = cva !== null && cva < 48;
   const alertaOmbro = anguloOmbro !== null && anguloOmbro < 52;
+  const totalAlertas = (alertaCva ? 1 : 0) + (alertaOmbro ? 1 : 0);
+
+  const resumo = useMemo(() => {
+    if (cva === null) return null;
+    if (totalAlertas === 0) return 'Nenhum desajuste significativo encontrado nesta avaliação.';
+    const partes: string[] = [];
+    if (alertaCva) partes.push('cabeça anteriorizada');
+    if (alertaOmbro) partes.push('ombro protruso');
+    return `${totalAlertas} desajuste${totalAlertas > 1 ? 's' : ''} detectado${totalAlertas > 1 ? 's' : ''}: ${partes.join(', ')}. Recomenda-se avaliação clínica complementar.`;
+  }, [cva, totalAlertas, alertaCva, alertaOmbro]);
 
   const salvarAvaliacao = () => {
     if (cva === null) {
@@ -55,13 +65,27 @@ export default function CervicalResultScreen({ route, navigation }: any) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {resumo && (
+        <View style={[styles.resumoCard, totalAlertas > 0 ? styles.resumoAlerta : styles.resumoOk]}>
+          <Text style={[styles.resumoTexto, totalAlertas > 0 ? styles.resumoTextoAlerta : styles.resumoTextoOk]}>{resumo}</Text>
+        </View>
+      )}
+
       <View style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
-        {pontos.c7 && (
-          <View style={[styles.linhaHorizontal, { left: pontos.c7.x - 60, top: pontos.c7.y }]} />
+        {pontos.c7 && <LinhaReferenciaHorizontal ponto={pontos.c7} />}
+        {pontos.c7 && pontos.trago && (
+          <>
+            <LinhaSegmento a={pontos.c7} b={pontos.trago} alerta={alertaCva} />
+            <BadgeNaLinha a={pontos.c7} b={pontos.trago} valor={cva} alerta={alertaCva} />
+          </>
         )}
-        {pontos.c7 && pontos.trago && <LinhaSegmento a={pontos.c7} b={pontos.trago} />}
-        {pontos.c7 && pontos.acromio && <LinhaSegmento a={pontos.acromio} b={pontos.c7} />}
+        {pontos.c7 && pontos.acromio && (
+          <>
+            <LinhaSegmento a={pontos.acromio} b={pontos.c7} alerta={alertaOmbro} />
+            <BadgeNaLinha a={pontos.acromio} b={pontos.c7} valor={anguloOmbro} alerta={alertaOmbro} />
+          </>
+        )}
         {Object.values(pontos).map((p, i) => (
           <View key={i} style={[styles.marcador, { left: p.x - 6, top: p.y - 6 }]} />
         ))}
@@ -95,13 +119,6 @@ export default function CervicalResultScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {alertaCva && (
-        <Text style={styles.aviso}>CVA abaixo de 48 graus indica cabeca anteriorizada. Quanto menor o angulo, maior a anteriorizacao.</Text>
-      )}
-      {alertaOmbro && (
-        <Text style={styles.aviso}>Angulo do ombro abaixo de 52 graus indica ombro protruso.</Text>
-      )}
-
       <TouchableOpacity style={styles.btnSalvar} onPress={salvarAvaliacao}>
         <Text style={styles.btnSalvarText}>Salvar no Historico do Paciente</Text>
       </TouchableOpacity>
@@ -109,22 +126,62 @@ export default function CervicalResultScreen({ route, navigation }: any) {
   );
 }
 
-function LinhaSegmento({ a, b }: { a: Ponto; b: Ponto }) {
+function LinhaSegmento({ a, b, alerta }: { a: Ponto; b: Ponto; alerta?: boolean }) {
   const comprimento = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
   const ang = Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
   return (
-    <View style={[styles.linha, { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: ang + 'deg' }] }]} />
+    <View style={[styles.linha, alerta ? styles.linhaAlerta : styles.linhaOk, { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: ang + 'deg' }] }]} />
+  );
+}
+
+function LinhaReferenciaHorizontal({ ponto }: { ponto: Ponto }) {
+  const [offsetY, setOffsetY] = useState(0);
+  const startOffset = React.useRef(0);
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => { startOffset.current = offsetY; },
+      onPanResponderMove: (evt, g) => setOffsetY(startOffset.current + g.dy),
+    })
+  ).current;
+
+  return (
+    <View {...panResponder.panHandlers} style={[styles.linhaRefArea, { left: ponto.x - 75, top: ponto.y - 10 + offsetY }]}>
+      <View style={styles.linhaRefTraco} />
+    </View>
+  );
+}
+
+function BadgeNaLinha({ a, b, valor, alerta }: { a: Ponto; b: Ponto; valor: number | null; alerta: boolean }) {
+  if (valor === null) return null;
+  const x = (a.x + b.x) / 2;
+  const y = (a.y + b.y) / 2;
+  return (
+    <View style={[styles.badgeFlutuante, alerta ? styles.badgeAlerta : styles.badgeOk, { left: x - 22, top: y - 28 }]}>
+      <Text style={[styles.badgeFlutuanteTexto, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{valor}°</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 16, paddingBottom: 40 },
+  resumoCard: { padding: 14, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
+  resumoOk: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  resumoAlerta: { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
+  resumoTexto: { fontSize: 13, lineHeight: 19 },
+  resumoTextoOk: { color: '#166534' },
+  resumoTextoAlerta: { color: '#92400E' },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
-  linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
-  linhaHorizontal: { position: 'absolute', width: 120, height: 2, backgroundColor: '#94A3B8' },
+  linha: { position: 'absolute', height: 3, transformOrigin: 'left' },
+  linhaOk: { backgroundColor: '#4ADE80' },
+  linhaAlerta: { backgroundColor: '#F59E0B' },
+  linhaRefArea: { position: 'absolute', width: 150, height: 20, justifyContent: 'center' },
+  linhaRefTraco: { height: 1.5, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(148,163,184,0.9)', width: '100%' },
+  badgeFlutuante: { position: 'absolute', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, minWidth: 40, alignItems: 'center' },
+  badgeFlutuanteTexto: { fontSize: 11, fontWeight: 'bold' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
   card: { backgroundColor: '#FFFFFF', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -137,7 +194,6 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: 'bold', fontSize: 13 },
   badgeTextOk: { color: '#16A34A' },
   badgeTextAlerta: { color: '#D97706' },
-  aviso: { color: '#D97706', fontSize: 12, marginBottom: 8, lineHeight: 17 },
   btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10 },
   btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });
