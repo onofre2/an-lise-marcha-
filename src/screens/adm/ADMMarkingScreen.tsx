@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
 import CardReferencia from '../../components/CardReferencia';
+import MarcadorComLupa from '../../components/MarcadorComLupa';
 import { MOVIMENTOS } from '../../constants/movimentos';
 
 interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.62;
+const IMAGE_WIDTH = Dimensions.get('window').width;
 
 export default function ADMMarkingScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, movimentoId } = route.params as {
@@ -59,7 +61,7 @@ export default function ADMMarkingScreen({ route, navigation }: any) {
       <TouchableOpacity activeOpacity={1} onPress={handleImagePress} style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
         {Object.entries(pontosMarcados).map(([id, p]) => (
-          <MarcadorArrastavel key={id} id={id} ponto={p} onMove={moverPonto} />
+          <MarcadorComLupa key={id} id={id} ponto={p} onMove={moverPonto} fotoUri={fotoUri} larguraImagem={IMAGE_WIDTH} alturaImagem={IMAGE_HEIGHT} />
         ))}
       </TouchableOpacity>
 
@@ -75,26 +77,6 @@ export default function ADMMarkingScreen({ route, navigation }: any) {
       </View>
     </View>
   );
-}
-
-function MarcadorArrastavel({ id, ponto, onMove }: { id: string; ponto: Ponto; onMove: (id: string, x: number, y: number) => void }) {
-  const pontoRef = React.useRef(ponto);
-  pontoRef.current = ponto;
-  const startPos = React.useRef({ x: 0, y: 0 });
-
-  const panResponder = React.useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        startPos.current = { x: pontoRef.current.x, y: pontoRef.current.y };
-      },
-      onPanResponderMove: (evt, gestureState) => {
-        onMove(id, startPos.current.x + gestureState.dx, startPos.current.y + gestureState.dy);
-      },
-    })
-  ).current;
-
-  return <View {...panResponder.panHandlers} style={[styles.marcador, { left: ponto.x - 12, top: ponto.y - 12 }]} />;
 }
 
 const styles = StyleSheet.create({
