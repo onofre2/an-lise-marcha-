@@ -1,6 +1,6 @@
 import React from 'react';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
 import PatientDetailScreen from '../screens/patient/PatientDetailScreen';
@@ -20,7 +20,7 @@ import ADMCaptureScreen from '../screens/adm/ADMCaptureScreen';
 import ADMMarkingScreen from '../screens/adm/ADMMarkingScreen';
 import ADMResultScreen from '../screens/adm/ADMResultScreen';
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialTopTabNavigator();
 const Stack = createNativeStackNavigator();
 
 // Fluxo interno da aba de Avaliação de Marcha (Avaliação -> Câmera -> Edição)
@@ -82,18 +82,24 @@ function ADMStack() {
 export default function AppNavigator() {
   return (
     <Tab.Navigator
+      tabBarPosition="bottom"
       screenOptions={{
-        headerShown: false,
-        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: '#E2E8F0' },
+        swipeEnabled: true,
+        tabBarShowIcon: true,
+        tabBarShowLabel: true,
+        tabBarIndicatorStyle: { height: 0 },
+        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', elevation: 0, shadowOpacity: 0 },
         tabBarActiveTintColor: '#0284C7',
         tabBarInactiveTintColor: '#94A3B8',
+        tabBarLabelStyle: { fontSize: 11, textTransform: 'none', margin: 0 },
+        tabBarItemStyle: { padding: 0 },
       }}
     >
-      <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: 'Histórico', tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} /> }} />
-      <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: 'Postural', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="human-handsdown" size={size} color={color} /> }} />
-      <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="human" size={size} color={color} /> }} />
-      <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: 'ADM', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="angle-acute" size={size} color={color} /> }} />
-      <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha', tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="walk" size={size} color={color} /> }} />
+      <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: 'Histórico', tabBarIcon: ({ color }) => <Ionicons name="people" size={22} color={color} /> }} />
+      <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: 'Postural', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human-handsdown" size={22} color={color} /> }} />
+      <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human" size={22} color={color} /> }} />
+      <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: 'ADM', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="angle-acute" size={22} color={color} /> }} />
+      <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="walk" size={22} color={color} /> }} />
     </Tab.Navigator>
   );
 }
