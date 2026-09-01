@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
+import CardReferencia from '../../components/CardReferencia';
 
 interface Ponto { x: number; y: number; }
 
@@ -51,6 +52,8 @@ export default function CervicalMarkingScreen({ route, navigation }: any) {
           <Text style={styles.progresso}>{Object.keys(pontosMarcados).length}/{PONTOS_SEQUENCIA.length}</Text>
         </View>
       </View>
+
+      <CardReferencia card="cervical" />
 
       <TouchableOpacity activeOpacity={1} onPress={handleImagePress} style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />

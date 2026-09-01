@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
+import CardReferencia from '../../components/CardReferencia';
 import { MOVIMENTOS } from '../../constants/movimentos';
 
 interface Ponto { x: number; y: number; }
@@ -52,6 +53,8 @@ export default function ADMMarkingScreen({ route, navigation }: any) {
           <Text style={styles.progresso}>{Object.keys(pontosMarcados).length}/{sequencia.length}</Text>
         </View>
       </View>
+
+      <CardReferencia card="adm" />
 
       <TouchableOpacity activeOpacity={1} onPress={handleImagePress} style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
