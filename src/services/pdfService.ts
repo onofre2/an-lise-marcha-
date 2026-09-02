@@ -5,6 +5,8 @@ import * as Sharing from 'expo-sharing';
 import db from './database';
 import { diagramaAmplitude, diagramaAlinhamento } from './diagramaSvg';
 import { REFERENCIA_BASE64 } from './referenciaImagem';
+import { MARCA_BASE64 } from './marcaImagem';
+import * as FileSystem from 'expo-file-system';
 
 interface Paciente {
   id: number;
@@ -40,7 +42,8 @@ const ESTILO = `
     .bloco { background: #F8FAFC; border-left: 3px solid #22C55E; padding: 10px 14px; margin: 10px 0; font-size: 12px; }
     .diagramas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
     .diagrama { border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px; background: #FFFFFF; }
-    .rodape { margin-top: 34px; font-size: 10px; color: #94A3B8; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 12px; }
+    .rodape { margin-top: 12px; font-size: 10px; color: #94A3B8; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 12px; }
+    .rodape-terapeuta { margin-top: 34px; padding-top: 16px; border-top: 1px solid #E2E8F0; text-align: center; font-size: 11px; color: #334155; }
   </style>
 `;
 
@@ -90,8 +93,63 @@ function paginaReferencias(): string {
   `;
 }
 
-function rodape(): string {
-  return '<div class="rodape">Relatorio gerado pelo aplicativo Analise Marcha. Documento de apoio clinico, nao substitui avaliacao presencial.</div>';
+interface ConfigTerapeuta {
+  nome: string | null;
+  registro: string | null;
+  logo_uri: string | null;
+  assinatura_uri: string | null;
+}
+
+function buscarConfigTerapeuta(): ConfigTerapeuta | null {
+  try {
+    return db.getFirstSync('SELECT * FROM configuracoes_terapeuta WHERE id = 1') as ConfigTerapeuta | null;
+  } catch {
+    return null;
+  }
+}
+
+function mimeDaUri(uri: string): string {
+  const ext = uri.split('.').pop()?.toLowerCase();
+  if (ext === 'png') return 'image/png';
+  if (ext === 'gif') return 'image/gif';
+  return 'image/jpeg';
+}
+
+async function uriParaBase64(uri: string | null): Promise<string | null> {
+  if (!uri) return null;
+  try {
+    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    return `data:${mimeDaUri(uri)};base64,${base64}`;
+  } catch (e) {
+    console.error('Erro ao converter imagem para base64:', e);
+    return null;
+  }
+}
+
+async function rodapeCompleto(): Promise<string> {
+  const config = buscarConfigTerapeuta();
+  const logoBase64 = config ? await uriParaBase64(config.logo_uri) : null;
+  const assinaturaBase64 = config ? await uriParaBase64(config.assinatura_uri) : null;
+
+  let terapeutaHtml = '';
+  if (config && (config.nome || logoBase64 || assinaturaBase64)) {
+    terapeutaHtml = `
+      <div class="rodape-terapeuta">
+        ${logoBase64 ? `<img src="${logoBase64}" style="height:40px;margin-bottom:6px;" />` : ''}
+        ${config.nome ? `<div><b>${config.nome}</b></div>` : ''}
+        ${config.registro ? `<div>${config.registro}</div>` : ''}
+        ${assinaturaBase64 ? `<img src="${assinaturaBase64}" style="height:28px;margin-top:6px;" />` : ''}
+      </div>
+    `;
+  }
+
+  return `
+    ${terapeutaHtml}
+    <div class="rodape">
+      <img src="${MARCA_BASE64}" style="height:18px;vertical-align:middle;margin-right:4px;border-radius:4px;" />
+      Postural Global &middot; @fisionofre &mdash; Documento de apoio clinico, nao substitui avaliacao presencial.
+    </div>
+  `;
 }
 
 async function gerarEcompartilhar(html: string) {
@@ -109,6 +167,7 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
   if (!av) throw new Error('Avaliacao nao encontrada');
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
   const medidas: Medida[] = av.medidas_json ? JSON.parse(av.medidas_json) : [];
+  const rodapeHtml = await rodapeCompleto();
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
@@ -117,7 +176,7 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
       ${tabelaMedidas(medidas)}
       ${diagramasMedidas(medidas)}
       ${paginaReferencias()}
-      ${rodape()}
+      ${rodapeHtml}
     </body></html>
   `;
   return gerarEcompartilhar(html);
@@ -195,13 +254,15 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     if (p.objetivos_terapeuticos) clinico += `<div class="bloco"><b>Objetivos:</b> ${p.objetivos_terapeuticos}</div>`;
   }
 
+  const rodapeHtml2 = await rodapeCompleto();
+
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Historico Completo do Paciente')}
       ${clinico}
       ${corpo}
       ${paginaReferencias()}
-      ${rodape()}
+      ${rodapeHtml2}
     </body></html>
   `;
   return gerarEcompartilhar(html);
