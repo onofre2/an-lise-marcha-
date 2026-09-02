@@ -137,6 +137,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
         </View>
       ) : (
         <View>
+          <ResumoMarcha marcacoes={marcacoes} />
           <Text style={styles.tituloResultado}>Resultado por Fase</Text>
           {FASES_MARCHA.map(f => (
             <View key={f.id} style={styles.blocoFase}>
@@ -163,6 +164,24 @@ export default function VideoEditScreen({ route, navigation }: any) {
   );
 }
 
+function ResumoMarcha({ marcacoes }: { marcacoes: Record<string, PontosFase> }) {
+  const todosResultados = FASES_MARCHA.flatMap(f => calcularFase(f.id, marcacoes[f.id] || {}));
+  const alterados = todosResultados.filter(r => !r.dentroFaixa);
+
+  if (todosResultados.length === 0) return null;
+
+  const alerta = alterados.length > 0;
+  const texto = alerta
+    ? `${alterados.length} parametro${alterados.length > 1 ? 's' : ''} fora da faixa esperada: ${alterados.map(a => a.nome.toLowerCase()).join(', ')}. Recomenda-se avaliacao clinica complementar.`
+    : 'Todos os parametros analisados estao dentro da faixa esperada para as fases avaliadas.';
+
+  return (
+    <View style={[styles.resumoCard, alerta ? styles.resumoAlerta : styles.resumoOk]}>
+      <Text style={[styles.resumoTexto, alerta ? styles.resumoTextoAlerta : styles.resumoTextoOk]}>{texto}</Text>
+    </View>
+  );
+}
+
 function Segmentos({ pontos }: { pontos: PontosFase }) {
   const pares: [string, string][] = [
     ['tronco', 'quadril'],
@@ -186,6 +205,12 @@ function Segmentos({ pontos }: { pontos: PontosFase }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
+  resumoCard: { padding: 14, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
+  resumoOk: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
+  resumoAlerta: { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
+  resumoTexto: { fontSize: 13, lineHeight: 19 },
+  resumoTextoOk: { color: '#166534' },
+  resumoTextoAlerta: { color: '#92400E' },
   content: { padding: 16, paddingBottom: 40 },
   videoContainer: { width: '100%', height: VIDEO_HEIGHT, backgroundColor: '#000', borderRadius: 14, overflow: 'hidden', marginBottom: 12 },
   video: { width: '100%', height: '100%' },
