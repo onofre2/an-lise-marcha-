@@ -80,6 +80,17 @@ export const initDatabase = () => {
       );
     `);
 
+    // Criacao da tabela de configuracoes do terapeuta (registro unico)
+    db.execSync(`
+      CREATE TABLE IF NOT EXISTS configuracoes_terapeuta (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        nome TEXT,
+        registro TEXT,
+        logo_uri TEXT,
+        assinatura_uri TEXT
+      );
+    `);
+
     console.log("Banco de dados inicializado com sucesso!");
   } catch (error) {
     console.error("Erro ao inicializar o banco de dados:", error);

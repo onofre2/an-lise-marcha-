@@ -19,6 +19,7 @@ import ADMHomeScreen from '../screens/adm/ADMHomeScreen';
 import ADMCaptureScreen from '../screens/adm/ADMCaptureScreen';
 import ADMMarkingScreen from '../screens/adm/ADMMarkingScreen';
 import ADMResultScreen from '../screens/adm/ADMResultScreen';
+import ConfiguracoesScreen from '../screens/configuracoes/ConfiguracoesScreen';
 
 const Tab = createMaterialTopTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -100,6 +101,7 @@ export default function AppNavigator() {
       <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human" size={22} color={color} /> }} />
       <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: 'ADM', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="angle-acute" size={22} color={color} /> }} />
       <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="walk" size={22} color={color} /> }} />
+      <Tab.Screen name="ConfiguracoesTab" component={ConfiguracoesScreen} options={{ title: 'Config', tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} /> }} />
     </Tab.Navigator>
   );
 }
