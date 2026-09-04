@@ -55,7 +55,7 @@ function calcularPOTSI(p: Pontos): Desajuste | null {
 
   const potsi = faiC7 + faiAxila + faiCintura + hdiOmbro + hdiAxila + hdiCintura;
 
-  return { label: 'POTSI (Simetria Posterior do Tronco)', valor: Number(potsi.toFixed(1)), unidade: '%', alerta: potsi > 27 };
+  return { label: 'POTSI (Simetria Posterior do Tronco)', valor: Number(potsi.toFixed(1)), unidade: '%', alerta: potsi >= 27 };
 }
 
 // ATSI (Anterior Trunk Symmetry Index) - adaptação de Suzuki et al. (1999)
@@ -86,24 +86,24 @@ function calcularAnterior(p: Pontos): Desajuste[] {
 
   if (p.trago_d && p.trago_e) {
     const ang = anguloComHorizontal(p.trago_d, p.trago_e);
-    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
   if (p.acromio_d && p.acromio_e) {
     const ang = anguloComHorizontal(p.acromio_d, p.acromio_e);
-    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
   if (p.eias_d && p.eias_e) {
     const ang = anguloComHorizontal(p.eias_d, p.eias_e);
-    resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
 
   if (p.joelho_d && p.joelho_e) {
     const ang = anguloComHorizontal(p.joelho_d, p.joelho_e);
-    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
   if (p.tornozelo_d && p.tornozelo_e) {
     const ang = anguloComHorizontal(p.tornozelo_d, p.tornozelo_e);
-    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
 
   const atsi = calcularATSI(p);
@@ -117,31 +117,31 @@ function calcularPosterior(p: Pontos): Desajuste[] {
 
   if (p.trago_d && p.trago_e) {
     const ang = anguloComHorizontal(p.trago_d, p.trago_e);
-    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
   if (p.acromio_d && p.acromio_e) {
     const ang = anguloComHorizontal(p.acromio_d, p.acromio_e);
-    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
   if (p.eips_d && p.eips_e) {
     const ang = anguloComHorizontal(p.eips_d, p.eips_e);
-    resultado.push({ label: 'Alinhamento da Pelve (EIPS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento da Pelve (EIPS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
   if (p.c7 && p.acromio_d && p.acromio_e) {
     const centroOmbros = { x: (p.acromio_d.x + p.acromio_e.x) / 2, y: (p.acromio_d.y + p.acromio_e.y) / 2 };
     const desvio = Math.abs(p.c7.x - centroOmbros.x);
     const larguraOmbros = distancia(p.acromio_d, p.acromio_e);
     const desvioRel = larguraOmbros > 0 ? (desvio / larguraOmbros) * 100 : 0;
-    resultado.push({ label: 'Desvio Lateral da Coluna (C7)', valor: Number(desvioRel.toFixed(1)), unidade: '% da largura dos ombros', alerta: desvioRel > 5 });
+    resultado.push({ label: 'Desvio Lateral da Coluna (C7)', valor: Number(desvioRel.toFixed(1)), unidade: '% da largura dos ombros', alerta: desvioRel >= 5 });
   }
 
   if (p.joelho_d && p.joelho_e) {
     const ang = anguloComHorizontal(p.joelho_d, p.joelho_e);
-    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
   if (p.tornozelo_d && p.tornozelo_e) {
     const ang = anguloComHorizontal(p.tornozelo_d, p.tornozelo_e);
-    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang > LIMIAR_ALINHAMENTO });
+    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
   }
 
   const potsi = calcularPOTSI(p);
@@ -166,14 +166,14 @@ function calcularLateral(p: Pontos): Desajuste[] {
     const relAcromio = rel(dxAcromio);
     const relTrocanter = rel(dxTrocanter);
 
-    resultado.push({ label: 'Desvio da Cabeça (linha de prumo)', valor: relTrago, unidade: '% da altura', alerta: Math.abs(relTrago) > 4 });
-    resultado.push({ label: 'Desvio do Ombro (linha de prumo)', valor: relAcromio, unidade: '% da altura', alerta: Math.abs(relAcromio) > 4 });
-    resultado.push({ label: 'Desvio do Quadril (linha de prumo)', valor: relTrocanter, unidade: '% da altura', alerta: Math.abs(relTrocanter) > 4 });
+    resultado.push({ label: 'Desvio da Cabeça (linha de prumo)', valor: relTrago, unidade: '% da altura', alerta: Math.abs(relTrago) >= 4 });
+    resultado.push({ label: 'Desvio do Ombro (linha de prumo)', valor: relAcromio, unidade: '% da altura', alerta: Math.abs(relAcromio) >= 4 });
+    resultado.push({ label: 'Desvio do Quadril (linha de prumo)', valor: relTrocanter, unidade: '% da altura', alerta: Math.abs(relTrocanter) >= 4 });
 
     if (p.joelho) {
       const dxJoelho = p.joelho.x - p.maleolo.x;
       const relJoelho = rel(dxJoelho);
-      resultado.push({ label: 'Desvio do Joelho (linha de prumo)', valor: relJoelho, unidade: '% da altura', alerta: Math.abs(relJoelho) > 4 });
+      resultado.push({ label: 'Desvio do Joelho (linha de prumo)', valor: relJoelho, unidade: '% da altura', alerta: Math.abs(relJoelho) >= 4 });
     }
   }
 
