@@ -5,6 +5,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../screens/HomeScreen';
 import PatientDetailScreen from '../screens/patient/PatientDetailScreen';
+import AvaliacaoDetailScreen from '../screens/patient/AvaliacaoDetailScreen';
 import EvaluationScreen from '../screens/EvaluationScreen';
 import CameraCaptureScreen from '../screens/CameraCaptureScreen';
 import VideoEditScreen from '../screens/VideoEditScreen';
@@ -31,6 +32,7 @@ function PacientesStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PacientesHome" component={HomeScreen} />
       <Stack.Screen name="PatientDetail" component={PatientDetailScreen} />
+      <Stack.Screen name="AvaliacaoDetail" component={AvaliacaoDetailScreen} />
     </Stack.Navigator>
   );
 }

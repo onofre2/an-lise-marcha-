@@ -290,15 +290,15 @@ export default function PatientDetailScreen() {
                 Avaliação {grupos.length - idx} — {grupo.data}
               </Text>
               {grupo.itens.map((item) => (
-                <View key={`${item.tipo}-${item.id}`} style={styles.itemAvaliacao}>
+                <TouchableOpacity key={`${item.tipo}-${item.id}`} style={styles.itemAvaliacao} activeOpacity={0.7} onPress={() => navigation.navigate('AvaliacaoDetail', { tipo: item.tipo, id: item.id })}>
                   <View style={[styles.itemBadge, item.tipo === 'marcha' ? styles.itemBadgeMarcha : styles.itemBadgePostural]}>
-                    <Text style={styles.itemBadgeText}>{item.tipo === 'marcha' ? 'Marcha' : 'Postural'}</Text>
+                    <Text style={styles.itemBadgeText}>{item.tipo === 'marcha' ? 'Marcha' : item.tipo === 'cervical' ? 'Cervical' : item.tipo === 'adm' ? 'ADM' : 'Postural'}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.itemDetalhe}>{item.detalhe}</Text>
                     {item.info_extra ? <Text style={styles.itemInfoExtra}>{item.info_extra}</Text> : null}
                   </View>
-                </View>
+                </TouchableOpacity>
               ))}
             </View>
           ))}
