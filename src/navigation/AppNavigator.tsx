@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -81,6 +82,7 @@ function ADMStack() {
 }
 
 export default function AppNavigator() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       tabBarPosition="bottom"
@@ -89,7 +91,7 @@ export default function AppNavigator() {
         tabBarShowIcon: true,
         tabBarShowLabel: true,
         tabBarIndicatorStyle: { height: 0 },
-        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', elevation: 0, shadowOpacity: 0 },
+        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', elevation: 0, shadowOpacity: 0, height: 56 + insets.bottom, paddingBottom: insets.bottom, paddingTop: 6 },
         tabBarActiveTintColor: '#0284C7',
         tabBarInactiveTintColor: '#94A3B8',
         tabBarLabelStyle: { fontSize: 11, textTransform: 'none', margin: 0 },
