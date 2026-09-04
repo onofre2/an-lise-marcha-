@@ -156,6 +156,8 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      <AssinaturaCriador />
+
       {pacientesExibidos.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>
@@ -164,14 +166,12 @@ export default function HomeScreen() {
           <Text style={styles.subEmptyText}>
             {busca.trim() ? 'Tente outro termo de busca.' : 'Toque no botão abaixo para adicionar.'}
           </Text>
-          <AssinaturaCriador />
         </View>
       ) : (
         <FlatList
           data={pacientesExibidos}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ paddingBottom: 100 }}
-          ListFooterComponent={<AssinaturaCriador />}
           renderItem={({ item }) => (
             <View style={[styles.card, pacienteAtivo?.id === item.id && styles.cardAtivo]}>
               <TouchableOpacity
@@ -332,7 +332,7 @@ function AssinaturaCriador() {
   return (
     <View style={styles.assinatura}>
       <Image source={require('../../assets/marca/criador.png')} style={styles.assinaturaImg} resizeMode="contain" />
-      <Text style={styles.assinaturaApp}>Analise Marcha</Text>
+      <Text style={styles.assinaturaApp}>Postural Global</Text>
       <Text style={styles.assinaturaAutor}>Desenvolvido por @fisionofre</Text>
       <TouchableOpacity onPress={() => Linking.openURL('mailto:jrferreiraa22@gmail.com')}>
         <Text style={styles.assinaturaLink}>jrferreiraa22@gmail.com</Text>
