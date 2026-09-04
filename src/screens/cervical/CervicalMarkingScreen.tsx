@@ -38,6 +38,17 @@ export default function CervicalMarkingScreen({ route, navigation }: any) {
     setIndiceAtual(0);
   };
 
+  const voltarPonto = () => {
+    if (indiceAtual === 0) return;
+    const anteriorId = PONTOS_SEQUENCIA[indiceAtual - 1].id;
+    setPontosMarcados(prev => {
+      const copia = { ...prev };
+      delete copia[anteriorId];
+      return copia;
+    });
+    setIndiceAtual(prev => prev - 1);
+  };
+
   const confirmar = () => {
     navigation.navigate('CervicalResult', { fotoUri, pacienteId, pontos: pontosMarcados });
   };
@@ -65,6 +76,11 @@ export default function CervicalMarkingScreen({ route, navigation }: any) {
       </TouchableOpacity>
 
       <View style={styles.footer}>
+        {indiceAtual > 0 && !finalizado && (
+          <TouchableOpacity style={styles.btnSecundario} onPress={voltarPonto}>
+            <Text style={styles.btnSecundarioText}>Voltar</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={styles.btnSecundario} onPress={reiniciar}>
           <Text style={styles.btnSecundarioText}>Reiniciar</Text>
         </TouchableOpacity>
