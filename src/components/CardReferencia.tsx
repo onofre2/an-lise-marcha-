@@ -1,34 +1,28 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, ScrollView, Dimensions } from 'react-native';
 
-// Cards antigos vivem numa imagem unica em grade 3x2 (tecnica de sprite).
-// Cards novos usam arquivo proprio, que permite proporcao livre.
-const SPRITE = require('../../assets/referencias/referencias-completo.png');
-const COLUNAS = 3;
-const LINHAS = 2;
-const PROPORCAO_SPRITE = 1020 / 1527;
+// Cada card de referencia tem seu proprio arquivo e proporcao.
 
 const CARD_ANTERIOR = require('../../assets/referencias/card-anterior.jpg');
 const CARD_POSTERIOR = require('../../assets/referencias/card-posterior.jpg');
 const CARD_LATERAL = require('../../assets/referencias/card-lateral.jpg');
 const CARD_CERVICAL = require('../../assets/referencias/card-cervical.jpg');
+const CARD_ADM = require('../../assets/referencias/card-adm.jpg');
 const CARD_MARCHA = require('../../assets/referencias/card-marcha.jpg');
 const CARD_ADAMS = require('../../assets/referencias/teste-adams.jpg');
 
 export type CardId = 'anterior' | 'posterior' | 'lateral' | 'cervical' | 'adm' | 'marcha' | 'adams';
 
-type Config =
-  | { tipo: 'sprite'; col: number; lin: number; titulo: string }
-  | { tipo: 'arquivo'; fonte: any; proporcao: number; titulo: string };
+type Config = { fonte: any; proporcao: number; titulo: string };
 
 const CARDS: Record<CardId, Config> = {
-  anterior:  { tipo: 'arquivo', fonte: CARD_ANTERIOR, proporcao: 896 / 1200, titulo: 'Vista Anterior' },
-  posterior: { tipo: 'arquivo', fonte: CARD_POSTERIOR, proporcao: 896 / 1200, titulo: 'Vista Posterior' },
-  lateral:   { tipo: 'arquivo', fonte: CARD_LATERAL, proporcao: 896 / 1200, titulo: 'Vista Lateral' },
-  cervical:  { tipo: 'arquivo', fonte: CARD_CERVICAL, proporcao: 896 / 1200, titulo: 'Cervical' },
-  adm:       { tipo: 'sprite', col: 1, lin: 1, titulo: 'Amplitude de Movimento' },
-  marcha:    { tipo: 'arquivo', fonte: CARD_MARCHA, proporcao: 1376 / 768, titulo: 'Marcha' },
-  adams:     { tipo: 'arquivo', fonte: CARD_ADAMS, proporcao: 700 / 450, titulo: 'Teste de Adams' },
+  anterior:  { fonte: CARD_ANTERIOR, proporcao: 896 / 1200, titulo: 'Vista Anterior' },
+  posterior: { fonte: CARD_POSTERIOR, proporcao: 896 / 1200, titulo: 'Vista Posterior' },
+  lateral:   { fonte: CARD_LATERAL, proporcao: 896 / 1200, titulo: 'Vista Lateral' },
+  cervical:  { fonte: CARD_CERVICAL, proporcao: 896 / 1200, titulo: 'Cervical' },
+  adm:       { fonte: CARD_ADM, proporcao: 1376 / 768, titulo: 'Amplitude de Movimento' },
+  marcha:    { fonte: CARD_MARCHA, proporcao: 1376 / 768, titulo: 'Marcha' },
+  adams:     { fonte: CARD_ADAMS, proporcao: 700 / 450, titulo: 'Teste de Adams' },
 };
 
 export default function CardReferencia({ card }: { card: CardId }) {
@@ -53,15 +47,11 @@ export default function CardReferencia({ card }: { card: CardId }) {
             </TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={styles.scroll}>
-            {config.tipo === 'sprite' ? (
-              <JanelaSprite config={config} larguraCard={larguraCard} />
-            ) : (
-              <Image
-                source={config.fonte}
-                style={{ width: larguraCard, height: larguraCard / config.proporcao, borderRadius: 12 }}
-                resizeMode="contain"
-              />
-            )}
+            <Image
+              source={config.fonte}
+              style={{ width: larguraCard, height: larguraCard / config.proporcao, borderRadius: 12 }}
+              resizeMode="contain"
+            />
             <Text style={styles.legenda}>
               Valores de referencia utilizados pelo aplicativo para identificar desajustes.
             </Text>
@@ -69,27 +59,6 @@ export default function CardReferencia({ card }: { card: CardId }) {
         </View>
       </Modal>
     </>
-  );
-}
-
-function JanelaSprite({ config, larguraCard }: { config: any; larguraCard: number }) {
-  const larguraTotal = larguraCard * COLUNAS;
-  const alturaTotal = larguraTotal / PROPORCAO_SPRITE;
-  const alturaCard = alturaTotal / LINHAS;
-
-  return (
-    <View style={[styles.janela, { width: larguraCard, height: alturaCard }]}>
-      <Image
-        source={SPRITE}
-        style={{
-          width: larguraTotal,
-          height: alturaTotal,
-          marginLeft: -larguraCard * config.col,
-          marginTop: -alturaCard * config.lin,
-        }}
-        resizeMode="stretch"
-      />
-    </View>
   );
 }
 
