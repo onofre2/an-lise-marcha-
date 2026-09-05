@@ -4,10 +4,12 @@ import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
 import db from '../../services/database';
 import { gerarRelatorioPostural } from '../../services/pdfService';
+import MarcadorComLupa from '../../components/MarcadorComLupa';
 
 interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
+const IMAGE_WIDTH = Dimensions.get('window').width - 32;
 
 // Mapeia pares de pontos para o rotulo do desajuste correspondente (vistas anterior/posterior)
 const MAPA_LABEL: Record<string, string> = {
@@ -32,7 +34,15 @@ export default function PosturalResultScreen({ route, navigation }: any) {
     fotoUri: string; pacienteId: number; vista: Vista; modo: 'rapida' | 'completa'; pontos: Record<string, Ponto>;
   };
 
-  const desajustes = useMemo(() => calcularDesajustes(vista, pontos), [vista, pontos]);
+  const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
+
+  const moverPonto = (id: string, x: number, y: number) => {
+    setPontosEditaveis(prev => ({ ...prev, [id]: { x, y } }));
+  };
+
+  const restaurarPontos = () => setPontosEditaveis(pontos);
+
+  const desajustes = useMemo(() => calcularDesajustes(vista, pontosEditaveis), [vista, pontosEditaveis]);
   const segmentos = SEGMENTOS_RAPIDA[vista];
   const ehLateral = vista.startsWith('lateral');
   const alterados = desajustes.filter(d => d.alerta);
@@ -56,7 +66,7 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       db.runSync(
         `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [pacienteId, vista, modo, dataHoje, fotoUri, JSON.stringify(pontos), JSON.stringify(desajustes)]
+        [pacienteId, vista, modo, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -90,13 +100,13 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       <View style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
 
-        {ehLateral && pontos.maleolo && (
-          <View style={[styles.linhaPrumo, { left: pontos.maleolo.x }]} />
+        {ehLateral && pontosEditaveis.maleolo && (
+          <View style={[styles.linhaPrumo, { left: pontosEditaveis.maleolo.x }]} />
         )}
 
         {segmentos.map(([idA, idB], i) => {
-          const a = pontos[idA];
-          const b = pontos[idB];
+          const a = pontosEditaveis[idA];
+          const b = pontosEditaveis[idB];
           if (!a || !b) return null;
           const d = !ehLateral ? buscarDesajusteSegmento(idA, idB) : undefined;
           return (
@@ -108,14 +118,22 @@ export default function PosturalResultScreen({ route, navigation }: any) {
           );
         })}
 
-        {ehLateral && Object.entries(pontos).map(([id, p]) => {
+        {ehLateral && Object.entries(pontosEditaveis).map(([id, p]) => {
           const d = buscarDesajustePonto(id);
           if (!d) return null;
           return <BadgeNoPonto key={id} p={p} desajuste={d} />;
         })}
 
-        {Object.values(pontos).map((p, i) => (
-          <View key={i} style={[styles.marcador, { left: p.x - 6, top: p.y - 6 }]} />
+        {Object.entries(pontosEditaveis).map(([id, p]) => (
+          <MarcadorComLupa
+            key={id}
+            id={id}
+            ponto={p}
+            onMove={moverPonto}
+            fotoUri={fotoUri}
+            larguraImagem={IMAGE_WIDTH}
+            alturaImagem={IMAGE_HEIGHT}
+          />
         ))}
       </View>
 
@@ -137,6 +155,12 @@ export default function PosturalResultScreen({ route, navigation }: any) {
           </View>
         ))
       )}
+
+      <Text style={styles.dicaArrastar}>Toque e arraste qualquer ponto na foto para corrigir a posicao. Os valores recalculam automaticamente.</Text>
+
+      <TouchableOpacity style={styles.btnRestaurar} onPress={restaurarPontos}>
+        <Text style={styles.btnRestaurarText}>Restaurar posicoes originais</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.btnSalvar} onPress={salvarAvaliacao}>
         <Text style={styles.btnSalvarText}>Salvar no Histórico do Paciente</Text>
@@ -245,6 +269,9 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: 'bold', fontSize: 13 },
   badgeTextOk: { color: '#16A34A' },
   badgeTextAlerta: { color: '#D97706' },
+  dicaArrastar: { color: '#94A3B8', fontSize: 11, textAlign: 'center', marginTop: 4, marginBottom: 12, lineHeight: 16 },
+  btnRestaurar: { backgroundColor: '#F1F5F9', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0' },
+  btnRestaurarText: { color: '#475569', fontWeight: 'bold', fontSize: 13 },
   btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10, shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });
