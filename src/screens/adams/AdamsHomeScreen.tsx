@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
+import CardReferencia from '../../components/CardReferencia';
 
 export default function AdamsHomeScreen({ navigation }: any) {
   const { pacienteAtivo } = usePacienteAtivo();
@@ -43,6 +44,8 @@ export default function AdamsHomeScreen({ navigation }: any) {
           4. Marque o ponto mais alto de cada lado das costas.
         </Text>
       </View>
+
+      <CardReferencia card="adams" />
 
       <View style={styles.cardAviso}>
         <Text style={styles.cardAvisoTexto}>
