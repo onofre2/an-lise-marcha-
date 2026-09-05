@@ -12,7 +12,7 @@ interface Ponto { x: number; y: number; }
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 
 export default function AvaliacaoDetailScreen({ route }: any) {
-  const { tipo, id } = route.params as { tipo: 'postural' | 'cervical' | 'adm' | 'marcha'; id: number };
+  const { tipo, id } = route.params as { tipo: 'postural' | 'cervical' | 'adm' | 'marcha' | 'adams'; id: number };
 
   const [registro, setRegistro] = useState<any>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -24,6 +24,7 @@ export default function AvaliacaoDetailScreen({ route }: any) {
         cervical: 'avaliacoes_cervicais',
         adm: 'avaliacoes_adm',
         marcha: 'avaliacoes',
+        adams: 'avaliacoes_adams',
       };
       const resultado = db.getFirstSync(`SELECT * FROM ${tabelas[tipo]} WHERE id = ?`, [id]);
       if (resultado) setRegistro(resultado);
@@ -99,6 +100,7 @@ export default function AvaliacaoDetailScreen({ route }: any) {
             return <Linha key={i} a={a} b={b} />;
           })}
 
+          {tipo === 'adams' && pontos.dorso_d && pontos.dorso_e && <Linha a={pontos.dorso_d} b={pontos.dorso_e} />}
           {tipo === 'cervical' && pontos.c7 && pontos.trago && <Linha a={pontos.c7} b={pontos.trago} />}
           {tipo === 'cervical' && pontos.c7 && pontos.acromio && <Linha a={pontos.acromio} b={pontos.c7} />}
 
@@ -162,6 +164,7 @@ export default function AvaliacaoDetailScreen({ route }: any) {
 
 function tituloDaAvaliacao(tipo: string, registro: any): string {
   if (tipo === 'postural') return `Postural — ${String(registro.vista || '').replace('_', ' ')}`;
+  if (tipo === 'adams') return 'Teste de Inclinacao de Adams';
   if (tipo === 'cervical') return 'Avaliacao Cervical';
   if (tipo === 'adm') return `ADM — ${registro.movimento || ''}`;
   return `Marcha — ${registro.angulo || ''}`;
@@ -200,6 +203,29 @@ function renderMedidas(tipo: string, registro: any, desajustes: Desajuste[]) {
           <Text style={[styles.badgeText, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{registro.angulo}°</Text>
         </View>
       </View>
+    );
+  }
+
+  if (tipo === 'adams') {
+    const alerta = registro.angulo >= 5;
+    return (
+      <>
+        <View style={styles.card}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardLabel}>Inclinacao entre os lados</Text>
+            <Text style={styles.cardRef}>Alerta a partir de 5 graus</Text>
+          </View>
+          <View style={[styles.badge, alerta ? styles.badgeAlerta : styles.badgeOk]}>
+            <Text style={[styles.badgeText, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{registro.angulo}&deg;</Text>
+          </View>
+        </View>
+        <View style={styles.card}>
+          <Text style={styles.cardLabel}>Lado mais elevado</Text>
+          <View style={[styles.badge, styles.badgeNeutro]}>
+            <Text style={[styles.badgeText, styles.badgeTextNeutro]}>{registro.lado_elevado || '-'}</Text>
+          </View>
+        </View>
+      </>
     );
   }
 

@@ -52,36 +52,6 @@ export const initDatabase = () => {
       );
     `);
 
-    // Migracao: adiciona coluna de observacoes visuais (circulos vermelhos) nas avaliacoes
-    const tabelasObservacoes = ['avaliacoes_posturais', 'avaliacoes_cervicais', 'avaliacoes_adm'];
-    tabelasObservacoes.forEach(tabela => {
-      try {
-        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN observacoes_json TEXT`);
-      } catch {
-        // coluna ja existe - ignora
-      }
-      // Dimensoes da area onde os pontos foram marcados.
-      // Necessario para reproduzir a imagem com fidelidade no PDF.
-      try {
-        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN dimensoes_json TEXT`);
-      } catch {
-        // coluna ja existe - ignora
-      }
-    });
-
-    // Migracao: adiciona coluna de marcacoes por fase na tabela de marcha (bancos antigos)
-    try {
-      db.execSync('ALTER TABLE avaliacoes ADD COLUMN marcacoes_json TEXT');
-    } catch {
-      // coluna ja existe - ignora
-    }
-
-    // Frames capturados de cada fase da marcha, com as marcacoes sobrepostas
-    try {
-      db.execSync('ALTER TABLE avaliacoes ADD COLUMN frames_json TEXT');
-    } catch {
-      // coluna ja existe - ignora
-    }
 
     // Criação da tabela de Avaliações Posturais (foto com pontos marcados)
     db.execSync(`
@@ -137,6 +107,37 @@ export const initDatabase = () => {
         assinatura_uri TEXT
       );
     `);
+
+    // Migracao: adiciona coluna de observacoes visuais (circulos vermelhos) nas avaliacoes
+    const tabelasObservacoes = ['avaliacoes_posturais', 'avaliacoes_cervicais', 'avaliacoes_adm'];
+    tabelasObservacoes.forEach(tabela => {
+      try {
+        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN observacoes_json TEXT`);
+      } catch {
+        // coluna ja existe - ignora
+      }
+      // Dimensoes da area onde os pontos foram marcados.
+      // Necessario para reproduzir a imagem com fidelidade no PDF.
+      try {
+        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN dimensoes_json TEXT`);
+      } catch {
+        // coluna ja existe - ignora
+      }
+    });
+
+    // Migracao: adiciona coluna de marcacoes por fase na tabela de marcha (bancos antigos)
+    try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN marcacoes_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
+    // Frames capturados de cada fase da marcha, com as marcacoes sobrepostas
+    try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN frames_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
 
     console.log("Banco de dados inicializado com sucesso!");
   } catch (error) {

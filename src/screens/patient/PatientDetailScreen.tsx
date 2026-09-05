@@ -22,7 +22,7 @@ interface Paciente {
 
 interface ItemAvaliacao {
   id: number;
-  tipo: 'marcha' | 'postural' | 'cervical' | 'adm';
+  tipo: 'marcha' | 'postural' | 'cervical' | 'adm' | 'adams';
   data_avaliacao: string;
   detalhe: string;
   info_extra?: string;
@@ -70,7 +70,22 @@ export default function PatientDetailScreen() {
         [id]
       ) as { id: number; vista: string; modo: string; data_avaliacao: string; medidas_json: string | null }[];
 
-      const itensMarcha: ItemAvaliacao[] = marchas.map((m) => ({
+      const cervicais = db.getAllSync(
+      'SELECT id, angulo, data_avaliacao FROM avaliacoes_cervicais WHERE id_paciente = ?',
+      [id]
+    ) as { id: number; angulo: number; data_avaliacao: string }[];
+
+    const adms = db.getAllSync(
+      'SELECT id, movimento, angulo, referencia, data_avaliacao FROM avaliacoes_adm WHERE id_paciente = ?',
+      [id]
+    ) as { id: number; movimento: string; angulo: number; referencia: number; data_avaliacao: string }[];
+
+    const adamses = db.getAllSync(
+      'SELECT id, angulo, lado_elevado, data_avaliacao FROM avaliacoes_adams WHERE id_paciente = ?',
+      [id]
+    ) as { id: number; angulo: number; lado_elevado: string; data_avaliacao: string }[];
+
+    const itensMarcha: ItemAvaliacao[] = marchas.map((m) => ({
         id: m.id,
         tipo: 'marcha',
         data_avaliacao: m.data_avaliacao,
@@ -96,7 +111,31 @@ export default function PatientDetailScreen() {
         };
       });
 
-      const todos = [...itensMarcha, ...itensPostural];
+      const itensCervical: ItemAvaliacao[] = cervicais.map((c2) => ({
+      id: c2.id,
+      tipo: 'cervical',
+      data_avaliacao: c2.data_avaliacao,
+      detalhe: 'Cervical — Angulo Craniovertebral',
+      info_extra: `${c2.angulo} graus`,
+    }));
+
+    const itensADM: ItemAvaliacao[] = adms.map((a2) => ({
+      id: a2.id,
+      tipo: 'adm',
+      data_avaliacao: a2.data_avaliacao,
+      detalhe: `ADM — ${a2.movimento}`,
+      info_extra: `${a2.angulo}/${a2.referencia} graus`,
+    }));
+
+    const itensAdams: ItemAvaliacao[] = adamses.map((a3) => ({
+      id: a3.id,
+      tipo: 'adams',
+      data_avaliacao: a3.data_avaliacao,
+      detalhe: 'Adams — Teste de Inclinacao',
+      info_extra: `${a3.angulo} graus | lado ${a3.lado_elevado || '-'}`,
+    }));
+
+    const todos = [...itensMarcha, ...itensPostural, ...itensCervical, ...itensADM, ...itensAdams];
 
       const mapa = new Map<string, ItemAvaliacao[]>();
       todos.forEach((item) => {
@@ -292,7 +331,7 @@ export default function PatientDetailScreen() {
               {grupo.itens.map((item) => (
                 <TouchableOpacity key={`${item.tipo}-${item.id}`} style={styles.itemAvaliacao} activeOpacity={0.7} onPress={() => navigation.navigate('AvaliacaoDetail', { tipo: item.tipo, id: item.id })}>
                   <View style={[styles.itemBadge, item.tipo === 'marcha' ? styles.itemBadgeMarcha : styles.itemBadgePostural]}>
-                    <Text style={styles.itemBadgeText}>{item.tipo === 'marcha' ? 'Marcha' : item.tipo === 'cervical' ? 'Cervical' : item.tipo === 'adm' ? 'ADM' : 'Postural'}</Text>
+                    <Text style={styles.itemBadgeText}>{item.tipo === 'marcha' ? 'Marcha' : item.tipo === 'cervical' ? 'Cervical' : item.tipo === 'adm' ? 'ADM' : item.tipo === 'adams' ? 'Adams' : 'Postural'}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.itemDetalhe}>{item.detalhe}</Text>
