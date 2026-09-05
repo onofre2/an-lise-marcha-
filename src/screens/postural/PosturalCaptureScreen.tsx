@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import SilhuetaGuia from '../../components/SilhuetaGuia';
 import { Vista } from '../../constants/posturalPoints';
 
 export default function PosturalCaptureScreen({ route, navigation }: any) {
@@ -60,6 +61,7 @@ export default function PosturalCaptureScreen({ route, navigation }: any) {
             <Text style={styles.headerText}>Vista: {vista.replace('_', ' ').toUpperCase()}</Text>
           </View>
           <View style={styles.guideBox}>
+            <SilhuetaGuia orientacao={vista.startsWith('lateral') ? 'lateral' : 'frontal'} />
             <Text style={styles.guideText}>Enquadre o corpo inteiro</Text>
           </View>
           <View style={styles.acoes}>

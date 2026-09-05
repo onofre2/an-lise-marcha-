@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import SilhuetaGuia from '../../components/SilhuetaGuia';
 
 export default function AdamsCaptureScreen({ route, navigation }: any) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -55,6 +56,7 @@ export default function AdamsCaptureScreen({ route, navigation }: any) {
             <Text style={styles.headerText}>Paciente inclinado a frente, visto por tras</Text>
           </View>
           <View style={styles.guideBox}>
+            <SilhuetaGuia orientacao={'frontal'} />
             <Text style={styles.guideText}>Enquadre o dorso do paciente</Text>
           </View>
           <View style={styles.acoes}>
