@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, S
 import db from '../services/database';
 import { useNavigation } from '@react-navigation/native';
 import { usePacienteAtivo } from '../context/PacienteAtivoContext';
+import * as ImagePicker from 'expo-image-picker';
+import { salvarMidiaPermanente } from '../services/armazenamento';
 
 interface Paciente {
   id: number;
@@ -30,6 +32,7 @@ export default function HomeScreen() {
   const [busca, setBusca] = useState('');
   const [aba, setAba] = useState<AbaOrdenacao>('recentes');
   const [modalVisible, setModalVisible] = useState(false);
+  const [fotoUri, setFotoUri] = useState<string | null>(null);
   const [nome, setNome] = useState('');
   const [idade, setIdade] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
@@ -81,6 +84,7 @@ export default function HomeScreen() {
   }, [pacientes, busca, aba]);
 
   const limparFormulario = () => {
+    setFotoUri(null);
     setNome('');
     setIdade('');
     setDataNascimento('');
@@ -92,15 +96,26 @@ export default function HomeScreen() {
     setObjetivosTerapeuticos('');
   };
 
-  const salvarPaciente = () => {
+  const escolherFoto = async () => {
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+    });
+    if (!resultado.canceled && resultado.assets && resultado.assets[0]) {
+      setFotoUri(resultado.assets[0].uri);
+    }
+  };
+
+  const salvarPaciente = async () => {
     if (!nome.trim()) return;
 
     const dataHoje = new Date().toLocaleDateString('pt-BR');
+    const fotoPermanente = fotoUri ? await salvarMidiaPermanente(fotoUri) : null;
     try {
       db.runSync(
         `INSERT INTO pacientes
-          (nome, idade, data_nascimento, sexo, data_cadastro, diagnostico, historico_medico, anotacoes_clinicas, conclusao_clinica, objetivos_terapeuticos)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (nome, idade, data_nascimento, sexo, data_cadastro, diagnostico, historico_medico, anotacoes_clinicas, conclusao_clinica, objetivos_terapeuticos, foto_uri)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           nome,
           idade ? parseInt(idade) : null,
@@ -112,6 +127,7 @@ export default function HomeScreen() {
           anotacoesClinicas || null,
           conclusaoClinica || null,
           objetivosTerapeuticos || null,
+          fotoPermanente,
         ]
       );
 
@@ -179,6 +195,13 @@ export default function HomeScreen() {
                 onPress={() => navigation.navigate('PatientDetail', { id: item.id })}
                 activeOpacity={0.7}
               >
+                {item.foto_uri ? (
+                  <Image source={{ uri: item.foto_uri }} style={styles.cardFoto} />
+                ) : (
+                  <View style={styles.cardFotoVazia}>
+                    <Text style={styles.cardFotoInicial}>{item.nome.charAt(0).toUpperCase()}</Text>
+                  </View>
+                )}
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardNome}>{item.nome}</Text>
                   <Text style={styles.cardDetalhes}>Idade: {item.idade ? `${item.idade} anos` : 'Não informada'}</Text>
@@ -213,6 +236,14 @@ export default function HomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Novo Paciente</Text>
+
+            <TouchableOpacity style={styles.fotoBox} onPress={escolherFoto}>
+              {fotoUri ? (
+                <Image source={{ uri: fotoUri }} style={styles.fotoPreview} />
+              ) : (
+                <Text style={styles.fotoPlaceholder}>Toque para adicionar foto do paciente</Text>
+              )}
+            </TouchableOpacity>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={styles.label}>Nome Completo</Text>
@@ -367,6 +398,9 @@ const styles = StyleSheet.create({
   btnAtivarOn: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
   btnAtivarText: { fontSize: 11, fontWeight: 'bold', color: '#475569' },
   btnAtivarTextOn: { color: '#FFFFFF' },
+  cardFoto: { width: 44, height: 44, borderRadius: 22, marginRight: 12 },
+  cardFotoVazia: { width: 44, height: 44, borderRadius: 22, marginRight: 12, backgroundColor: '#0284C7', justifyContent: 'center', alignItems: 'center' },
+  cardFotoInicial: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
   cardNome: { fontSize: 16, fontWeight: 'bold', color: '#0F172A' },
   cardDetalhes: { fontSize: 14, color: '#64748B', marginTop: 4 },
   cardRight: { alignItems: 'flex-end' },
@@ -377,6 +411,9 @@ const styles = StyleSheet.create({
   fabText: { color: '#FFFFFF', fontSize: 30, fontWeight: '300' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#FFFFFF', padding: 24, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', maxHeight: '85%' },
+  fotoBox: { height: 110, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', marginBottom: 14, overflow: 'hidden', backgroundColor: '#F8FAFC' },
+  fotoPreview: { width: '100%', height: '100%' },
+  fotoPlaceholder: { color: '#94A3B8', fontSize: 13 },
   modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#0F172A', marginBottom: 16 },
   label: { fontSize: 13, fontWeight: '600', color: '#64748B', marginBottom: 6 },
   input: { backgroundColor: '#F8FAFC', color: '#0F172A', padding: 14, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
