@@ -1,11 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import db from '../../services/database';
 import { MOVIMENTOS } from '../../constants/movimentos';
+import MarcadorComLupa from '../../components/MarcadorComLupa';
 
 interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
+const IMAGE_WIDTH = Dimensions.get('window').width - 32;
 
 export default function ADMResultScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, movimentoId, pontos } = route.params as {
@@ -15,11 +17,19 @@ export default function ADMResultScreen({ route, navigation }: any) {
   const movimento = MOVIMENTOS.find(m => m.id === movimentoId);
   const ids = movimento ? movimento.pontos.map(p => p.id) : [];
 
+  const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
+
+  const moverPonto = (id: string, x: number, y: number) => {
+    setPontosEditaveis(prev => ({ ...prev, [id]: { x, y } }));
+  };
+
+  const restaurarPontos = () => setPontosEditaveis(pontos);
+
   const angulo = useMemo(() => {
     if (!movimento) return null;
-    const a = pontos[ids[0]];
-    const vertice = pontos[ids[1]];
-    const c = pontos[ids[2]];
+    const a = pontosEditaveis[ids[0]];
+    const vertice = pontosEditaveis[ids[1]];
+    const c = pontosEditaveis[ids[2]];
     if (!a || !vertice || !c) return null;
 
     const v1x = a.x - vertice.x;
@@ -34,7 +44,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
     const cos = Math.max(-1, Math.min(1, produto / (mod1 * mod2)));
     return Number((Math.acos(cos) * (180 / Math.PI)).toFixed(1));
-  }, [pontos, movimento]);
+  }, [pontosEditaveis, movimento]);
 
   const referencia = movimento ? movimento.referencia : 0;
   const deficit = angulo !== null ? Number((referencia - angulo).toFixed(1)) : null;
@@ -50,9 +60,9 @@ export default function ADMResultScreen({ route, navigation }: any) {
   // e rotacionando o segmento de referencia pelo angulo normativo, no mesmo sentido do movimento real.
   const pontoIdeal = useMemo(() => {
     if (ids.length !== 3) return null;
-    const a = pontos[ids[0]];
-    const vertice = pontos[ids[1]];
-    const c = pontos[ids[2]];
+    const a = pontosEditaveis[ids[0]];
+    const vertice = pontosEditaveis[ids[1]];
+    const c = pontosEditaveis[ids[2]];
     if (!a || !vertice || !c) return null;
 
     const anguloVetor = (dx: number, dy: number) => Math.atan2(dy, dx);
@@ -70,7 +80,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
       x: vertice.x + comprimento * Math.cos(anguloIdeal),
       y: vertice.y + comprimento * Math.sin(anguloIdeal),
     };
-  }, [pontos, referencia, ids]);
+  }, [pontosEditaveis, referencia, ids]);
 
   const salvarAvaliacao = () => {
     if (angulo === null || !movimento) {
@@ -81,7 +91,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       db.runSync(
         'INSERT INTO avaliacoes_adm (id_paciente, movimento, data_avaliacao, foto_uri, pontos_json, angulo, referencia) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, movimento.nome, dataHoje, fotoUri, JSON.stringify(pontos), angulo, referencia]
+        [pacienteId, movimento.nome, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), angulo, referencia]
       );
       Alert.alert('Sucesso', 'Avaliacao de amplitude salva no historico do paciente!', [
         { text: 'OK', onPress: () => navigation.navigate('ADMHome') },
@@ -102,20 +112,28 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
       <View style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
-        {ids.length === 3 && pontos[ids[0]] && pontos[ids[1]] && (
-          <LinhaSegmento a={pontos[ids[1]]} b={pontos[ids[0]]} />
+        {ids.length === 3 && pontosEditaveis[ids[0]] && pontosEditaveis[ids[1]] && (
+          <LinhaSegmento a={pontosEditaveis[ids[1]]} b={pontosEditaveis[ids[0]]} />
         )}
-        {ids.length === 3 && pontos[ids[1]] && pontos[ids[2]] && (
-          <LinhaSegmento a={pontos[ids[1]]} b={pontos[ids[2]]} alerta={alerta} destaque />
+        {ids.length === 3 && pontosEditaveis[ids[1]] && pontosEditaveis[ids[2]] && (
+          <LinhaSegmento a={pontosEditaveis[ids[1]]} b={pontosEditaveis[ids[2]]} alerta={alerta} destaque />
         )}
-        {pontoIdeal && pontos[ids[1]] && (
-          <LinhaIdeal a={pontos[ids[1]]} b={pontoIdeal} />
+        {pontoIdeal && pontosEditaveis[ids[1]] && (
+          <LinhaIdeal a={pontosEditaveis[ids[1]]} b={pontoIdeal} />
         )}
-        {angulo !== null && pontos[ids[1]] && (
-          <BadgeNoVertice ponto={pontos[ids[1]]} valor={angulo} alerta={alerta} />
+        {angulo !== null && pontosEditaveis[ids[1]] && (
+          <BadgeNoVertice ponto={pontosEditaveis[ids[1]]} valor={angulo} alerta={alerta} />
         )}
-        {Object.values(pontos).map((p, i) => (
-          <View key={i} style={[styles.marcador, { left: p.x - 6, top: p.y - 6 }]} />
+        {Object.entries(pontosEditaveis).map(([id, p]) => (
+          <MarcadorComLupa
+            key={id}
+            id={id}
+            ponto={p}
+            onMove={moverPonto}
+            fotoUri={fotoUri}
+            larguraImagem={IMAGE_WIDTH}
+            alturaImagem={IMAGE_HEIGHT}
+          />
         ))}
       </View>
 
@@ -144,6 +162,12 @@ export default function ADMResultScreen({ route, navigation }: any) {
           </View>
         </>
       )}
+
+      <Text style={styles.dicaArrastar}>Toque e arraste qualquer ponto na foto para corrigir a posicao. Os valores recalculam automaticamente.</Text>
+
+      <TouchableOpacity style={styles.btnRestaurar} onPress={restaurarPontos}>
+        <Text style={styles.btnRestaurarText}>Restaurar posicoes originais</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.btnSalvar} onPress={salvarAvaliacao}>
         <Text style={styles.btnSalvarText}>Salvar no Historico do Paciente</Text>
@@ -208,6 +232,9 @@ const styles = StyleSheet.create({
   badgeTextOk: { color: '#16A34A' },
   badgeTextAlerta: { color: '#D97706' },
   badgeTextNeutro: { color: '#64748B' },
+  dicaArrastar: { color: '#94A3B8', fontSize: 11, textAlign: 'center', marginTop: 4, marginBottom: 12, lineHeight: 16 },
+  btnRestaurar: { backgroundColor: '#F1F5F9', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0' },
+  btnRestaurarText: { color: '#475569', fontWeight: 'bold', fontSize: 13 },
   btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10 },
   btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });
