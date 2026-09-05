@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import db from '../../services/database';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
+import { gerarRelatorioADM } from '../../services/pdfService';
 import { MOVIMENTOS } from '../../constants/movimentos';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
 
@@ -117,8 +118,20 @@ export default function ADMResultScreen({ route, navigation }: any) {
         'INSERT INTO avaliacoes_adm (id_paciente, movimento, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [pacienteId, movimento.nome, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
       );
-      Alert.alert('Sucesso', 'Avaliacao de amplitude salva no historico do paciente!', [
-        { text: 'OK', onPress: () => navigation.navigate('ADMHome') },
+      const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+      Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
+        { text: 'Agora nao', onPress: () => navigation.navigate('ADMHome') },
+        {
+          text: 'Gerar PDF',
+          onPress: async () => {
+            try {
+              await gerarRelatorioADM(nova.id);
+            } catch (e) {
+              Alert.alert('Erro', 'Nao foi possivel gerar o PDF.');
+            }
+            navigation.navigate('ADMHome');
+          },
+        },
       ]);
     } catch (error) {
       console.error('Erro ao salvar avaliacao ADM:', error);

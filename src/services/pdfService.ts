@@ -6,7 +6,7 @@ import db from './database';
 import { diagramaAmplitude, diagramaAlinhamento } from './diagramaSvg';
 import { REFERENCIA_BASE64 } from './referenciaImagem';
 import { MARCA_BASE64 } from './marcaImagem';
-import { fotoParaBase64, imagemPostural } from './imagemAvaliacao';
+import { fotoParaBase64, imagemPostural, imagemSimples } from './imagemAvaliacao';
 import { SEGMENTOS_RAPIDA, Vista } from '../constants/posturalPoints';
 import * as FileSystem from 'expo-file-system';
 
@@ -184,6 +184,52 @@ async function montarImagemPostural(av: any): Promise<string> {
   }
 }
 
+// Monta a imagem de uma avaliacao cervical
+async function montarImagemCervical(av: any): Promise<string> {
+  try {
+    const fotoBase64 = await fotoParaBase64(av.foto_uri);
+    if (!fotoBase64) return '';
+
+    const pontos = av.pontos_json ? JSON.parse(av.pontos_json) : {};
+    const observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {};
+    const dimensoes = av.dimensoes_json ? JSON.parse(av.dimensoes_json) : { largura: 343, altura: 400 };
+
+    const alerta = av.angulo < 48;
+    const ligacoes: [string, string][] = [['c7', 'trago'], ['acromio', 'c7']];
+    const valor = { texto: `${av.angulo}\u00b0`, alerta, ancora: 'trago' };
+
+    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes);
+  } catch (e) {
+    console.error('Erro ao montar imagem cervical:', e);
+    return '';
+  }
+}
+
+// Monta a imagem de uma avaliacao de amplitude de movimento
+async function montarImagemADM(av: any): Promise<string> {
+  try {
+    const fotoBase64 = await fotoParaBase64(av.foto_uri);
+    if (!fotoBase64) return '';
+
+    const pontos = av.pontos_json ? JSON.parse(av.pontos_json) : {};
+    const observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {};
+    const dimensoes = av.dimensoes_json ? JSON.parse(av.dimensoes_json) : { largura: 343, altura: 400 };
+
+    const ids = Object.keys(pontos);
+    if (ids.length < 3) return '';
+
+    const deficit = Number((av.referencia - av.angulo).toFixed(1));
+    const alerta = deficit >= 10;
+    const ligacoes: [string, string][] = [[ids[1], ids[0]], [ids[1], ids[2]]];
+    const valor = { texto: `${av.angulo}\u00b0`, alerta, ancora: ids[1] };
+
+    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes);
+  } catch (e) {
+    console.error('Erro ao montar imagem ADM:', e);
+    return '';
+  }
+}
+
 // Relatorio de uma unica avaliacao postural
 export async function gerarRelatorioPostural(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_posturais WHERE id = ?', [idAvaliacao]) as any;
@@ -200,6 +246,69 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
       ${imagemHtml}
       ${tabelaMedidas(medidas)}
       ${diagramasMedidas(medidas)}
+      ${paginaReferencias()}
+      ${rodapeHtml}
+    </body></html>
+  `;
+  return gerarEcompartilhar(html);
+}
+
+// Relatorio de uma unica avaliacao cervical
+export async function gerarRelatorioCervical(idAvaliacao: number) {
+  const av = db.getFirstSync('SELECT * FROM avaliacoes_cervicais WHERE id = ?', [idAvaliacao]) as any;
+  if (!av) throw new Error('Avaliacao nao encontrada');
+  const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
+
+  const rodapeHtml = await rodapeCompleto();
+  const imagemHtml = await montarImagemCervical(av);
+  const alterado = av.angulo < 48;
+
+  const html = `
+    <html><head><meta charset="utf-8">${ESTILO}</head><body>
+      ${cabecalho(p, 'Relatorio de Avaliacao Cervical')}
+      <h2>Angulo Craniovertebral - ${av.data_avaliacao}</h2>
+      ${imagemHtml}
+      <table>
+        <tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>
+        <tr>
+          <td>Angulo Craniovertebral</td>
+          <td class="${alterado ? 'alerta' : 'ok'}">${av.angulo} graus</td>
+          <td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Cabeca anteriorizada' : 'Normal'}</td>
+        </tr>
+      </table>
+      <div class="bloco">Referencia: angulo craniovertebral normal a partir de 48 graus. Valores menores indicam anteriorizacao da cabeca.</div>
+      ${paginaReferencias()}
+      ${rodapeHtml}
+    </body></html>
+  `;
+  return gerarEcompartilhar(html);
+}
+
+// Relatorio de uma unica avaliacao de amplitude de movimento
+export async function gerarRelatorioADM(idAvaliacao: number) {
+  const av = db.getFirstSync('SELECT * FROM avaliacoes_adm WHERE id = ?', [idAvaliacao]) as any;
+  if (!av) throw new Error('Avaliacao nao encontrada');
+  const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
+
+  const rodapeHtml = await rodapeCompleto();
+  const imagemHtml = await montarImagemADM(av);
+  const deficit = Number((av.referencia - av.angulo).toFixed(1));
+  const alerta = deficit >= 10;
+
+  const html = `
+    <html><head><meta charset="utf-8">${ESTILO}</head><body>
+      ${cabecalho(p, 'Relatorio de Amplitude de Movimento')}
+      <h2>${av.movimento} - ${av.data_avaliacao}</h2>
+      ${imagemHtml}
+      <table>
+        <tr><th>Medida</th><th>Valor</th></tr>
+        <tr><td>Amplitude medida</td><td>${av.angulo} graus</td></tr>
+        <tr><td>Referencia normal</td><td>${av.referencia} graus</td></tr>
+        <tr><td>Deficit</td><td class="${alerta ? 'alerta' : 'ok'}">${deficit} graus</td></tr>
+      </table>
+      <div class="diagramas">
+        <div class="diagrama">${diagramaAmplitude(av.movimento, av.angulo, av.referencia)}</div>
+      </div>
       ${paginaReferencias()}
       ${rodapeHtml}
     </body></html>
@@ -245,6 +354,9 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Cabeca anteriorizada' : 'Normal'}</td></tr>`;
     });
     corpo += '</table>';
+    for (const av of cervicais) {
+      corpo += await montarImagemCervical(av);
+    }
   }
 
   if (adms.length > 0) {
@@ -259,6 +371,9 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       corpo += '<div class="diagrama">' + diagramaAmplitude(av.movimento, av.angulo, av.referencia) + '</div>';
     });
     corpo += '</div>';
+    for (const av of adms) {
+      corpo += await montarImagemADM(av);
+    }
   }
 
   if (marchas.length > 0) {

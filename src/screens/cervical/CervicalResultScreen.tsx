@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, PanResponder } from 'react-native';
 import db from '../../services/database';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
+import { gerarRelatorioCervical } from '../../services/pdfService';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
 
 interface Ponto { x: number; y: number; }
@@ -88,8 +89,20 @@ export default function CervicalResultScreen({ route, navigation }: any) {
         'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
         [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
       );
-      Alert.alert('Sucesso', 'Avaliacao cervical salva no historico do paciente!', [
-        { text: 'OK', onPress: () => navigation.navigate('CervicalHome') },
+      const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+      Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
+        { text: 'Agora nao', onPress: () => navigation.navigate('CervicalHome') },
+        {
+          text: 'Gerar PDF',
+          onPress: async () => {
+            try {
+              await gerarRelatorioCervical(nova.id);
+            } catch (e) {
+              Alert.alert('Erro', 'Nao foi possivel gerar o PDF.');
+            }
+            navigation.navigate('CervicalHome');
+          },
+        },
       ]);
     } catch (error) {
       console.error('Erro ao salvar avaliacao cervical:', error);
