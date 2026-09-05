@@ -11,7 +11,7 @@ export default function AdamsCaptureScreen({ route, navigation }: any) {
 
   async function escolherDaGaleria() {
     const resultado = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 0.8,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {

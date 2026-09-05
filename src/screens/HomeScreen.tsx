@@ -99,7 +99,7 @@ export default function HomeScreen() {
 
   const escolherFoto = async () => {
     const resultado = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 0.7,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {

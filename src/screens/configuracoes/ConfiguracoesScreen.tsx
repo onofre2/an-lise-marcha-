@@ -50,7 +50,7 @@ export default function ConfiguracoesScreen() {
 
   const escolherImagem = async (tipo: 'logo' | 'assinatura') => {
     const resultado = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 0.8,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {
