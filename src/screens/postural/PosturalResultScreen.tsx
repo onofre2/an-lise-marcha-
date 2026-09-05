@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dim
 import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
 import db from '../../services/database';
+import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { gerarRelatorioPostural } from '../../services/pdfService';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
 
@@ -82,13 +83,14 @@ export default function PosturalResultScreen({ route, navigation }: any) {
     return desajustes.find(d => d.label.includes(termo));
   };
 
-  const salvarAvaliacao = () => {
+  const salvarAvaliacao = async () => {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
+      const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
         `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [pacienteId, vista, modo, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes)]
+        [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [

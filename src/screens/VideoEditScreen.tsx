@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import db from '../services/database';
+import { salvarMidiaPermanente } from '../services/armazenamento';
 import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
 import { calcularFase, PontosFase } from '../services/marchaCalculations';
 
@@ -63,12 +64,13 @@ export default function VideoEditScreen({ route, navigation }: any) {
     if (faseIndice < FASES_MARCHA.length - 1) setFaseIndice(faseIndice + 1);
   };
 
-  const salvar = () => {
+  const salvar = async () => {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
+      const videoPermanente = await salvarMidiaPermanente(videoUri);
       db.runSync(
         'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json) VALUES (?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoUri, JSON.stringify(marcacoes)]
+        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes)]
       );
       Alert.alert('Sucesso', 'Avaliacao de marcha salva no historico!', [
         { text: 'OK', onPress: () => navigation.navigate('EvaluationHome') },

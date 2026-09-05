@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import db from '../../services/database';
+import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { MOVIMENTOS } from '../../constants/movimentos';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
 
@@ -104,16 +105,17 @@ export default function ADMResultScreen({ route, navigation }: any) {
     };
   }, [pontosEditaveis, referencia, ids]);
 
-  const salvarAvaliacao = () => {
+  const salvarAvaliacao = async () => {
     if (angulo === null || !movimento) {
       Alert.alert('Erro', 'Marque os tres pontos antes de salvar.');
       return;
     }
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
+      const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
         'INSERT INTO avaliacoes_adm (id_paciente, movimento, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, movimento.nome, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes)]
+        [pacienteId, movimento.nome, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes)]
       );
       Alert.alert('Sucesso', 'Avaliacao de amplitude salva no historico do paciente!', [
         { text: 'OK', onPress: () => navigation.navigate('ADMHome') },
