@@ -392,6 +392,62 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
   return gerarEcompartilhar(html);
 }
 
+// Monta a imagem do teste de inclinacao de Adams
+async function montarImagemAdams(av: any): Promise<string> {
+  try {
+    const fotoBase64 = await fotoParaBase64(av.foto_uri);
+    if (!fotoBase64) return '';
+
+    const pontos = av.pontos_json ? JSON.parse(av.pontos_json) : {};
+    const observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {};
+    const dimensoes = av.dimensoes_json ? JSON.parse(av.dimensoes_json) : { largura: 343, altura: 400 };
+
+    const alerta = av.angulo >= 5;
+    const ligacoes: [string, string][] = [['dorso_d', 'dorso_e']];
+    const valor = { texto: `${av.angulo}\u00b0`, alerta, ancora: 'dorso_d' };
+
+    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes);
+  } catch (e) {
+    console.error('Erro ao montar imagem do teste de Adams:', e);
+    return '';
+  }
+}
+
+// Relatorio de um teste de inclinacao de Adams
+export async function gerarRelatorioAdams(idAvaliacao: number) {
+  const av = db.getFirstSync('SELECT * FROM avaliacoes_adams WHERE id = ?', [idAvaliacao]) as any;
+  if (!av) throw new Error('Avaliacao nao encontrada');
+  const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
+
+  const rodapeHtml = await rodapeCompleto();
+  const imagemHtml = await montarImagemAdams(av);
+  const alerta = av.angulo >= 5;
+
+  const html = `
+    <html><head><meta charset="utf-8">${ESTILO}</head><body>
+      ${cabecalho(p, 'Teste de Inclinacao de Adams')}
+      <h2>Triagem de assimetria - ${av.data_avaliacao}</h2>
+      ${imagemHtml}
+      <table>
+        <tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>
+        <tr>
+          <td>Inclinacao entre os lados do dorso</td>
+          <td class="${alerta ? 'alerta' : 'ok'}">${av.angulo} graus</td>
+          <td class="${alerta ? 'alerta' : 'ok'}">${alerta ? 'Assimetria observada' : 'Sem assimetria significativa'}</td>
+        </tr>
+        <tr><td>Lado mais elevado</td><td colspan="2">${av.lado_elevado || '-'}</td></tr>
+      </table>
+      <div class="bloco">
+        Este teste e uma triagem visual de assimetria do tronco realizada por fotografia.
+        Nao substitui a medicao com escoliometro nem exame de imagem. Valores a partir de 5 graus
+        sugerem avaliacao clinica complementar.
+      </div>
+      ${rodapeHtml}
+    </body></html>
+  `;
+  return gerarEcompartilhar(html);
+}
+
 // Relatorio com o historico completo do paciente
 export async function gerarRelatorioCompleto(idPaciente: number) {
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [idPaciente]) as Paciente;

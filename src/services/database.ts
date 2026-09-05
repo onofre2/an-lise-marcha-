@@ -36,6 +36,22 @@ export const initDatabase = () => {
       );
     `);
 
+    // Tabela do teste de inclinacao de Adams (triagem de escoliose por imagem)
+    db.execSync(`
+      CREATE TABLE IF NOT EXISTS avaliacoes_adams (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_paciente INTEGER NOT NULL,
+        data_avaliacao TEXT NOT NULL,
+        foto_uri TEXT NOT NULL,
+        pontos_json TEXT NOT NULL,
+        angulo REAL NOT NULL,
+        lado_elevado TEXT,
+        observacoes_json TEXT,
+        dimensoes_json TEXT,
+        FOREIGN KEY (id_paciente) REFERENCES pacientes (id) ON DELETE CASCADE
+      );
+    `);
+
     // Migracao: adiciona coluna de observacoes visuais (circulos vermelhos) nas avaliacoes
     const tabelasObservacoes = ['avaliacoes_posturais', 'avaliacoes_cervicais', 'avaliacoes_adm'];
     tabelasObservacoes.forEach(tabela => {

@@ -22,6 +22,10 @@ import ADMCaptureScreen from '../screens/adm/ADMCaptureScreen';
 import ADMMarkingScreen from '../screens/adm/ADMMarkingScreen';
 import ADMResultScreen from '../screens/adm/ADMResultScreen';
 import ConfiguracoesScreen from '../screens/configuracoes/ConfiguracoesScreen';
+import AdamsHomeScreen from '../screens/adams/AdamsHomeScreen';
+import AdamsCaptureScreen from '../screens/adams/AdamsCaptureScreen';
+import AdamsMarkingScreen from '../screens/adams/AdamsMarkingScreen';
+import AdamsResultScreen from '../screens/adams/AdamsResultScreen';
 
 const Tab = createMaterialTopTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -83,6 +87,18 @@ function ADMStack() {
   );
 }
 
+// Fluxo interno do teste de inclinacao de Adams (triagem de escoliose)
+function AdamsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AdamsHome" component={AdamsHomeScreen} />
+      <Stack.Screen name="AdamsCapture" component={AdamsCaptureScreen} />
+      <Stack.Screen name="AdamsMarking" component={AdamsMarkingScreen} />
+      <Stack.Screen name="AdamsResult" component={AdamsResultScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export default function AppNavigator() {
   const insets = useSafeAreaInsets();
   return (
@@ -105,6 +121,7 @@ export default function AppNavigator() {
       <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human" size={22} color={color} /> }} />
       <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: 'ADM', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="angle-acute" size={22} color={color} /> }} />
       <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="walk" size={22} color={color} /> }} />
+      <Tab.Screen name="AdamsTab" component={AdamsStack} options={{ title: 'Adams', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human-greeting" size={22} color={color} /> }} />
       <Tab.Screen name="ConfiguracoesTab" component={ConfiguracoesScreen} options={{ title: 'Config', tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} /> }} />
     </Tab.Navigator>
   );
