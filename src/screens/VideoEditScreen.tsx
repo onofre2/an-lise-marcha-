@@ -4,6 +4,8 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import db from '../services/database';
 import { salvarMidiaPermanente } from '../services/armazenamento';
+import { gerarRelatorioMarcha } from '../services/pdfService';
+import ViewShot, { captureRef } from 'react-native-view-shot';
 import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
 import { calcularFase, PontosFase } from '../services/marchaCalculations';
 
@@ -58,7 +60,23 @@ export default function VideoEditScreen({ route, navigation }: any) {
 
   const limparFase = () => setPontosFaseAtual({});
 
-  const confirmarFase = () => {
+  // Referencia da area do video, usada para capturar o frame com as marcacoes
+  const areaVideoRef = React.useRef<any>(null);
+  const [framesFases, setFramesFases] = useState<Record<string, string>>({});
+
+  const confirmarFase = async () => {
+    // Captura o frame atual do video com os pontos e linhas ja desenhados,
+    // para que o relatorio em PDF mostre exatamente o que o terapeuta marcou.
+    try {
+      if (areaVideoRef.current) {
+        const capturaUri = await captureRef(areaVideoRef, { format: 'jpg', quality: 0.9 });
+        const framePermanente = await salvarMidiaPermanente(capturaUri);
+        setFramesFases(prev => ({ ...prev, [fase.id]: framePermanente }));
+      }
+    } catch (e) {
+      console.error('Erro ao capturar frame da fase:', e);
+    }
+
     setMarcacoes({ ...marcacoes, [fase.id]: pontosFaseAtual });
     setPontosFaseAtual({});
     if (faseIndice < FASES_MARCHA.length - 1) setFaseIndice(faseIndice + 1);
@@ -69,11 +87,23 @@ export default function VideoEditScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const videoPermanente = await salvarMidiaPermanente(videoUri);
       db.runSync(
-        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json) VALUES (?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes)]
+        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json) VALUES (?, ?, ?, ?, ?, ?)',
+        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases)]
       );
-      Alert.alert('Sucesso', 'Avaliacao de marcha salva no historico!', [
-        { text: 'OK', onPress: () => navigation.navigate('EvaluationHome') },
+      const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+      Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
+        { text: 'Agora nao', onPress: () => navigation.navigate('EvaluationHome') },
+        {
+          text: 'Gerar PDF',
+          onPress: async () => {
+            try {
+              await gerarRelatorioMarcha(nova.id);
+            } catch (e) {
+              Alert.alert('Erro', 'Nao foi possivel gerar o PDF.');
+            }
+            navigation.navigate('EvaluationHome');
+          },
+        },
       ]);
     } catch (error) {
       console.error('Erro ao salvar marcha:', error);
@@ -83,7 +113,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.videoContainer}>
+      <ViewShot ref={areaVideoRef} style={styles.videoContainer}>
         <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
         <TouchableOpacity activeOpacity={1} style={styles.overlay} onPress={marcarPonto}>
           {Object.entries(pontosFaseAtual).map(([id, p]) => (
@@ -91,7 +121,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
           ))}
           <Segmentos pontos={pontosFaseAtual} />
         </TouchableOpacity>
-      </View>
+      </ViewShot>
 
       <View style={styles.controles}>
         <TouchableOpacity style={styles.btnCtrl} onPress={() => pular(-0.1)}>

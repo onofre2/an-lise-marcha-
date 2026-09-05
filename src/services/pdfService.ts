@@ -8,6 +8,7 @@ import { REFERENCIA_BASE64 } from './referenciaImagem';
 import { MARCA_BASE64 } from './marcaImagem';
 import { fotoParaBase64, imagemPostural, imagemSimples } from './imagemAvaliacao';
 import { SEGMENTOS_RAPIDA, Vista } from '../constants/posturalPoints';
+import { calcularFase } from './marchaCalculations';
 import * as FileSystem from 'expo-file-system';
 
 interface Paciente {
@@ -230,6 +231,35 @@ async function montarImagemADM(av: any): Promise<string> {
   }
 }
 
+// Monta as imagens das fases da marcha capturadas durante a marcacao
+async function montarImagensMarcha(av: any): Promise<string> {
+  try {
+    if (!av.frames_json) return '';
+    const frames = JSON.parse(av.frames_json) as Record<string, string>;
+    const nomes: Record<string, string> = {
+      contato_inicial: 'Contato Inicial',
+      resposta_carga: 'Resposta a Carga',
+      apoio_medio: 'Apoio Medio',
+    };
+
+    let html = '';
+    for (const [faseId, uri] of Object.entries(frames)) {
+      const base64 = await fotoParaBase64(uri);
+      if (!base64) continue;
+      html += `
+        <div style="margin-top:12px;">
+          <div class="bloco"><b>${nomes[faseId] || faseId}</b></div>
+          <img src="${base64}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;" />
+        </div>
+      `;
+    }
+    return html;
+  } catch (e) {
+    console.error('Erro ao montar imagens da marcha:', e);
+    return '';
+  }
+}
+
 // Relatorio de uma unica avaliacao postural
 export async function gerarRelatorioPostural(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_posturais WHERE id = ?', [idAvaliacao]) as any;
@@ -316,6 +346,52 @@ export async function gerarRelatorioADM(idAvaliacao: number) {
   return gerarEcompartilhar(html);
 }
 
+// Relatorio de uma unica analise de marcha
+export async function gerarRelatorioMarcha(idAvaliacao: number) {
+  const av = db.getFirstSync('SELECT * FROM avaliacoes WHERE id = ?', [idAvaliacao]) as any;
+  if (!av) throw new Error('Avaliacao nao encontrada');
+  const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
+
+  const rodapeHtml = await rodapeCompleto();
+  const imagensHtml = await montarImagensMarcha(av);
+
+  let tabelaFases = '';
+  if (av.marcacoes_json) {
+    try {
+      const marcacoes = JSON.parse(av.marcacoes_json);
+      const nomes: Record<string, string> = {
+        contato_inicial: 'Contato Inicial',
+        resposta_carga: 'Resposta a Carga',
+        apoio_medio: 'Apoio Medio',
+      };
+      for (const faseId of Object.keys(marcacoes)) {
+        const resultados = calcularFase(faseId, marcacoes[faseId] || {});
+        if (resultados.length === 0) continue;
+        tabelaFases += `<div class="bloco"><b>${nomes[faseId] || faseId}</b></div>`;
+        tabelaFases += '<table><tr><th>Articulacao</th><th>Medido</th><th>Esperado</th><th>Situacao</th></tr>';
+        resultados.forEach(r => {
+          tabelaFases += `<tr><td>${r.nome}</td><td>${r.valor} graus</td><td>${r.referencia}</td><td class="${r.dentroFaixa ? 'ok' : 'alerta'}">${r.dentroFaixa ? 'Normal' : 'Fora da faixa'}</td></tr>`;
+        });
+        tabelaFases += '</table>';
+      }
+    } catch (e) {
+      console.error('Erro ao montar tabela de fases:', e);
+    }
+  }
+
+  const html = `
+    <html><head><meta charset="utf-8">${ESTILO}</head><body>
+      ${cabecalho(p, 'Relatorio de Analise de Marcha')}
+      <h2>Captura ${av.angulo} - ${av.data_avaliacao}</h2>
+      ${imagensHtml}
+      ${tabelaFases || '<div class="info">Sem marcacoes por fase registradas nesta avaliacao.</div>'}
+      ${paginaReferencias()}
+      ${rodapeHtml}
+    </body></html>
+  `;
+  return gerarEcompartilhar(html);
+}
+
 // Relatorio com o historico completo do paciente
 export async function gerarRelatorioCompleto(idPaciente: number) {
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [idPaciente]) as Paciente;
@@ -382,6 +458,9 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo}</td></tr>`;
     });
     corpo += '</table>';
+    for (const av of marchas) {
+      corpo += await montarImagensMarcha(av);
+    }
   }
 
   if (corpo === '') {

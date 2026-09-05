@@ -60,6 +60,13 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    // Frames capturados de cada fase da marcha, com as marcacoes sobrepostas
+    try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN frames_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     // Criação da tabela de Avaliações Posturais (foto com pontos marcados)
     db.execSync(`
       CREATE TABLE IF NOT EXISTS avaliacoes_posturais (
