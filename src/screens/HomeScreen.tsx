@@ -50,7 +50,8 @@ export default function HomeScreen() {
           (SELECT COUNT(*) FROM avaliacoes a WHERE a.id_paciente = p.id) +
           (SELECT COUNT(*) FROM avaliacoes_posturais ap WHERE ap.id_paciente = p.id) +
           (SELECT COUNT(*) FROM avaliacoes_cervicais ac WHERE ac.id_paciente = p.id) +
-          (SELECT COUNT(*) FROM avaliacoes_adm aa WHERE aa.id_paciente = p.id) AS total_avaliacoes
+          (SELECT COUNT(*) FROM avaliacoes_adm aa WHERE aa.id_paciente = p.id) +
+          (SELECT COUNT(*) FROM avaliacoes_adams ad WHERE ad.id_paciente = p.id) AS total_avaliacoes
          FROM pacientes p
          ORDER BY p.id DESC`
       ) as Paciente[];

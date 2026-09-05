@@ -465,6 +465,9 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   const marchas = db.getAllSync(
     'SELECT * FROM avaliacoes WHERE id_paciente = ? ORDER BY id DESC', [idPaciente]
   ) as any[];
+  const adamses = db.getAllSync(
+    'SELECT * FROM avaliacoes_adams WHERE id_paciente = ? ORDER BY id DESC', [idPaciente]
+  ) as any[];
 
   let corpo = '';
 
@@ -505,6 +508,18 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     corpo += '</div>';
     for (const av of adms) {
       corpo += await montarImagemADM(av);
+    }
+  }
+
+  if (adamses.length > 0) {
+    corpo += '<h2>Teste de Inclinacao de Adams</h2><table><tr><th>Data</th><th>Inclinacao</th><th>Lado elevado</th><th>Situacao</th></tr>';
+    adamses.forEach(av => {
+      const alterado = av.angulo >= 5;
+      corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td>${av.lado_elevado || '-'}</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Assimetria observada' : 'Sem assimetria significativa'}</td></tr>`;
+    });
+    corpo += '</table>';
+    for (const av of adamses) {
+      corpo += await montarImagemAdams(av);
     }
   }
 
