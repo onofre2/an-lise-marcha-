@@ -43,6 +43,15 @@ export default function AvaliacaoDetailScreen({ route }: any) {
     }
   }, [registro]);
 
+  const observacoes: Record<string, Ponto> = useMemo(() => {
+    if (!registro || !registro.observacoes_json) return {};
+    try {
+      return JSON.parse(registro.observacoes_json);
+    } catch {
+      return {};
+    }
+  }, [registro]);
+
   const desajustes: Desajuste[] = useMemo(() => {
     if (!registro) return [];
     if (tipo === 'postural') {
@@ -102,6 +111,10 @@ export default function AvaliacaoDetailScreen({ route }: any) {
 
           {Object.values(pontos).map((p, i) => (
             <View key={i} style={[styles.marcador, { left: p.x - 6, top: p.y - 6 }]} />
+          ))}
+
+          {Object.values(observacoes).map((p, i) => (
+            <View key={`obs-${i}`} style={[styles.marcadorObservacao, { left: p.x - 12, top: p.y - 12 }]} />
           ))}
         </View>
       ) : null}
@@ -240,6 +253,7 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
+  marcadorObservacao: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 3, borderColor: '#EF4444', backgroundColor: 'transparent' },
   aviso: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12, marginBottom: 16 },
   blocoFase: { marginBottom: 16 },
   blocoFaseNome: { fontSize: 14, fontWeight: 'bold', color: '#0284C7', marginBottom: 8 },

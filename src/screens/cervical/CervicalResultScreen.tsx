@@ -85,8 +85,8 @@ export default function CervicalResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json) VALUES (?, ?, ?, ?, ?, ?)',
-        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes)]
+        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
       );
       Alert.alert('Sucesso', 'Avaliacao cervical salva no historico do paciente!', [
         { text: 'OK', onPress: () => navigation.navigate('CervicalHome') },

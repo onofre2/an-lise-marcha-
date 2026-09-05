@@ -44,6 +44,13 @@ export const initDatabase = () => {
       } catch {
         // coluna ja existe - ignora
       }
+      // Dimensoes da area onde os pontos foram marcados.
+      // Necessario para reproduzir a imagem com fidelidade no PDF.
+      try {
+        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN dimensoes_json TEXT`);
+      } catch {
+        // coluna ja existe - ignora
+      }
     });
 
     // Migracao: adiciona coluna de marcacoes por fase na tabela de marcha (bancos antigos)

@@ -114,8 +114,8 @@ export default function ADMResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_adm (id_paciente, movimento, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, movimento.nome, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes)]
+        'INSERT INTO avaliacoes_adm (id_paciente, movimento, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, movimento.nome, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
       );
       Alert.alert('Sucesso', 'Avaliacao de amplitude salva no historico do paciente!', [
         { text: 'OK', onPress: () => navigation.navigate('ADMHome') },

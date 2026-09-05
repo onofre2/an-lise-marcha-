@@ -6,6 +6,8 @@ import db from './database';
 import { diagramaAmplitude, diagramaAlinhamento } from './diagramaSvg';
 import { REFERENCIA_BASE64 } from './referenciaImagem';
 import { MARCA_BASE64 } from './marcaImagem';
+import { fotoParaBase64, imagemPostural } from './imagemAvaliacao';
+import { SEGMENTOS_RAPIDA, Vista } from '../constants/posturalPoints';
 import * as FileSystem from 'expo-file-system';
 
 interface Paciente {
@@ -161,6 +163,27 @@ async function gerarEcompartilhar(html: string) {
   return uri;
 }
 
+// Monta a imagem da avaliacao postural com todos os elementos ajustados pelo terapeuta
+async function montarImagemPostural(av: any): Promise<string> {
+  try {
+    const fotoBase64 = await fotoParaBase64(av.foto_uri);
+    if (!fotoBase64) return '';
+
+    const pontos = av.pontos_json ? JSON.parse(av.pontos_json) : {};
+    const medidas = av.medidas_json ? JSON.parse(av.medidas_json) : [];
+    const observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {};
+    const dimensoes = av.dimensoes_json
+      ? JSON.parse(av.dimensoes_json)
+      : { largura: 343, altura: 400 };
+
+    const segmentos = SEGMENTOS_RAPIDA[av.vista as Vista] || [];
+    return imagemPostural(fotoBase64, pontos, segmentos, medidas, dimensoes, observacoes);
+  } catch (e) {
+    console.error('Erro ao montar imagem da avaliacao:', e);
+    return '';
+  }
+}
+
 // Relatorio de uma unica avaliacao postural
 export async function gerarRelatorioPostural(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_posturais WHERE id = ?', [idAvaliacao]) as any;
@@ -168,11 +191,13 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
   const medidas: Medida[] = av.medidas_json ? JSON.parse(av.medidas_json) : [];
   const rodapeHtml = await rodapeCompleto();
+  const imagemHtml = await montarImagemPostural(av);
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Relatorio de Avaliacao Postural')}
       <h2>Avaliacao ${av.vista.replace('_', ' ')} - ${av.data_avaliacao}</h2>
+      ${imagemHtml}
       ${tabelaMedidas(medidas)}
       ${diagramasMedidas(medidas)}
       ${paginaReferencias()}
@@ -204,12 +229,13 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
 
   if (posturais.length > 0) {
     corpo += '<h2>Avaliacoes Posturais</h2>';
-    posturais.forEach(av => {
+    for (const av of posturais) {
       const medidas: Medida[] = av.medidas_json ? JSON.parse(av.medidas_json) : [];
       corpo += `<div class="bloco"><b>${av.vista.replace('_', ' ')}</b> - ${av.data_avaliacao}</div>`;
+      corpo += await montarImagemPostural(av);
       corpo += tabelaMedidas(medidas);
       corpo += diagramasMedidas(medidas);
-    });
+    }
   }
 
   if (cervicais.length > 0) {
