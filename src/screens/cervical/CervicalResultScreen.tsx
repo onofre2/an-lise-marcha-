@@ -29,6 +29,28 @@ export default function CervicalResultScreen({ route, navigation }: any) {
 
   const restaurarPontos = () => setPontosEditaveis(pontos);
 
+  const [observacoes, setObservacoes] = useState<Record<string, Ponto>>({});
+  const [modoObservacao, setModoObservacao] = useState(false);
+
+  const adicionarObservacao = (evt: any) => {
+    if (!modoObservacao) return;
+    const { locationX, locationY } = evt.nativeEvent;
+    const novoId = `obs_${Date.now()}`;
+    setObservacoes(prev => ({ ...prev, [novoId]: { x: locationX, y: locationY } }));
+  };
+
+  const moverObservacao = (id: string, x: number, y: number) => {
+    setObservacoes(prev => ({ ...prev, [id]: { x, y } }));
+  };
+
+  const removerObservacao = (id: string) => {
+    setObservacoes(prev => {
+      const copia = { ...prev };
+      delete copia[id];
+      return copia;
+    });
+  };
+
   const cva = useMemo(() => {
     if (!pontosEditaveis.c7 || !pontosEditaveis.trago) return null;
     return anguloComHorizontal(pontosEditaveis.c7, pontosEditaveis.trago);
@@ -61,8 +83,8 @@ export default function CervicalResultScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       db.runSync(
-        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo) VALUES (?, ?, ?, ?, ?)',
-        [pacienteId, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), cva]
+        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json) VALUES (?, ?, ?, ?, ?, ?)',
+        [pacienteId, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes)]
       );
       Alert.alert('Sucesso', 'Avaliacao cervical salva no historico do paciente!', [
         { text: 'OK', onPress: () => navigation.navigate('CervicalHome') },
@@ -81,7 +103,7 @@ export default function CervicalResultScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <View style={styles.imageContainer}>
+      <View style={styles.imageContainer} onStartShouldSetResponder={() => modoObservacao} onResponderRelease={adicionarObservacao}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
         {pontosEditaveis.c7 && <LinhaReferenciaHorizontal ponto={pontosEditaveis.c7} />}
         {pontosEditaveis.c7 && pontosEditaveis.trago && (
@@ -102,6 +124,20 @@ export default function CervicalResultScreen({ route, navigation }: any) {
             id={id}
             ponto={p}
             onMove={moverPonto}
+            fotoUri={fotoUri}
+            larguraImagem={IMAGE_WIDTH}
+            alturaImagem={IMAGE_HEIGHT}
+          />
+        ))}
+
+        {Object.entries(observacoes).map(([id, p]) => (
+          <MarcadorComLupa
+            key={id}
+            id={id}
+            ponto={p}
+            onMove={moverObservacao}
+            onLongPress={removerObservacao}
+            cor="#EF4444"
             fotoUri={fotoUri}
             larguraImagem={IMAGE_WIDTH}
             alturaImagem={IMAGE_HEIGHT}
@@ -135,6 +171,19 @@ export default function CervicalResultScreen({ route, navigation }: any) {
             <Text style={[styles.badgeText, alertaOmbro ? styles.badgeTextAlerta : styles.badgeTextOk]}>{anguloOmbro} graus</Text>
           </View>
         </View>
+      )}
+
+      <TouchableOpacity
+        style={[styles.btnObservacao, modoObservacao && styles.btnObservacaoAtivo]}
+        onPress={() => setModoObservacao(!modoObservacao)}
+      >
+        <Text style={[styles.btnObservacaoText, modoObservacao && styles.btnObservacaoTextAtivo]}>
+          {modoObservacao ? 'Modo observacao ativo - toque na foto' : 'Marcar observacao'}
+        </Text>
+      </TouchableOpacity>
+
+      {Object.keys(observacoes).length > 0 && (
+        <Text style={styles.dicaArrastar}>Toque longo em um circulo vermelho para remove-lo.</Text>
       )}
 
       <Text style={styles.dicaArrastar}>Toque e arraste qualquer ponto na foto para corrigir a posicao. Os valores recalculam automaticamente.</Text>
@@ -218,6 +267,10 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: 'bold', fontSize: 13 },
   badgeTextOk: { color: '#16A34A' },
   badgeTextAlerta: { color: '#D97706' },
+  btnObservacao: { backgroundColor: '#FFFFFF', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#FCA5A5' },
+  btnObservacaoAtivo: { backgroundColor: '#FEE2E2', borderColor: '#EF4444' },
+  btnObservacaoText: { color: '#EF4444', fontWeight: 'bold', fontSize: 13 },
+  btnObservacaoTextAtivo: { color: '#B91C1C' },
   dicaArrastar: { color: '#94A3B8', fontSize: 11, textAlign: 'center', marginTop: 4, marginBottom: 12, lineHeight: 16 },
   btnRestaurar: { backgroundColor: '#F1F5F9', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0' },
   btnRestaurarText: { color: '#475569', fontWeight: 'bold', fontSize: 13 },

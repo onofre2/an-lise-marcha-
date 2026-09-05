@@ -25,6 +25,28 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
   const restaurarPontos = () => setPontosEditaveis(pontos);
 
+  const [observacoes, setObservacoes] = useState<Record<string, Ponto>>({});
+  const [modoObservacao, setModoObservacao] = useState(false);
+
+  const adicionarObservacao = (evt: any) => {
+    if (!modoObservacao) return;
+    const { locationX, locationY } = evt.nativeEvent;
+    const novoId = `obs_${Date.now()}`;
+    setObservacoes(prev => ({ ...prev, [novoId]: { x: locationX, y: locationY } }));
+  };
+
+  const moverObservacao = (id: string, x: number, y: number) => {
+    setObservacoes(prev => ({ ...prev, [id]: { x, y } }));
+  };
+
+  const removerObservacao = (id: string) => {
+    setObservacoes(prev => {
+      const copia = { ...prev };
+      delete copia[id];
+      return copia;
+    });
+  };
+
   const angulo = useMemo(() => {
     if (!movimento) return null;
     const a = pontosEditaveis[ids[0]];
@@ -90,8 +112,8 @@ export default function ADMResultScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       db.runSync(
-        'INSERT INTO avaliacoes_adm (id_paciente, movimento, data_avaliacao, foto_uri, pontos_json, angulo, referencia) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, movimento.nome, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), angulo, referencia]
+        'INSERT INTO avaliacoes_adm (id_paciente, movimento, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, movimento.nome, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes)]
       );
       Alert.alert('Sucesso', 'Avaliacao de amplitude salva no historico do paciente!', [
         { text: 'OK', onPress: () => navigation.navigate('ADMHome') },
@@ -110,7 +132,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <View style={styles.imageContainer}>
+      <View style={styles.imageContainer} onStartShouldSetResponder={() => modoObservacao} onResponderRelease={adicionarObservacao}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
         {ids.length === 3 && pontosEditaveis[ids[0]] && pontosEditaveis[ids[1]] && (
           <LinhaSegmento a={pontosEditaveis[ids[1]]} b={pontosEditaveis[ids[0]]} />
@@ -130,6 +152,20 @@ export default function ADMResultScreen({ route, navigation }: any) {
             id={id}
             ponto={p}
             onMove={moverPonto}
+            fotoUri={fotoUri}
+            larguraImagem={IMAGE_WIDTH}
+            alturaImagem={IMAGE_HEIGHT}
+          />
+        ))}
+
+        {Object.entries(observacoes).map(([id, p]) => (
+          <MarcadorComLupa
+            key={id}
+            id={id}
+            ponto={p}
+            onMove={moverObservacao}
+            onLongPress={removerObservacao}
+            cor="#EF4444"
             fotoUri={fotoUri}
             larguraImagem={IMAGE_WIDTH}
             alturaImagem={IMAGE_HEIGHT}
@@ -161,6 +197,19 @@ export default function ADMResultScreen({ route, navigation }: any) {
             </View>
           </View>
         </>
+      )}
+
+      <TouchableOpacity
+        style={[styles.btnObservacao, modoObservacao && styles.btnObservacaoAtivo]}
+        onPress={() => setModoObservacao(!modoObservacao)}
+      >
+        <Text style={[styles.btnObservacaoText, modoObservacao && styles.btnObservacaoTextAtivo]}>
+          {modoObservacao ? 'Modo observacao ativo - toque na foto' : 'Marcar observacao'}
+        </Text>
+      </TouchableOpacity>
+
+      {Object.keys(observacoes).length > 0 && (
+        <Text style={styles.dicaArrastar}>Toque longo em um circulo vermelho para remove-lo.</Text>
       )}
 
       <Text style={styles.dicaArrastar}>Toque e arraste qualquer ponto na foto para corrigir a posicao. Os valores recalculam automaticamente.</Text>
@@ -232,6 +281,10 @@ const styles = StyleSheet.create({
   badgeTextOk: { color: '#16A34A' },
   badgeTextAlerta: { color: '#D97706' },
   badgeTextNeutro: { color: '#64748B' },
+  btnObservacao: { backgroundColor: '#FFFFFF', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#FCA5A5' },
+  btnObservacaoAtivo: { backgroundColor: '#FEE2E2', borderColor: '#EF4444' },
+  btnObservacaoText: { color: '#EF4444', fontWeight: 'bold', fontSize: 13 },
+  btnObservacaoTextAtivo: { color: '#B91C1C' },
   dicaArrastar: { color: '#94A3B8', fontSize: 11, textAlign: 'center', marginTop: 4, marginBottom: 12, lineHeight: 16 },
   btnRestaurar: { backgroundColor: '#F1F5F9', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0' },
   btnRestaurarText: { color: '#475569', fontWeight: 'bold', fontSize: 13 },
