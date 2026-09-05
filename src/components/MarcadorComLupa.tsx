@@ -7,7 +7,7 @@ const ZOOM = 2.5;
 const LUPA_DIAMETRO = 110;
 
 export default function MarcadorComLupa({
-  id, ponto, onMove, fotoUri, larguraImagem, alturaImagem,
+  id, ponto, onMove, fotoUri, larguraImagem, alturaImagem, cor = '#22C55E', onLongPress,
 }: {
   id: string;
   ponto: Ponto;
@@ -15,17 +15,21 @@ export default function MarcadorComLupa({
   fotoUri: string;
   larguraImagem: number;
   alturaImagem: number;
+  cor?: string;
+  onLongPress?: (id: string) => void;
 }) {
   const pontoRef = React.useRef(ponto);
   pontoRef.current = ponto;
   const startPos = React.useRef({ x: 0, y: 0 });
   const [arrastando, setArrastando] = useState(false);
+  const tempoToque = React.useRef<number | null>(null);
 
   const panResponder = React.useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         startPos.current = { x: pontoRef.current.x, y: pontoRef.current.y };
+        tempoToque.current = Date.now();
         setArrastando(true);
       },
       onPanResponderMove: (evt, gestureState) => {
@@ -41,7 +45,7 @@ export default function MarcadorComLupa({
 
   return (
     <>
-      <View {...panResponder.panHandlers} style={[styles.marcador, { left: ponto.x - 14, top: ponto.y - 14 }]} />
+      <View {...panResponder.panHandlers} onTouchEnd={() => { if (tempoToque.current && Date.now() - tempoToque.current > 600 && onLongPress) onLongPress(id); }} style={[styles.marcador, { left: ponto.x - 14, top: ponto.y - 14, backgroundColor: cor }]} />
       {arrastando && (
         <View pointerEvents="none" style={[styles.lupa, { left: lupaLeft, top: lupaTop }]}>
           <Image

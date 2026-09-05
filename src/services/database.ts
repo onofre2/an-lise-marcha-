@@ -36,6 +36,16 @@ export const initDatabase = () => {
       );
     `);
 
+    // Migracao: adiciona coluna de observacoes visuais (circulos vermelhos) nas avaliacoes
+    const tabelasObservacoes = ['avaliacoes_posturais', 'avaliacoes_cervicais', 'avaliacoes_adm'];
+    tabelasObservacoes.forEach(tabela => {
+      try {
+        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN observacoes_json TEXT`);
+      } catch {
+        // coluna ja existe - ignora
+      }
+    });
+
     // Migracao: adiciona coluna de marcacoes por fase na tabela de marcha (bancos antigos)
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN marcacoes_json TEXT');
