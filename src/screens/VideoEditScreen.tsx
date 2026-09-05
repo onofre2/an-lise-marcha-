@@ -67,8 +67,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       db.runSync(
-        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri) VALUES (?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoUri]
+        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json) VALUES (?, ?, ?, ?, ?)',
+        [pacienteId, angulo, dataHoje, videoUri, JSON.stringify(marcacoes)]
       );
       Alert.alert('Sucesso', 'Avaliacao de marcha salva no historico!', [
         { text: 'OK', onPress: () => navigation.navigate('EvaluationHome') },

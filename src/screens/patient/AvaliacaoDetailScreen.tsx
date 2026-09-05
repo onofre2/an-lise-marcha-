@@ -4,6 +4,8 @@ import db from '../../services/database';
 import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
 import { MOVIMENTOS } from '../../constants/movimentos';
+import { FASES_MARCHA } from '../../constants/fasesMarcha';
+import { calcularFase } from '../../services/marchaCalculations';
 
 interface Ponto { x: number; y: number; }
 
@@ -104,11 +106,38 @@ export default function AvaliacaoDetailScreen({ route }: any) {
         </View>
       ) : null}
 
-      {tipo === 'marcha' && (
+      {tipo === 'marcha' && !registro.marcacoes_json && (
         <View style={styles.aviso}>
           <Text style={styles.avisoTexto}>
-            Esta avaliacao de marcha registrou o video e o angulo de captura. As marcacoes por fase nao foram salvas nesta versao do aplicativo.
+            Esta avaliacao registrou apenas o video e o angulo de captura. As marcacoes por fase passaram a ser salvas em avaliacoes mais recentes.
           </Text>
+        </View>
+      )}
+
+      {tipo === 'marcha' && registro.marcacoes_json && (
+        <View>
+          {FASES_MARCHA.map(f => {
+            let marcacoes: any = {};
+            try { marcacoes = JSON.parse(registro.marcacoes_json); } catch { marcacoes = {}; }
+            const resultados = calcularFase(f.id, marcacoes[f.id] || {});
+            if (resultados.length === 0) return null;
+            return (
+              <View key={f.id} style={styles.blocoFase}>
+                <Text style={styles.blocoFaseNome}>{f.nome}</Text>
+                {resultados.map((r, i) => (
+                  <View key={i} style={styles.card}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardLabel}>{r.nome}</Text>
+                      <Text style={styles.cardRef}>Esperado: {r.referencia}</Text>
+                    </View>
+                    <View style={[styles.badge, r.dentroFaixa ? styles.badgeOk : styles.badgeAlerta]}>
+                      <Text style={[styles.badgeText, r.dentroFaixa ? styles.badgeTextOk : styles.badgeTextAlerta]}>{r.valor}°</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            );
+          })}
         </View>
       )}
 
@@ -212,6 +241,8 @@ const styles = StyleSheet.create({
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
   aviso: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12, marginBottom: 16 },
+  blocoFase: { marginBottom: 16 },
+  blocoFaseNome: { fontSize: 14, fontWeight: 'bold', color: '#0284C7', marginBottom: 8 },
   avisoTexto: { color: '#92400E', fontSize: 12, lineHeight: 17 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },

@@ -36,6 +36,13 @@ export const initDatabase = () => {
       );
     `);
 
+    // Migracao: adiciona coluna de marcacoes por fase na tabela de marcha (bancos antigos)
+    try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN marcacoes_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     // Criação da tabela de Avaliações Posturais (foto com pontos marcados)
     db.execSync(`
       CREATE TABLE IF NOT EXISTS avaliacoes_posturais (
