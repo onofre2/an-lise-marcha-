@@ -10,6 +10,8 @@ const PROPORCAO_SPRITE = 1020 / 1527;
 
 const CARD_ANTERIOR = require('../../assets/referencias/card-anterior.jpg');
 const CARD_POSTERIOR = require('../../assets/referencias/card-posterior.jpg');
+const CARD_LATERAL = require('../../assets/referencias/card-lateral.jpg');
+const CARD_CERVICAL = require('../../assets/referencias/card-cervical.jpg');
 const CARD_MARCHA = require('../../assets/referencias/card-marcha.jpg');
 const CARD_ADAMS = require('../../assets/referencias/teste-adams.jpg');
 
@@ -22,8 +24,8 @@ type Config =
 const CARDS: Record<CardId, Config> = {
   anterior:  { tipo: 'arquivo', fonte: CARD_ANTERIOR, proporcao: 896 / 1200, titulo: 'Vista Anterior' },
   posterior: { tipo: 'arquivo', fonte: CARD_POSTERIOR, proporcao: 896 / 1200, titulo: 'Vista Posterior' },
-  lateral:   { tipo: 'sprite', col: 2, lin: 0, titulo: 'Vista Lateral' },
-  cervical:  { tipo: 'sprite', col: 0, lin: 1, titulo: 'Cervical' },
+  lateral:   { tipo: 'arquivo', fonte: CARD_LATERAL, proporcao: 896 / 1200, titulo: 'Vista Lateral' },
+  cervical:  { tipo: 'arquivo', fonte: CARD_CERVICAL, proporcao: 896 / 1200, titulo: 'Cervical' },
   adm:       { tipo: 'sprite', col: 1, lin: 1, titulo: 'Amplitude de Movimento' },
   marcha:    { tipo: 'arquivo', fonte: CARD_MARCHA, proporcao: 1376 / 768, titulo: 'Marcha' },
   adams:     { tipo: 'arquivo', fonte: CARD_ADAMS, proporcao: 700 / 450, titulo: 'Teste de Adams' },
