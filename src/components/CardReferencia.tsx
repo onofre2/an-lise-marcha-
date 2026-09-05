@@ -8,6 +8,7 @@ const COLUNAS = 3;
 const LINHAS = 2;
 const PROPORCAO_SPRITE = 1020 / 1527;
 
+const CARD_ANTERIOR = require('../../assets/referencias/card-anterior.jpg');
 const CARD_MARCHA = require('../../assets/referencias/card-marcha.jpg');
 const CARD_ADAMS = require('../../assets/referencias/teste-adams.jpg');
 
@@ -18,7 +19,7 @@ type Config =
   | { tipo: 'arquivo'; fonte: any; proporcao: number; titulo: string };
 
 const CARDS: Record<CardId, Config> = {
-  anterior:  { tipo: 'sprite', col: 0, lin: 0, titulo: 'Vista Anterior' },
+  anterior:  { tipo: 'arquivo', fonte: CARD_ANTERIOR, proporcao: 896 / 1200, titulo: 'Vista Anterior' },
   posterior: { tipo: 'sprite', col: 1, lin: 0, titulo: 'Vista Posterior' },
   lateral:   { tipo: 'sprite', col: 2, lin: 0, titulo: 'Vista Lateral' },
   cervical:  { tipo: 'sprite', col: 0, lin: 1, titulo: 'Cervical' },
