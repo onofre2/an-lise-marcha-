@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, PanResponder } from 'react-native';
 import db from '../../services/database';
+import MarcadorComLupa from '../../components/MarcadorComLupa';
 
 interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
+const IMAGE_WIDTH = Dimensions.get('window').width - 32;
 
 // Angulo entre a linha origem->alvo e a horizontal (0 a 90 graus)
 function anguloComHorizontal(origem: Ponto, alvo: Ponto): number {
@@ -19,15 +21,23 @@ export default function CervicalResultScreen({ route, navigation }: any) {
     fotoUri: string; pacienteId: number; pontos: Record<string, Ponto>;
   };
 
+  const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
+
+  const moverPonto = (id: string, x: number, y: number) => {
+    setPontosEditaveis(prev => ({ ...prev, [id]: { x, y } }));
+  };
+
+  const restaurarPontos = () => setPontosEditaveis(pontos);
+
   const cva = useMemo(() => {
-    if (!pontos.c7 || !pontos.trago) return null;
-    return anguloComHorizontal(pontos.c7, pontos.trago);
-  }, [pontos]);
+    if (!pontosEditaveis.c7 || !pontosEditaveis.trago) return null;
+    return anguloComHorizontal(pontosEditaveis.c7, pontosEditaveis.trago);
+  }, [pontosEditaveis]);
 
   const anguloOmbro = useMemo(() => {
-    if (!pontos.acromio || !pontos.c7) return null;
-    return anguloComHorizontal(pontos.acromio, pontos.c7);
-  }, [pontos]);
+    if (!pontosEditaveis.acromio || !pontosEditaveis.c7) return null;
+    return anguloComHorizontal(pontosEditaveis.acromio, pontosEditaveis.c7);
+  }, [pontosEditaveis]);
 
   // Referencias clinicas: CVA normal >= 48 graus; angulo do ombro normal > 52 graus
   const alertaCva = cva !== null && cva < 48;
@@ -52,7 +62,7 @@ export default function CervicalResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       db.runSync(
         'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo) VALUES (?, ?, ?, ?, ?)',
-        [pacienteId, dataHoje, fotoUri, JSON.stringify(pontos), cva]
+        [pacienteId, dataHoje, fotoUri, JSON.stringify(pontosEditaveis), cva]
       );
       Alert.alert('Sucesso', 'Avaliacao cervical salva no historico do paciente!', [
         { text: 'OK', onPress: () => navigation.navigate('CervicalHome') },
@@ -73,21 +83,29 @@ export default function CervicalResultScreen({ route, navigation }: any) {
 
       <View style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
-        {pontos.c7 && <LinhaReferenciaHorizontal ponto={pontos.c7} />}
-        {pontos.c7 && pontos.trago && (
+        {pontosEditaveis.c7 && <LinhaReferenciaHorizontal ponto={pontosEditaveis.c7} />}
+        {pontosEditaveis.c7 && pontosEditaveis.trago && (
           <>
-            <LinhaSegmento a={pontos.c7} b={pontos.trago} alerta={alertaCva} />
-            <BadgeNaLinha a={pontos.c7} b={pontos.trago} valor={cva} alerta={alertaCva} />
+            <LinhaSegmento a={pontosEditaveis.c7} b={pontosEditaveis.trago} alerta={alertaCva} />
+            <BadgeNaLinha a={pontosEditaveis.c7} b={pontosEditaveis.trago} valor={cva} alerta={alertaCva} />
           </>
         )}
-        {pontos.c7 && pontos.acromio && (
+        {pontosEditaveis.c7 && pontosEditaveis.acromio && (
           <>
-            <LinhaSegmento a={pontos.acromio} b={pontos.c7} alerta={alertaOmbro} />
-            <BadgeNaLinha a={pontos.acromio} b={pontos.c7} valor={anguloOmbro} alerta={alertaOmbro} />
+            <LinhaSegmento a={pontosEditaveis.acromio} b={pontosEditaveis.c7} alerta={alertaOmbro} />
+            <BadgeNaLinha a={pontosEditaveis.acromio} b={pontosEditaveis.c7} valor={anguloOmbro} alerta={alertaOmbro} />
           </>
         )}
-        {Object.values(pontos).map((p, i) => (
-          <View key={i} style={[styles.marcador, { left: p.x - 6, top: p.y - 6 }]} />
+        {Object.entries(pontosEditaveis).map(([id, p]) => (
+          <MarcadorComLupa
+            key={id}
+            id={id}
+            ponto={p}
+            onMove={moverPonto}
+            fotoUri={fotoUri}
+            larguraImagem={IMAGE_WIDTH}
+            alturaImagem={IMAGE_HEIGHT}
+          />
         ))}
       </View>
 
@@ -118,6 +136,12 @@ export default function CervicalResultScreen({ route, navigation }: any) {
           </View>
         </View>
       )}
+
+      <Text style={styles.dicaArrastar}>Toque e arraste qualquer ponto na foto para corrigir a posicao. Os valores recalculam automaticamente.</Text>
+
+      <TouchableOpacity style={styles.btnRestaurar} onPress={restaurarPontos}>
+        <Text style={styles.btnRestaurarText}>Restaurar posicoes originais</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.btnSalvar} onPress={salvarAvaliacao}>
         <Text style={styles.btnSalvarText}>Salvar no Historico do Paciente</Text>
@@ -194,6 +218,9 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: 'bold', fontSize: 13 },
   badgeTextOk: { color: '#16A34A' },
   badgeTextAlerta: { color: '#D97706' },
+  dicaArrastar: { color: '#94A3B8', fontSize: 11, textAlign: 'center', marginTop: 4, marginBottom: 12, lineHeight: 16 },
+  btnRestaurar: { backgroundColor: '#F1F5F9', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0' },
+  btnRestaurarText: { color: '#475569', fontWeight: 'bold', fontSize: 13 },
   btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10 },
   btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });
