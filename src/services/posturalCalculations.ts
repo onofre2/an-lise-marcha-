@@ -6,6 +6,15 @@
 // e limite de 5 graus adotado na medicao com escoliometro.
 const LIMIAR_ALINHAMENTO = 5;
 
+// Limiar de alerta por desnivel linear entre dois pontos homologos (cm).
+// Na pratica clinica uma diferenca de 1 cm ja e relevante, mesmo quando o
+// angulo correspondente fica abaixo de 5 graus (pontos proximos entre si).
+const LIMIAR_DESNIVEL_CM = 1;
+
+// Fracao da estatura entre o trago (altura da orelha) e o solo.
+// Usada para converter distancia normalizada da foto em centimetros reais.
+const FRACAO_TRAGO_SOLO = 0.87;
+
 interface Ponto { x: number; y: number; }
 type Pontos = Record<string, Ponto>;
 
@@ -25,6 +34,25 @@ function distancia(a: Ponto, b: Ponto): number {
 function anguloComHorizontal(a: Ponto, b: Ponto): number {
   const rad = Math.atan2(b.y - a.y, b.x - a.x);
   return Math.abs(rad * (180 / Math.PI));
+}
+
+// Escala da foto: quantos centimetros reais equivalem a 1 unidade normalizada
+// no eixo vertical. Usa o segmento trago -> tornozelo como regua conhecida.
+// Retorna null quando nao ha altura cadastrada ou pontos suficientes.
+function escalaCmPorUnidade(p: Pontos, alturaCm?: number | null): number | null {
+  if (!alturaCm || alturaCm <= 0) return null;
+  const topo = p.trago_d || p.trago_e || p.trago;
+  const base = p.tornozelo_d || p.tornozelo_e || p.maleolo;
+  if (!topo || !base) return null;
+  const vao = Math.abs(base.y - topo.y);
+  if (vao <= 0) return null;
+  return (alturaCm * FRACAO_TRAGO_SOLO) / vao;
+}
+
+// Desnivel vertical entre dois pontos homologos, em centimetros.
+function desnivelCm(a: Ponto, b: Ponto, escala: number | null): number | null {
+  if (escala === null) return null;
+  return Math.abs(a.y - b.y) * escala;
 }
 
 // Índice de Assimetria (%): IA(m;n) = (m-n)/((m+n)/2)*100
@@ -81,29 +109,35 @@ function calcularATSI(p: Pontos): Desajuste | null {
   return { label: 'ATSI (Simetria Anterior do Tronco)', valor: Number(atsi.toFixed(1)), unidade: '%', alerta: false };
 }
 
-function calcularAnterior(p: Pontos): Desajuste[] {
+function calcularAnterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
+  const escala = escalaCmPorUnidade(p, alturaCm);
   const resultado: Desajuste[] = [];
 
   if (p.trago_d && p.trago_e) {
     const ang = anguloComHorizontal(p.trago_d, p.trago_e);
-    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.trago_d, p.trago_e, escala);
+    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
   if (p.acromio_d && p.acromio_e) {
     const ang = anguloComHorizontal(p.acromio_d, p.acromio_e);
-    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.acromio_d, p.acromio_e, escala);
+    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
   if (p.eias_d && p.eias_e) {
     const ang = anguloComHorizontal(p.eias_d, p.eias_e);
-    resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.eias_d, p.eias_e, escala);
+    resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
 
   if (p.joelho_d && p.joelho_e) {
     const ang = anguloComHorizontal(p.joelho_d, p.joelho_e);
-    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.joelho_d, p.joelho_e, escala);
+    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
   if (p.tornozelo_d && p.tornozelo_e) {
     const ang = anguloComHorizontal(p.tornozelo_d, p.tornozelo_e);
-    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.tornozelo_d, p.tornozelo_e, escala);
+    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
 
   const atsi = calcularATSI(p);
@@ -112,20 +146,24 @@ function calcularAnterior(p: Pontos): Desajuste[] {
   return resultado;
 }
 
-function calcularPosterior(p: Pontos): Desajuste[] {
+function calcularPosterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
+  const escala = escalaCmPorUnidade(p, alturaCm);
   const resultado: Desajuste[] = [];
 
   if (p.trago_d && p.trago_e) {
     const ang = anguloComHorizontal(p.trago_d, p.trago_e);
-    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.trago_d, p.trago_e, escala);
+    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
   if (p.acromio_d && p.acromio_e) {
     const ang = anguloComHorizontal(p.acromio_d, p.acromio_e);
-    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.acromio_d, p.acromio_e, escala);
+    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
   if (p.eips_d && p.eips_e) {
     const ang = anguloComHorizontal(p.eips_d, p.eips_e);
-    resultado.push({ label: 'Alinhamento da Pelve (EIPS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.eips_d, p.eips_e, escala);
+    resultado.push({ label: 'Alinhamento da Pelve (EIPS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
   if (p.c7 && p.acromio_d && p.acromio_e) {
     const centroOmbros = { x: (p.acromio_d.x + p.acromio_e.x) / 2, y: (p.acromio_d.y + p.acromio_e.y) / 2 };
@@ -137,11 +175,13 @@ function calcularPosterior(p: Pontos): Desajuste[] {
 
   if (p.joelho_d && p.joelho_e) {
     const ang = anguloComHorizontal(p.joelho_d, p.joelho_e);
-    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.joelho_d, p.joelho_e, escala);
+    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
   if (p.tornozelo_d && p.tornozelo_e) {
     const ang = anguloComHorizontal(p.tornozelo_d, p.tornozelo_e);
-    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO });
+    const dn = desnivelCm(p.tornozelo_d, p.tornozelo_e, escala);
+    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
 
   const potsi = calcularPOTSI(p);
@@ -180,8 +220,8 @@ function calcularLateral(p: Pontos): Desajuste[] {
   return resultado;
 }
 
-export function calcularDesajustes(vista: string, pontos: Pontos): Desajuste[] {
-  if (vista === 'anterior') return calcularAnterior(pontos);
-  if (vista === 'posterior') return calcularPosterior(pontos);
+export function calcularDesajustes(vista: string, pontos: Pontos, alturaCm?: number | null): Desajuste[] {
+  if (vista === 'anterior') return calcularAnterior(pontos, alturaCm);
+  if (vista === 'posterior') return calcularPosterior(pontos, alturaCm);
   return calcularLateral(pontos);
 }

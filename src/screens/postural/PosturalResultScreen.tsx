@@ -75,7 +75,16 @@ export default function PosturalResultScreen({ route, navigation }: any) {
     return out;
   }, [pontosEditaveis]);
 
-  const desajustes = useMemo(() => calcularDesajustes(vista, pontosEditaveis), [vista, pontosEditaveis]);
+  const alturaCm = useMemo(() => {
+    try {
+      const row = db.getFirstSync('SELECT altura_cm FROM pacientes WHERE id = ?', [pacienteId]) as { altura_cm: number | null } | null;
+      return row?.altura_cm ?? null;
+    } catch {
+      return null;
+    }
+  }, [pacienteId]);
+
+  const desajustes = useMemo(() => calcularDesajustes(vista, pontosEditaveis, alturaCm), [vista, pontosEditaveis, alturaCm]);
   const segmentos = SEGMENTOS_RAPIDA[vista];
   const ehLateral = vista.startsWith('lateral');
   const alterados = desajustes.filter(d => d.alerta);
