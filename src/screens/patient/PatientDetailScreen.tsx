@@ -316,8 +316,8 @@ export default function PatientDetailScreen() {
           <TouchableOpacity style={styles.actionBtn} onPress={abrirEdicao}>
             <Text style={styles.actionBtnText}>Editar</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.actionBtn, styles.actionBtnDisabled]} disabled={true}>
-            <Text style={styles.actionBtnTextDisabled}>Comparar</Text>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => navigation.navigate('Comparacao', { pacienteId: id })}>
+            <Text style={styles.actionBtnText}>Comparar</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionBtn, styles.actionBtnExcluir]} onPress={confirmarExclusao}>
             <Text style={styles.actionBtnTextExcluir}>Excluir</Text>
