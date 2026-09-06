@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView, Image } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import db from '../services/database';
@@ -10,6 +10,8 @@ import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
 import { calcularFase, PontosFase } from '../services/marchaCalculations';
 
 const VIDEO_HEIGHT = Dimensions.get('window').height * 0.38;
+
+const IMG_FASES = require('../../assets/referencias/fases-marcha.jpg');
 
 export default function VideoEditScreen({ route, navigation }: any) {
   const { videoUri, pacienteId, angulo } = route.params as {
@@ -149,6 +151,13 @@ export default function VideoEditScreen({ route, navigation }: any) {
         <View style={styles.cardFase}>
           <Text style={styles.faseNome}>{fase.nome}</Text>
           <Text style={styles.faseDesc}>{fase.descricao}</Text>
+
+          <Image source={IMG_FASES} style={styles.imgFases} resizeMode="contain" />
+          <Text style={styles.dicaFilmagem}>
+            Filmagem: camera perpendicular ao trajeto, na altura do quadril,
+            a 3-4 metros de distancia. O paciente caminha paralelo a camera,
+            atravessando o quadro. Marque os pontos com o paciente no centro da imagem.
+          </Text>
           {pontoAtual ? (
             <Text style={styles.instrucao}>Avance ate a fase e toque em: {pontoAtual.nome}</Text>
           ) : (
@@ -265,6 +274,8 @@ const styles = StyleSheet.create({
   btnVelAtivo: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
   btnVelText: { color: '#475569', fontWeight: 'bold', fontSize: 12 },
   btnVelTextAtivo: { color: '#FFFFFF' },
+  imgFases: { width: '100%', height: 130, marginBottom: 8, borderRadius: 8 },
+  dicaFilmagem: { fontSize: 11, color: '#64748B', lineHeight: 16, marginBottom: 12 },
   cardFase: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#E2E8F0' },
   faseNome: { fontSize: 17, fontWeight: 'bold', color: '#0F172A' },
   faseDesc: { fontSize: 12, color: '#94A3B8', marginTop: 3, marginBottom: 12 },
