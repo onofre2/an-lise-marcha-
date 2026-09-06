@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Image, PanResponder, StyleSheet } from 'react-native';
+import { View, Text, Image, PanResponder, StyleSheet } from 'react-native';
 
 interface Ponto { x: number; y: number; }
 
@@ -7,7 +7,7 @@ const ZOOM = 2.5;
 const LUPA_DIAMETRO = 110;
 
 export default function MarcadorComLupa({
-  id, ponto, onMove, fotoUri, larguraImagem, alturaImagem, cor = '#22C55E', onLongPress,
+  id, ponto, onMove, fotoUri, larguraImagem, alturaImagem, cor = '#22C55E', onLongPress, tamanho = 16, rotulo,
 }: {
   id: string;
   ponto: Ponto;
@@ -17,6 +17,8 @@ export default function MarcadorComLupa({
   alturaImagem: number;
   cor?: string;
   onLongPress?: (id: string) => void;
+  tamanho?: number;
+  rotulo?: string;
 }) {
   const pontoRef = React.useRef(ponto);
   pontoRef.current = ponto;
@@ -46,7 +48,10 @@ export default function MarcadorComLupa({
 
   return (
     <>
-      <View {...panResponder.panHandlers} onTouchEnd={() => { if (tempoToque.current && Date.now() - tempoToque.current > 600 && onLongPress) onLongPress(id); }} style={[styles.marcador, { left: ponto.x - 14, top: ponto.y - 14, backgroundColor: cor }]} />
+      <View {...panResponder.panHandlers} onTouchEnd={() => { if (tempoToque.current && Date.now() - tempoToque.current > 600 && onLongPress) onLongPress(id); }} style={[styles.marcador, { left: ponto.x - tamanho / 2, top: ponto.y - tamanho / 2, width: tamanho, height: tamanho, borderRadius: tamanho / 2, borderColor: cor }]} />
+      {rotulo ? (
+        <Text pointerEvents="none" style={[styles.rotulo, { left: ponto.x + tamanho / 2 + 4, top: ponto.y - 7, color: cor }]}>{rotulo}</Text>
+      ) : null}
       {arrastando && (
         <View pointerEvents="none" style={[styles.lupa, { left: lupaLeft, top: lupaTop }]}>
           <Image
@@ -67,7 +72,8 @@ export default function MarcadorComLupa({
 }
 
 const styles = StyleSheet.create({
-  marcador: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: 'transparent', borderWidth: 3, borderColor: '#22C55E' },
+  rotulo: { position: 'absolute', fontSize: 9, fontWeight: '700' },
+  marcador: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: 'transparent', borderWidth: 2, borderColor: '#22C55E' },
   lupa: {
     position: 'absolute',
     width: LUPA_DIAMETRO,
