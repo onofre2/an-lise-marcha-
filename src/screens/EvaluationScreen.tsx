@@ -7,9 +7,10 @@ export default function EvaluationScreen({ navigation }: any) {
   const { pacienteAtivo } = usePacienteAtivo();
   const [anguloSelecionado, setAnguloSelecionado] = useState<string | null>(null);
 
+  // A analise da marcha usa apenas o plano sagital: os angulos de referencia
+  // do ciclo (Perry) sao medidos de perfil. Vistas frontais avaliam outro
+  // conjunto de achados, ja coberto pela avaliacao postural.
   const angulos = [
-    { id: 'anterior', label: 'Anterior' },
-    { id: 'posterior', label: 'Posterior' },
     { id: 'lateral_direito', label: 'Lateral Direito' },
     { id: 'lateral_esquerdo', label: 'Lateral Esquerdo' },
   ];
