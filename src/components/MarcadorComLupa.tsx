@@ -26,7 +26,9 @@ export default function MarcadorComLupa({
 
   const panResponder = React.useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (evt: any, g: any) =>
+        Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4,
       onPanResponderGrant: () => {
         startPos.current = { x: pontoRef.current.x, y: pontoRef.current.y };
         tempoToque.current = Date.now();
@@ -66,7 +68,7 @@ export default function MarcadorComLupa({
 }
 
 const styles = StyleSheet.create({
-  marcador: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: '#22C55E', borderWidth: 3, borderColor: '#FFF' },
+  marcador: { position: 'absolute', width: 28, height: 28, borderRadius: 14, backgroundColor: 'transparent', borderWidth: 3, borderColor: '#22C55E' },
   lupa: {
     position: 'absolute',
     width: LUPA_DIAMETRO,
