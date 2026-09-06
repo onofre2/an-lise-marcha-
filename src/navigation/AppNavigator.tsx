@@ -12,6 +12,7 @@ import VideoEditScreen from '../screens/VideoEditScreen';
 import PosturalHomeScreen from '../screens/postural/PosturalHomeScreen';
 import PosturalCaptureScreen from '../screens/postural/PosturalCaptureScreen';
 import PosturalMarkingScreen from '../screens/postural/PosturalMarkingScreen';
+import PosturalFramingScreen from '../screens/postural/PosturalFramingScreen';
 import PosturalResultScreen from '../screens/postural/PosturalResultScreen';
 import CervicalHomeScreen from '../screens/cervical/CervicalHomeScreen';
 import CervicalCaptureScreen from '../screens/cervical/CervicalCaptureScreen';
@@ -57,6 +58,7 @@ function PosturalStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PosturalHome" component={PosturalHomeScreen} />
       <Stack.Screen name="PosturalCapture" component={PosturalCaptureScreen} />
+      <Stack.Screen name="PosturalFraming" component={PosturalFramingScreen} />
       <Stack.Screen name="PosturalMarking" component={PosturalMarkingScreen} />
       <Stack.Screen name="PosturalResult" component={PosturalResultScreen} />
     </Stack.Navigator>

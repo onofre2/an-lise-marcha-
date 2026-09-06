@@ -38,7 +38,7 @@ export default function PosturalCaptureScreen({ route, navigation }: any) {
       quality: 0.8,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {
-      navigation.navigate('PosturalMarking', { fotoUri: resultado.assets[0].uri, pacienteId, vista, modo });
+      navigation.navigate('PosturalFraming', { fotoUri: resultado.assets[0].uri, pacienteId, vista, modo });
     }
   }
 
@@ -46,7 +46,7 @@ export default function PosturalCaptureScreen({ route, navigation }: any) {
     if (cameraRef.current) {
       try {
         const foto = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-        navigation.navigate('PosturalMarking', { fotoUri: foto.uri, pacienteId, vista, modo });
+        navigation.navigate('PosturalFraming', { fotoUri: foto.uri, pacienteId, vista, modo });
       } catch (error) {
         console.error('Erro ao tirar foto:', error);
       }
