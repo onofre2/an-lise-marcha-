@@ -92,12 +92,15 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       {tipo === 'postural' && registro.foto_uri ? (
         <TouchableOpacity
           style={styles.btnReeditar}
-          onPress={() => navigation.navigate('PosturalResult', {
-            fotoUri: registro.foto_uri,
-            pacienteId: registro.id_paciente,
-            vista: registro.vista,
-            modo: registro.modo,
-            pontos,
+          onPress={() => navigation.navigate('PosturalTab', {
+            screen: 'PosturalResult',
+            params: {
+              fotoUri: registro.foto_uri,
+              pacienteId: registro.id_paciente,
+              vista: registro.vista,
+              modo: registro.modo,
+              pontos,
+            },
           })}
         >
           <Text style={styles.btnReeditarText}>Reabrir para editar pontos</Text>
