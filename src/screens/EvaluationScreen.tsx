@@ -46,8 +46,10 @@ export default function EvaluationScreen({ navigation }: any) {
       <View style={styles.protocolCard}>
         <Text style={styles.protocolText}>• Paciente deve estar **Descalço**</Text>
         <Text style={styles.protocolText}>• Caminhando em **Fundo Branco**</Text>
-        <Text style={styles.protocolText}>• Distância rigorosa de **1 Metro**</Text>
-        <Text style={styles.protocolText}>• Gravação **da Cintura para Baixo**</Text>
+        <Text style={styles.protocolText}>• Câmera a **3 a 4 metros**, perpendicular ao trajeto</Text>
+        <Text style={styles.protocolText}>• Câmera na **altura do quadril**</Text>
+        <Text style={styles.protocolText}>• Paciente caminha **paralelo à câmera**</Text>
+        <Text style={styles.protocolText}>• Gravar **ao menos 2 ciclos** de marcha</Text>
       </View>
 
       <Text style={styles.sectionTitle}>Selecione o Ângulo da Marcha</Text>
