@@ -10,6 +10,7 @@ interface Paciente {
   id: number;
   nome: string;
   idade: number;
+  altura_cm?: number;
   data_nascimento?: string;
   sexo?: string;
   data_cadastro: string;
@@ -35,6 +36,7 @@ export default function HomeScreen() {
   const [fotoUri, setFotoUri] = useState<string | null>(null);
   const [nome, setNome] = useState('');
   const [idade, setIdade] = useState('');
+  const [alturaCm, setAlturaCm] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [sexo, setSexo] = useState('');
   const [diagnostico, setDiagnostico] = useState('');
@@ -88,6 +90,7 @@ export default function HomeScreen() {
     setFotoUri(null);
     setNome('');
     setIdade('');
+    setAlturaCm('');
     setDataNascimento('');
     setSexo('');
     setDiagnostico('');
@@ -115,11 +118,12 @@ export default function HomeScreen() {
     try {
       db.runSync(
         `INSERT INTO pacientes
-          (nome, idade, data_nascimento, sexo, data_cadastro, diagnostico, historico_medico, anotacoes_clinicas, conclusao_clinica, objetivos_terapeuticos, foto_uri)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (nome, idade, altura_cm, data_nascimento, sexo, data_cadastro, diagnostico, historico_medico, anotacoes_clinicas, conclusao_clinica, objetivos_terapeuticos, foto_uri)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           nome,
           idade ? parseInt(idade) : null,
+          alturaCm ? parseFloat(alturaCm) : null,
           dataNascimento || null,
           sexo || null,
           dataHoje,
@@ -265,6 +269,16 @@ export default function HomeScreen() {
                 keyboardType="numeric"
                 value={idade}
                 onChangeText={setIdade}
+              />
+
+              <Text style={styles.label}>Altura (cm)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: 172"
+                placeholderTextColor="#94A3B8"
+                keyboardType="numeric"
+                value={alturaCm}
+                onChangeText={setAlturaCm}
               />
 
               <Text style={styles.label}>Data de Nascimento</Text>

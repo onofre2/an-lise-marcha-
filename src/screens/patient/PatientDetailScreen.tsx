@@ -8,6 +8,7 @@ interface Paciente {
   id: number;
   nome: string;
   idade: number;
+  altura_cm?: number;
   data_nascimento?: string;
   sexo?: string;
   data_cadastro: string;
@@ -39,6 +40,7 @@ export default function PatientDetailScreen() {
 
   const [nome, setNome] = useState('');
   const [idade, setIdade] = useState('');
+  const [alturaCm, setAlturaCm] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
   const [sexo, setSexo] = useState('');
   const [diagnostico, setDiagnostico] = useState('');
@@ -171,6 +173,7 @@ export default function PatientDetailScreen() {
     if (!paciente) return;
     setNome(paciente.nome || '');
     setIdade(paciente.idade ? String(paciente.idade) : '');
+    setAlturaCm(paciente.altura_cm ? String(paciente.altura_cm) : '');
     setDataNascimento(paciente.data_nascimento || '');
     setSexo(paciente.sexo || '');
     setDiagnostico(paciente.diagnostico || '');
@@ -186,13 +189,14 @@ export default function PatientDetailScreen() {
     try {
       db.runSync(
         `UPDATE pacientes SET
-          nome = ?, idade = ?, data_nascimento = ?, sexo = ?,
+          nome = ?, idade = ?, altura_cm = ?, data_nascimento = ?, sexo = ?,
           diagnostico = ?, historico_medico = ?, anotacoes_clinicas = ?,
           conclusao_clinica = ?, objetivos_terapeuticos = ?
          WHERE id = ?`,
         [
           nome,
           idade ? parseInt(idade) : null,
+          alturaCm ? parseFloat(alturaCm) : null,
           dataNascimento || null,
           sexo || null,
           diagnostico || null,
@@ -362,6 +366,9 @@ export default function PatientDetailScreen() {
 
               <Text style={styles.label}>Idade</Text>
               <TextInput style={styles.input} placeholderTextColor="#94A3B8" keyboardType="numeric" value={idade} onChangeText={setIdade} />
+
+              <Text style={styles.label}>Altura (cm)</Text>
+              <TextInput style={styles.input} placeholder="Ex: 172" placeholderTextColor="#94A3B8" keyboardType="numeric" value={alturaCm} onChangeText={setAlturaCm} />
 
               <Text style={styles.label}>Data de Nascimento</Text>
               <TextInput style={styles.input} placeholder="DD/MM/AAAA" placeholderTextColor="#94A3B8" value={dataNascimento} onChangeText={setDataNascimento} />
