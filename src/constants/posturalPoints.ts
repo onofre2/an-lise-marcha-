@@ -48,6 +48,7 @@ export const PONTOS_RAPIDA: Record<Vista, PontoAnatomico[]> = {
   ],
   lateral_direita: [
     { id: 'trago', nome: 'Trago' },
+    { id: 'c7', nome: 'Processo Espinhoso C7' },
     { id: 'acromio', nome: 'Acrômio' },
     { id: 'trocanter', nome: 'Trocânter Maior do Fêmur' },
     { id: 'joelho', nome: 'Joelho (Linha Articular)' },
@@ -55,6 +56,7 @@ export const PONTOS_RAPIDA: Record<Vista, PontoAnatomico[]> = {
   ],
   lateral_esquerda: [
     { id: 'trago', nome: 'Trago' },
+    { id: 'c7', nome: 'Processo Espinhoso C7' },
     { id: 'acromio', nome: 'Acrômio' },
     { id: 'trocanter', nome: 'Trocânter Maior do Fêmur' },
     { id: 'joelho', nome: 'Joelho (Linha Articular)' },
@@ -84,13 +86,15 @@ export const SEGMENTOS_RAPIDA: Record<Vista, [string, string][]> = {
     ['halux_d', 'halux_e'],
   ],
   lateral_direita: [
-    ['trago', 'acromio'],
+    ['trago', 'c7'],
+    ['c7', 'acromio'],
     ['acromio', 'trocanter'],
     ['trocanter', 'joelho'],
     ['joelho', 'maleolo'],
   ],
   lateral_esquerda: [
-    ['trago', 'acromio'],
+    ['trago', 'c7'],
+    ['c7', 'acromio'],
     ['acromio', 'trocanter'],
     ['trocanter', 'joelho'],
     ['joelho', 'maleolo'],
