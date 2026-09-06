@@ -38,7 +38,9 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
 
   const moverPonto = (id: string, x: number, y: number) => {
-    setPontosEditaveis(prev => ({ ...prev, [id]: { x, y } }));
+    const cx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
+    const cy = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);
+    setPontosEditaveis(prev => ({ ...prev, [id]: { x: cx, y: cy } }));
   };
 
   const restaurarPontos = () => setPontosEditaveis(pontos);
@@ -64,6 +66,14 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       return copia;
     });
   };
+
+  const pontosPx = useMemo(() => {
+    const out: Record<string, Ponto> = {};
+    for (const [id, p] of Object.entries(pontosEditaveis)) {
+      out[id] = { x: p.x * IMAGE_WIDTH, y: p.y * IMAGE_HEIGHT };
+    }
+    return out;
+  }, [pontosEditaveis]);
 
   const desajustes = useMemo(() => calcularDesajustes(vista, pontosEditaveis), [vista, pontosEditaveis]);
   const segmentos = SEGMENTOS_RAPIDA[vista];
@@ -124,13 +134,13 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       <View style={styles.imageContainer} onStartShouldSetResponder={() => modoObservacao} onResponderRelease={adicionarObservacao}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
 
-        {ehLateral && pontosEditaveis.maleolo && (
-          <View style={[styles.linhaPrumo, { left: pontosEditaveis.maleolo.x }]} />
+        {ehLateral && pontosPx.maleolo && (
+          <View style={[styles.linhaPrumo, { left: pontosPx.maleolo.x }]} />
         )}
 
         {segmentos.map(([idA, idB], i) => {
-          const a = pontosEditaveis[idA];
-          const b = pontosEditaveis[idB];
+          const a = pontosPx[idA];
+          const b = pontosPx[idB];
           if (!a || !b) return null;
           const d = !ehLateral ? buscarDesajusteSegmento(idA, idB) : undefined;
           return (
@@ -142,13 +152,13 @@ export default function PosturalResultScreen({ route, navigation }: any) {
           );
         })}
 
-        {ehLateral && Object.entries(pontosEditaveis).map(([id, p]) => {
+        {ehLateral && Object.entries(pontosPx).map(([id, p]) => {
           const d = buscarDesajustePonto(id);
           if (!d) return null;
           return <BadgeNoPonto key={id} p={p} desajuste={d} />;
         })}
 
-        {Object.entries(pontosEditaveis).map(([id, p]) => (
+        {Object.entries(pontosPx).map(([id, p]) => (
           <MarcadorComLupa
             key={id}
             id={id}
