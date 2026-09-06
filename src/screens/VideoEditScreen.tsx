@@ -91,6 +91,16 @@ export default function VideoEditScreen({ route, navigation }: any) {
   };
 
   const marcarPonto = (evt: any) => {
+    // No modo observacao o toque cria um circulo de desajuste, nao um ponto.
+    if (modoObservacao) {
+      const { locationX, locationY } = evt.nativeEvent;
+      const novoId = `obs_${Date.now()}`;
+      setObservacoes(prev => ({
+        ...prev,
+        [novoId]: { x: locationX / VIDEO_WIDTH, y: locationY / VIDEO_HEIGHT },
+      }));
+      return;
+    }
     if (faseCompleta) return;
     const { locationX, locationY } = evt.nativeEvent;
     // Normalizado (0 a 1) para o PDF poder redesenhar em qualquer tamanho.
@@ -101,6 +111,24 @@ export default function VideoEditScreen({ route, navigation }: any) {
   };
 
   const limparFase = () => setPontosFaseAtual({});
+
+  const [modoObservacao, setModoObservacao] = useState(false);
+  const [observacoes, setObservacoes] = useState<Record<string, { x: number; y: number }>>({});
+
+  const moverObservacao = (id: string, x: number, y: number) => {
+    setObservacoes(prev => ({
+      ...prev,
+      [id]: { x: Math.min(Math.max(x / VIDEO_WIDTH, 0), 1), y: Math.min(Math.max(y / VIDEO_HEIGHT, 0), 1) },
+    }));
+  };
+
+  const removerObservacao = (id: string) => {
+    setObservacoes(prev => {
+      const copia = { ...prev };
+      delete copia[id];
+      return copia;
+    });
+  };
 
   const moverPontoFase = (id: string, x: number, y: number) => {
     const nx = Math.min(Math.max(x / VIDEO_WIDTH, 0), 1);
@@ -192,6 +220,21 @@ export default function VideoEditScreen({ route, navigation }: any) {
               alturaImagem={VIDEO_HEIGHT}
             />
           ))}
+          {Object.entries(observacoes).map(([id, p]) => (
+            <MarcadorComLupa
+              key={id}
+              id={id}
+              ponto={{ x: p.x * VIDEO_WIDTH, y: p.y * VIDEO_HEIGHT }}
+              onMove={moverObservacao}
+              onLongPress={removerObservacao}
+              cor="#EF4444"
+              tamanho={28}
+              rotulo="desajuste"
+              fotoUri={frameCongelado || ''}
+              larguraImagem={VIDEO_WIDTH}
+              alturaImagem={VIDEO_HEIGHT}
+            />
+          ))}
         </TouchableOpacity>
       </ViewShot>
 
@@ -238,6 +281,14 @@ export default function VideoEditScreen({ route, navigation }: any) {
           <View style={styles.rowBtns}>
             <TouchableOpacity style={styles.btnSec} onPress={limparFase}>
               <Text style={styles.btnSecText}>Limpar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.btnSec, modoObservacao && styles.btnSecAtivo]}
+              onPress={() => setModoObservacao(!modoObservacao)}
+            >
+              <Text style={[styles.btnSecText, modoObservacao && styles.btnSecTextAtivo]}>
+                {modoObservacao ? 'Marcando' : 'Marcar desajuste'}
+              </Text>
             </TouchableOpacity>
             {faseCompleta && (
               <TouchableOpacity style={styles.btnPri} onPress={confirmarFase}>
@@ -332,6 +383,8 @@ const styles = StyleSheet.create({
   video: { width: '100%', height: '100%' },
   overlay: { position: 'absolute', width: '100%', height: '100%' },
   frameCongelado: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
+  btnSecAtivo: { backgroundColor: '#EF4444', borderColor: '#EF4444' },
+  btnSecTextAtivo: { color: '#FFFFFF' },
   marcador: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF' },
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
   controles: { flexDirection: 'row', gap: 6, marginBottom: 10, alignItems: 'center' },
