@@ -104,9 +104,21 @@ export function imagemPostural(
   const { largura, altura } = dimensoes;
   let camadas = '';
 
+  // Os pontos sao gravados normalizados (0 a 1). Converte para pixel do SVG.
+  const px = (mapa: Record<string, Ponto>): Record<string, Ponto> => {
+    const out: Record<string, Ponto> = {};
+    for (const [id, p] of Object.entries(mapa)) {
+      out[id] = { x: p.x * largura, y: p.y * altura };
+    }
+    return out;
+  };
+  const pontosPx = px(pontos);
+  const observacoesPx = px(observacoes);
+
+
   segmentos.forEach(([idA, idB]) => {
-    const a = pontos[idA];
-    const b = pontos[idB];
+    const a = pontosPx[idA];
+    const b = pontosPx[idB];
     if (!a || !b) return;
 
     const label = MAPA_LABEL[`${idA}|${idB}`] || MAPA_LABEL[`${idB}|${idA}`];
@@ -122,8 +134,8 @@ export function imagemPostural(
     }
   });
 
-  Object.values(pontos).forEach(p => { camadas += marcador(p); });
-  Object.values(observacoes).forEach(p => { camadas += observacao(p); });
+  Object.values(pontosPx).forEach(p => { camadas += marcador(p); });
+  Object.values(observacoesPx).forEach(p => { camadas += observacao(p); });
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura} ${altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
@@ -148,20 +160,32 @@ export function imagemSimples(
   const { largura, altura } = dimensoes;
   let camadas = '';
 
+  // Os pontos sao gravados normalizados (0 a 1). Converte para pixel do SVG.
+  const px = (mapa: Record<string, Ponto>): Record<string, Ponto> => {
+    const out: Record<string, Ponto> = {};
+    for (const [id, p] of Object.entries(mapa)) {
+      out[id] = { x: p.x * largura, y: p.y * altura };
+    }
+    return out;
+  };
+  const pontosPx = px(pontos);
+  const observacoesPx = px(observacoes);
+
+
   ligacoes.forEach(([idA, idB]) => {
-    const a = pontos[idA];
-    const b = pontos[idB];
+    const a = pontosPx[idA];
+    const b = pontosPx[idB];
     if (!a || !b) return;
     camadas += linha(a, b, valorPrincipal ? valorPrincipal.alerta : false);
   });
 
-  if (valorPrincipal && pontos[valorPrincipal.ancora]) {
-    const p = pontos[valorPrincipal.ancora];
+  if (valorPrincipal && pontosPx[valorPrincipal.ancora]) {
+    const p = pontosPx[valorPrincipal.ancora];
     camadas += badge(p.x, p.y, valorPrincipal.texto, valorPrincipal.alerta);
   }
 
-  Object.values(pontos).forEach(p => { camadas += marcador(p); });
-  Object.values(observacoes).forEach(p => { camadas += observacao(p); });
+  Object.values(pontosPx).forEach(p => { camadas += marcador(p); });
+  Object.values(observacoesPx).forEach(p => { camadas += observacao(p); });
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura} ${altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
