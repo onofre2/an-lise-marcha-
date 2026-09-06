@@ -11,6 +11,21 @@ interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 
+// Dimensoes de referencia da area de video onde os pontos da marcha foram
+// marcados. Usadas para converter as coordenadas normalizadas de volta.
+// Dimensoes da area onde os pontos foram marcados, gravadas junto com a
+// avaliacao. Avaliacoes antigas nao tem esse dado: nesse caso usamos o
+// tamanho padrao vigente na epoca, que e melhor que nao calcular nada.
+function dimensoesDaAvaliacao(registro: any): { largura: number; altura: number } {
+  try {
+    if (registro?.dimensoes_json) {
+      const d = JSON.parse(registro.dimensoes_json);
+      if (d?.largura > 0 && d?.altura > 0) return d;
+    }
+  } catch {}
+  return { largura: 343, altura: 320 };
+}
+
 export default function AvaliacaoDetailScreen({ route, navigation }: any) {
   const { tipo, id } = route.params as { tipo: 'postural' | 'cervical' | 'adm' | 'marcha' | 'adams'; id: number };
 
@@ -152,7 +167,7 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
           {FASES_MARCHA.map(f => {
             let marcacoes: any = {};
             try { marcacoes = JSON.parse(registro.marcacoes_json); } catch { marcacoes = {}; }
-            const resultados = calcularFase(f.id, marcacoes[f.id] || {});
+            const resultados = calcularFase(f.id, marcacoes[f.id] || {}, dimensoesDaAvaliacao(registro));
             if (resultados.length === 0) return null;
             return (
               <View key={f.id} style={styles.blocoFase}>

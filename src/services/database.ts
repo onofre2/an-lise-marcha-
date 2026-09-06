@@ -147,6 +147,15 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    // Dimensoes da area de video onde os pontos da marcha foram marcados.
+    // Necessarias para converter as coordenadas normalizadas de volta e
+    // calcular os angulos sem distorcao.
+    try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN dimensoes_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     console.log("Banco de dados inicializado com sucesso!");
   } catch (error) {
     console.error("Erro ao inicializar o banco de dados:", error);

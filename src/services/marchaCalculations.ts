@@ -26,9 +26,28 @@ function anguloEntre(a: Ponto, vertice: Ponto, c: Ponto): number {
   return Math.acos(cos) * (180 / Math.PI);
 }
 
-export function calcularFase(faseId: string, p: PontosFase): ResultadoArticulacao[] {
+/**
+ * Calcula os angulos de uma fase da marcha.
+ *
+ * Os pontos sao gravados em coordenadas normalizadas (0 a 1) sobre a area do
+ * video, para que possam ser redesenhados em qualquer tamanho de tela ou no
+ * PDF. Mas angulo so e correto em coordenadas reais: como a area do video nao
+ * e quadrada, o espaco normalizado distorce a geometria. Por isso a conversao
+ * acontece aqui dentro, uma unica vez, e nao em cada chamada.
+ */
+export function calcularFase(
+  faseId: string,
+  pontosNormalizados: PontosFase,
+  dimensoes: { largura: number; altura: number },
+): ResultadoArticulacao[] {
   const fase = FASES_MARCHA.find(f => f.id === faseId);
   if (!fase) return [];
+
+  const p: PontosFase = {};
+  for (const [id, ponto] of Object.entries(pontosNormalizados)) {
+    p[id] = { x: ponto.x * dimensoes.largura, y: ponto.y * dimensoes.altura };
+  }
+
   if (!p.tronco || !p.quadril || !p.joelho || !p.tornozelo || !p.pe) return [];
 
   const resultado: ResultadoArticulacao[] = [];

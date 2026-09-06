@@ -246,6 +246,21 @@ async function montarImagemADM(av: any): Promise<string> {
 }
 
 // Monta as imagens das fases da marcha capturadas durante a marcacao
+// Dimensoes de referencia da area de video onde os pontos da marcha foram
+// marcados. Usadas para converter as coordenadas normalizadas de volta.
+// Dimensoes da area onde os pontos foram marcados, gravadas junto com a
+// avaliacao. Avaliacoes antigas nao tem esse dado: nesse caso usamos o
+// tamanho padrao vigente na epoca, que e melhor que nao calcular nada.
+function dimensoesDaAvaliacao(registro: any): { largura: number; altura: number } {
+  try {
+    if (registro?.dimensoes_json) {
+      const d = JSON.parse(registro.dimensoes_json);
+      if (d?.largura > 0 && d?.altura > 0) return d;
+    }
+  } catch {}
+  return { largura: 343, altura: 320 };
+}
+
 async function montarImagensMarcha(av: any): Promise<string> {
   try {
     if (!av.frames_json) return '';
@@ -256,14 +271,36 @@ async function montarImagensMarcha(av: any): Promise<string> {
       apoio_medio: 'Apoio Medio',
     };
 
+    // As marcacoes sao gravadas em coordenadas normalizadas (0 a 1) sobre a
+    // area do video. Desenhamos por cima do frame extraido do proprio arquivo.
+    let marcacoes: Record<string, Record<string, { x: number; y: number }>> = {};
+    try { marcacoes = av.marcacoes_json ? JSON.parse(av.marcacoes_json) : {}; } catch {}
+    const CADEIA = ['tronco', 'quadril', 'joelho', 'tornozelo', 'pe'];
+
     let html = '';
     for (const [faseId, uri] of Object.entries(frames)) {
       const base64 = await fotoParaBase64(uri);
       if (!base64) continue;
+      const pts = marcacoes[faseId] || {};
+      let camadas = '';
+      for (let i = 0; i < CADEIA.length - 1; i++) {
+        const a = pts[CADEIA[i]];
+        const b = pts[CADEIA[i + 1]];
+        if (!a || !b) continue;
+        camadas += `<line x1="${a.x * 100}%" y1="${a.y * 100}%" x2="${b.x * 100}%" y2="${b.y * 100}%" stroke="#22C55E" stroke-width="2" />`;
+      }
+      for (const id of CADEIA) {
+        const pt = pts[id];
+        if (!pt) continue;
+        camadas += `<circle cx="${pt.x * 100}%" cy="${pt.y * 100}%" r="6" fill="none" stroke="#22C55E" stroke-width="2.5" />`;
+      }
       html += `
         <div style="margin-top:12px;">
           <div class="bloco"><b>${nomes[faseId] || faseId}</b></div>
-          <img src="${base64}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;" />
+          <div style="position:relative;width:100%;">
+            <img src="${base64}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;display:block;" />
+            <svg style="position:absolute;top:0;left:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg">${camadas}</svg>
+          </div>
         </div>
       `;
     }
@@ -376,7 +413,7 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
         apoio_medio: 'Apoio Medio',
       };
       for (const faseId of Object.keys(marcacoes)) {
-        const resultados = calcularFase(faseId, marcacoes[faseId] || {});
+        const resultados = calcularFase(faseId, marcacoes[faseId] || {}, dimensoesDaAvaliacao(av));
         if (resultados.length === 0) continue;
         tabelaFases += `<div class="bloco"><b>${nomes[faseId] || faseId}</b></div>`;
         tabelaFases += '<table><tr><th>Articulacao</th><th>Medido</th><th>Esperado</th><th>Situacao</th></tr>';

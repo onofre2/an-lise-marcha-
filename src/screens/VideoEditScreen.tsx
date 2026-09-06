@@ -6,10 +6,13 @@ import db from '../services/database';
 import { salvarMidiaPermanente } from '../services/armazenamento';
 import { gerarRelatorioMarcha } from '../services/pdfService';
 import ViewShot, { captureRef } from 'react-native-view-shot';
+import * as VideoThumbnails from 'expo-video-thumbnails';
 import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
 import { calcularFase, PontosFase } from '../services/marchaCalculations';
 
 const VIDEO_HEIGHT = Dimensions.get('window').height * 0.38;
+const VIDEO_WIDTH = Dimensions.get('window').width - 32;
+const DIMENSOES_VIDEO = { largura: VIDEO_WIDTH, altura: VIDEO_HEIGHT };
 
 const IMG_FASES = require('../../assets/referencias/fases-marcha.jpg');
 
@@ -58,10 +61,23 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const marcarPonto = (evt: any) => {
     if (faseCompleta) return;
     const { locationX, locationY } = evt.nativeEvent;
-    setPontosFaseAtual(prev => ({ ...prev, [pontoAtual!.id]: { x: locationX, y: locationY } }));
+    // Normalizado (0 a 1) para o PDF poder redesenhar em qualquer tamanho.
+    setPontosFaseAtual(prev => ({
+      ...prev,
+      [pontoAtual!.id]: { x: locationX / VIDEO_WIDTH, y: locationY / VIDEO_HEIGHT },
+    }));
   };
 
   const limparFase = () => setPontosFaseAtual({});
+
+  // Versao em pixel dos pontos, para desenhar as linhas sobre o video.
+  const pontosPx = React.useMemo(() => {
+    const out: Record<string, { x: number; y: number }> = {};
+    for (const [id, p] of Object.entries(pontosFaseAtual)) {
+      out[id] = { x: p.x * VIDEO_WIDTH, y: p.y * VIDEO_HEIGHT };
+    }
+    return out;
+  }, [pontosFaseAtual]);
 
   // Referencia da area do video, usada para capturar o frame com as marcacoes
   const areaVideoRef = React.useRef<any>(null);
@@ -71,11 +87,15 @@ export default function VideoEditScreen({ route, navigation }: any) {
     // Captura o frame atual do video com os pontos e linhas ja desenhados,
     // para que o relatorio em PDF mostre exatamente o que o terapeuta marcou.
     try {
-      if (areaVideoRef.current) {
-        const capturaUri = await captureRef(areaVideoRef, { format: 'jpg', quality: 0.9 });
-        const framePermanente = await salvarMidiaPermanente(capturaUri);
-        setFramesFases(prev => ({ ...prev, [fase.id]: framePermanente }));
-      }
+      // O frame vem do proprio arquivo de video no tempo pausado. Capturar a
+      // tela nao funciona: o video renderiza em camada separada e sai preto.
+      const tempoMs = Math.max(Math.round((player.currentTime || 0) * 1000), 0);
+      const { uri: frameUri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+        time: tempoMs,
+        quality: 0.9,
+      });
+      const framePermanente = await salvarMidiaPermanente(frameUri);
+      setFramesFases(prev => ({ ...prev, [fase.id]: framePermanente }));
     } catch (e) {
       console.error('Erro ao capturar frame da fase:', e);
     }
@@ -90,8 +110,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const videoPermanente = await salvarMidiaPermanente(videoUri);
       db.runSync(
-        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json) VALUES (?, ?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases)]
+        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify(DIMENSOES_VIDEO)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -120,9 +140,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
         <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
         <TouchableOpacity activeOpacity={1} style={styles.overlay} onPress={marcarPonto}>
           {Object.entries(pontosFaseAtual).map(([id, p]) => (
-            <View key={id} style={[styles.marcador, { left: p.x - 8, top: p.y - 8 }]} />
+            <View
+              key={id}
+              style={[styles.marcador, { left: p.x * VIDEO_WIDTH - 8, top: p.y * VIDEO_HEIGHT - 8 }]}
+            />
           ))}
-          <Segmentos pontos={pontosFaseAtual} />
+          <Segmentos pontos={pontosPx} />
         </TouchableOpacity>
       </ViewShot>
 
@@ -189,7 +212,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
           {FASES_MARCHA.map(f => (
             <View key={f.id} style={styles.blocoFase}>
               <Text style={styles.blocoFaseNome}>{f.nome}</Text>
-              {calcularFase(f.id, marcacoes[f.id] || {}).map((r, i) => (
+              {calcularFase(f.id, marcacoes[f.id] || {}, DIMENSOES_VIDEO).map((r, i) => (
                 <View key={i} style={styles.linhaRes}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.resNome}>{r.nome}</Text>
@@ -212,7 +235,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
 }
 
 function ResumoMarcha({ marcacoes }: { marcacoes: Record<string, PontosFase> }) {
-  const todosResultados = FASES_MARCHA.flatMap(f => calcularFase(f.id, marcacoes[f.id] || {}));
+  const todosResultados = FASES_MARCHA.flatMap(f => calcularFase(f.id, marcacoes[f.id] || {}, DIMENSOES_VIDEO));
   const alterados = todosResultados.filter(r => !r.dentroFaixa);
 
   if (todosResultados.length === 0) return null;
