@@ -56,6 +56,7 @@ export default function PosturalResultScreen({ route, navigation }: any) {
 
   const [observacoes, setObservacoes] = useState<Record<string, Ponto>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
+  const [mostrarGrade, setMostrarGrade] = useState(false);
 
   const adicionarObservacao = (evt: any) => {
     if (!modoObservacao) return;
@@ -66,6 +67,16 @@ export default function PosturalResultScreen({ route, navigation }: any) {
 
   const moverObservacao = (id: string, x: number, y: number) => {
     setObservacoes(prev => ({ ...prev, [id]: { x, y } }));
+  };
+
+  const desfazerObservacao = () => {
+    setObservacoes(prev => {
+      const ids = Object.keys(prev);
+      if (ids.length === 0) return prev;
+      const copia = { ...prev };
+      delete copia[ids[ids.length - 1]];
+      return copia;
+    });
   };
 
   const removerObservacao = (id: string) => {
@@ -152,6 +163,17 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       <View style={styles.imageContainer} onStartShouldSetResponder={() => modoObservacao} onResponderRelease={adicionarObservacao}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
 
+        {mostrarGrade && (
+          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+            {Array.from({ length: 11 }).map((_, i) => (
+              <View key={`gv-${i}`} style={[styles.gradeLinhaV, { left: (IMAGE_WIDTH / 10) * i }]} />
+            ))}
+            {Array.from({ length: 13 }).map((_, i) => (
+              <View key={`gh-${i}`} style={[styles.gradeLinhaH, { top: (IMAGE_HEIGHT / 12) * i }]} />
+            ))}
+          </View>
+        )}
+
         {ehLateral && pontosPx.maleolo && (
           <View style={[styles.linhaPrumo, { left: pontosPx.maleolo.x }]} />
         )}
@@ -229,14 +251,31 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         ))
       )}
 
-      <TouchableOpacity
-        style={[styles.btnObservacao, modoObservacao && styles.btnObservacaoAtivo]}
-        onPress={() => setModoObservacao(!modoObservacao)}
-      >
-        <Text style={[styles.btnObservacaoText, modoObservacao && styles.btnObservacaoTextAtivo]}>
-          {modoObservacao ? 'Modo observacao ativo - toque na foto' : 'Marcar observacao'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.barraEdicao}>
+        <TouchableOpacity
+          style={[styles.btnEdicao, modoObservacao && styles.btnEdicaoAtivo]}
+          onPress={() => setModoObservacao(!modoObservacao)}
+        >
+          <Text style={[styles.btnEdicaoText, modoObservacao && styles.btnEdicaoTextAtivo]}>
+            {modoObservacao ? 'Marcando' : 'Incluir'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.btnEdicao}
+          onPress={desfazerObservacao}
+          disabled={Object.keys(observacoes).length === 0}
+        >
+          <Text style={styles.btnEdicaoText}>Desfazer</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.btnEdicao, mostrarGrade && styles.btnEdicaoAtivo]}
+          onPress={() => setMostrarGrade(!mostrarGrade)}
+        >
+          <Text style={[styles.btnEdicaoText, mostrarGrade && styles.btnEdicaoTextAtivo]}>Grade</Text>
+        </TouchableOpacity>
+      </View>
 
       {Object.keys(observacoes).length > 0 && (
         <Text style={styles.dicaArrastar}>Toque longo em um circulo vermelho para remove-lo.</Text>
@@ -339,6 +378,13 @@ const styles = StyleSheet.create({
   linha: { position: 'absolute', height: 3, transformOrigin: 'left' },
   linhaOk: { backgroundColor: '#4ADE80' },
   linhaAlerta: { backgroundColor: '#F59E0B' },
+  gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
+  gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
+  barraEdicao: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  btnEdicao: { flex: 1, backgroundColor: '#F1F5F9', paddingVertical: 12, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnEdicaoAtivo: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
+  btnEdicaoText: { color: '#334155', fontWeight: '600', fontSize: 14 },
+  btnEdicaoTextAtivo: { color: '#FFF' },
   linhaPrumo: { position: 'absolute', width: 2, height: '100%', backgroundColor: 'rgba(74,222,128,0.6)' },
   linhaRefArea: { position: 'absolute', height: 20, justifyContent: 'center' },
   linhaRefTraco: { height: 1.5, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', width: '100%' },
