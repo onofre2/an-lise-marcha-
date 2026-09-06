@@ -45,7 +45,7 @@ const ESTILO = `
     .bloco { background: #F8FAFC; border-left: 3px solid #22C55E; padding: 10px 14px; margin: 10px 0; font-size: 12px; }
     .diagramas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
     .diagrama { border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px; background: #FFFFFF; }
-    .rodape { margin-top: 12px; font-size: 10px; color: #94A3B8; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 12px; }
+    .rodape { margin-top: 12px; font-size: 14px; color: #64748B; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 16px; }
     .rodape-terapeuta { margin-top: 34px; padding-top: 16px; border-top: 1px solid #E2E8F0; text-align: center; font-size: 11px; color: #334155; }
   </style>
 `;
@@ -163,7 +163,7 @@ async function rodapeCompleto(): Promise<string> {
   return `
     ${terapeutaHtml}
     <div class="rodape">
-      <img src="${MARCA_BASE64}" style="height:18px;vertical-align:middle;margin-right:4px;border-radius:4px;" />
+      <img src="${MARCA_BASE64}" style="height:30px;vertical-align:middle;margin-right:8px;border-radius:6px;" />
       Postural Global &middot; @fisionofre &mdash; Documento de apoio clinico, nao substitui avaliacao presencial.
     </div>
   `;
@@ -290,7 +290,6 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
       ${imagemHtml}
       ${tabelaMedidas(medidas)}
       ${diagramasMedidas(medidas)}
-      ${paginaReferencias()}
       ${rodapeHtml}
     </body></html>
   `;
@@ -321,7 +320,6 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
         </tr>
       </table>
       <div class="bloco">Referencia: angulo craniovertebral normal a partir de 48 graus. Valores menores indicam anteriorizacao da cabeca.</div>
-      ${paginaReferencias()}
       ${rodapeHtml}
     </body></html>
   `;
@@ -353,7 +351,6 @@ export async function gerarRelatorioADM(idAvaliacao: number) {
       <div class="diagramas">
         <div class="diagrama">${diagramaAmplitude(av.movimento, av.angulo, av.referencia)}</div>
       </div>
-      ${paginaReferencias()}
       ${rodapeHtml}
     </body></html>
   `;
@@ -399,7 +396,6 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
       <h2>Captura ${av.angulo} - ${av.data_avaliacao}</h2>
       ${imagensHtml}
       ${tabelaFases || '<div class="info">Sem marcacoes por fase registradas nesta avaliacao.</div>'}
-      ${paginaReferencias()}
       ${rodapeHtml}
     </body></html>
   `;
@@ -566,7 +562,6 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       ${cabecalho(p, 'Historico Completo do Paciente')}
       ${clinico}
       ${corpo}
-      ${paginaReferencias()}
       ${rodapeHtml2}
     </body></html>
   `;
