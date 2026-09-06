@@ -35,6 +35,7 @@ export default function PatientDetailScreen() {
   const { id } = route.params;
 
   const [paciente, setPaciente] = useState<Paciente | null>(null);
+  const [naoEncontrado, setNaoEncontrado] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [grupos, setGrupos] = useState<{ data: string; itens: ItemAvaliacao[] }[]>([]);
 
@@ -54,9 +55,12 @@ export default function PatientDetailScreen() {
       const resultado = db.getAllSync('SELECT * FROM pacientes WHERE id = ?', [id]) as Paciente[];
       if (resultado.length > 0) {
         setPaciente(resultado[0]);
+      } else {
+        setNaoEncontrado(true);
       }
     } catch (error) {
       console.error("Erro ao buscar paciente:", error);
+      setNaoEncontrado(true);
     }
   };
 
@@ -233,6 +237,17 @@ export default function PatientDetailScreen() {
       console.error("Erro ao excluir paciente:", error);
     }
   };
+
+  if (naoEncontrado) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Paciente nao encontrado.</Text>
+        <TouchableOpacity style={{ marginTop: 16 }} onPress={() => navigation.goBack()}>
+          <Text style={{ color: '#2563EB', fontWeight: '600' }}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (!paciente) {
     return (

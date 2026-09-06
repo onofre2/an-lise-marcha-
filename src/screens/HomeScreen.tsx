@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking , KeyboardAvoidingView, Platform} from 'react-native';
 import db from '../services/database';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { usePacienteAtivo } from '../context/PacienteAtivoContext';
 import * as ImagePicker from 'expo-image-picker';
 import { salvarMidiaPermanente } from '../services/armazenamento';
@@ -63,9 +63,11 @@ export default function HomeScreen() {
     }
   };
 
-  useEffect(() => {
-    carregarPacientes();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      carregarPacientes();
+    }, [])
+  );
 
   const pacientesExibidos = useMemo(() => {
     let lista = [...pacientes];
