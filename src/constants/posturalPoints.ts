@@ -24,6 +24,8 @@ export const PONTOS_RAPIDA: Record<Vista, PontoAnatomico[]> = {
     { id: 'joelho_e', nome: 'Joelho Esquerdo (Patela)' },
     { id: 'tornozelo_d', nome: 'Maléolo Medial Direito' },
     { id: 'tornozelo_e', nome: 'Maléolo Medial Esquerdo' },
+    { id: 'halux_d', nome: 'Hálux Direito (ponta do pé)' },
+    { id: 'halux_e', nome: 'Hálux Esquerdo (ponta do pé)' },
   ],
   posterior: [
     { id: 'trago_d', nome: 'Trago Direito' },
@@ -41,6 +43,8 @@ export const PONTOS_RAPIDA: Record<Vista, PontoAnatomico[]> = {
     { id: 'joelho_e', nome: 'Joelho Esquerdo (Poplíteo)' },
     { id: 'tornozelo_d', nome: 'Tornozelo Direito (Calcâneo)' },
     { id: 'tornozelo_e', nome: 'Tornozelo Esquerdo (Calcâneo)' },
+    { id: 'halux_d', nome: 'Retropé Direito (base do calcâneo)' },
+    { id: 'halux_e', nome: 'Retropé Esquerdo (base do calcâneo)' },
   ],
   lateral_direita: [
     { id: 'trago', nome: 'Trago' },
@@ -67,6 +71,7 @@ export const SEGMENTOS_RAPIDA: Record<Vista, [string, string][]> = {
     ['eias_d', 'eias_e'],
     ['joelho_d', 'joelho_e'],
     ['tornozelo_d', 'tornozelo_e'],
+    ['halux_d', 'halux_e'],
   ],
   posterior: [
     ['trago_d', 'trago_e'],
@@ -76,6 +81,7 @@ export const SEGMENTOS_RAPIDA: Record<Vista, [string, string][]> = {
     ['eips_d', 'eips_e'],
     ['joelho_d', 'joelho_e'],
     ['tornozelo_d', 'tornozelo_e'],
+    ['halux_d', 'halux_e'],
   ],
   lateral_direita: [
     ['trago', 'acromio'],

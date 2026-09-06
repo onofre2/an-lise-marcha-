@@ -140,6 +140,12 @@ function calcularAnterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
     resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
 
+  if (p.halux_d && p.halux_e) {
+    const ang = anguloComHorizontal(p.halux_d, p.halux_e);
+    const dn = desnivelCm(p.halux_d, p.halux_e, escala);
+    resultado.push({ label: 'Alinhamento dos Pés', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+  }
+
   const atsi = calcularATSI(p);
   if (atsi) resultado.push(atsi);
 
@@ -182,6 +188,12 @@ function calcularPosterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
     const ang = anguloComHorizontal(p.tornozelo_d, p.tornozelo_e);
     const dn = desnivelCm(p.tornozelo_d, p.tornozelo_e, escala);
     resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+  }
+
+  if (p.halux_d && p.halux_e) {
+    const ang = anguloComHorizontal(p.halux_d, p.halux_e);
+    const dn = desnivelCm(p.halux_d, p.halux_e, escala);
+    resultado.push({ label: 'Alinhamento dos Pés', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
 
   const potsi = calcularPOTSI(p);
