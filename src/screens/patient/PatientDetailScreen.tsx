@@ -229,6 +229,39 @@ export default function PatientDetailScreen() {
     );
   };
 
+  const TABELA_POR_TIPO: Record<string, string> = {
+    postural: 'avaliacoes_posturais',
+    cervical: 'avaliacoes_cervicais',
+    adm: 'avaliacoes_adm',
+    adams: 'avaliacoes_adams',
+    marcha: 'avaliacoes',
+  };
+
+  const excluirAvaliacao = (tipo: string, avaliacaoId: number) => {
+    const tabela = TABELA_POR_TIPO[tipo];
+    if (!tabela) return;
+    Alert.alert(
+      'Excluir avaliacao',
+      'Esta avaliacao sera removida definitivamente. Deseja continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            try {
+              db.runSync(`DELETE FROM ${tabela} WHERE id = ?`, [avaliacaoId]);
+              carregarHistorico();
+            } catch (error) {
+              console.error('Erro ao excluir avaliacao:', error);
+              Alert.alert('Erro', 'Nao foi possivel excluir a avaliacao.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const excluirPaciente = () => {
     try {
       db.runSync('DELETE FROM pacientes WHERE id = ?', [id]);
@@ -356,6 +389,13 @@ export default function PatientDetailScreen() {
                     <Text style={styles.itemDetalhe}>{item.detalhe}</Text>
                     {item.info_extra ? <Text style={styles.itemInfoExtra}>{item.info_extra}</Text> : null}
                   </View>
+                    <TouchableOpacity
+                      onPress={() => excluirAvaliacao(item.tipo, item.id)}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      style={{ paddingHorizontal: 10, paddingVertical: 4 }}
+                    >
+                      <Text style={{ color: '#DC2626', fontSize: 20, fontWeight: '700' }}>x</Text>
+                    </TouchableOpacity>
                 </TouchableOpacity>
               ))}
             </View>
