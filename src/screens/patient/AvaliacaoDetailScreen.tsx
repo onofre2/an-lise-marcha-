@@ -16,6 +16,10 @@ const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 // Dimensoes da area onde os pontos foram marcados, gravadas junto com a
 // avaliacao. Avaliacoes antigas nao tem esse dado: nesse caso usamos o
 // tamanho padrao vigente na epoca, que e melhor que nao calcular nada.
+const FRAME_W = Dimensions.get('window').width - 72;
+const FRAME_H = FRAME_W * 0.75;
+const CADEIA_MARCHA = ['tronco', 'quadril', 'joelho', 'tornozelo', 'pe'];
+
 function dimensoesDaAvaliacao(registro: any): { largura: number; altura: number } {
   try {
     if (registro?.dimensoes_json) {
@@ -57,6 +61,12 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
     } catch {
       return {};
     }
+  }, [registro]);
+
+  // Frames capturados de cada fase da marcha, guardados na avaliacao.
+  const framesMarcha = useMemo(() => {
+    if (!registro?.frames_json) return {} as Record<string, string>;
+    try { return JSON.parse(registro.frames_json) as Record<string, string>; } catch { return {}; }
   }, [registro]);
 
   const observacoes: Record<string, Ponto> = useMemo(() => {
@@ -172,6 +182,36 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
             return (
               <View key={f.id} style={styles.blocoFase}>
                 <Text style={styles.blocoFaseNome}>{f.nome}</Text>
+                {framesMarcha[f.id] ? (
+                  <View style={styles.frameWrap}>
+                    <Image source={{ uri: framesMarcha[f.id] }} style={styles.frameImg} resizeMode="contain" />
+                    {CADEIA_MARCHA.slice(0, -1).map((id, i) => {
+                      const a = marcacoes[f.id]?.[id];
+                      const b = marcacoes[f.id]?.[CADEIA_MARCHA[i + 1]];
+                      if (!a || !b) return null;
+                      const ax = a.x * FRAME_W, ay = a.y * FRAME_H;
+                      const bx = b.x * FRAME_W, by = b.y * FRAME_H;
+                      const comp = Math.sqrt((bx - ax) ** 2 + (by - ay) ** 2);
+                      const ang = Math.atan2(by - ay, bx - ax) * (180 / Math.PI);
+                      return (
+                        <View
+                          key={`l-${i}`}
+                          style={[styles.frameLinha, { left: ax, top: ay, width: comp, transform: [{ rotate: `${ang}deg` }] }]}
+                        />
+                      );
+                    })}
+                    {CADEIA_MARCHA.map(id => {
+                      const pt = marcacoes[f.id]?.[id];
+                      if (!pt) return null;
+                      return (
+                        <View
+                          key={`p-${id}`}
+                          style={[styles.framePonto, { left: pt.x * FRAME_W - 6, top: pt.y * FRAME_H - 6 }]}
+                        />
+                      );
+                    })}
+                  </View>
+                ) : null}
                 {resultados.map((r, i) => (
                   <View key={i} style={styles.card}>
                     <View style={{ flex: 1 }}>
@@ -301,6 +341,10 @@ function Linha({ a, b }: { a: Ponto; b: Ponto }) {
 }
 
 const styles = StyleSheet.create({
+  frameWrap: { width: FRAME_W, height: FRAME_H, backgroundColor: '#000', borderRadius: 10, overflow: 'hidden', marginBottom: 10 },
+  frameImg: { width: FRAME_W, height: FRAME_H },
+  frameLinha: { position: 'absolute', height: 2, backgroundColor: '#22C55E', transformOrigin: 'left' },
+  framePonto: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#22C55E' },
   btnReeditar: { backgroundColor: '#2563EB', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 12, marginBottom: 4 },
   btnReeditarText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
   container: { flex: 1, backgroundColor: '#F8FAFC' },
