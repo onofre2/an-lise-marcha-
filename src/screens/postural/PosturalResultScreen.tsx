@@ -11,6 +11,7 @@ interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 const IMAGE_WIDTH = Dimensions.get('window').width - 32;
+const MARGEM_VALOR = 54;
 
 // Mapeia pares de pontos para o rotulo do desajuste correspondente (vistas anterior/posterior)
 const MAPA_LABEL: Record<string, string> = {
@@ -345,13 +346,20 @@ function LinhaReferenciaHorizontal({ a, b }: { a: Ponto; b: Ponto }) {
 }
 
 function BadgeNaLinha({ a, b, desajuste }: { a: Ponto; b: Ponto; desajuste: Desajuste }) {
-  const x = (a.x + b.x) / 2;
+  const xDireita = Math.max(a.x, b.x);
   const y = (a.y + b.y) / 2;
   const texto = desajuste.unidade === '°' ? `${desajuste.valor}°` : `${desajuste.valor}%`;
+  const larguraChamada = Math.max(IMAGE_WIDTH - MARGEM_VALOR - xDireita, 4);
   return (
-    <View style={[styles.badgeFlutuante, desajuste.alerta ? styles.badgeAlerta : styles.badgeOk, { left: x - 24, top: y - 30 }]}>
-      <Text style={[styles.badgeFlutuanteTexto, desajuste.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{texto}</Text>
-    </View>
+    <>
+      <View
+        pointerEvents="none"
+        style={[styles.linhaChamada, { left: xDireita, top: y, width: larguraChamada }]}
+      />
+      <View style={[styles.badgeFlutuante, desajuste.alerta ? styles.badgeAlerta : styles.badgeOk, { left: IMAGE_WIDTH - MARGEM_VALOR, top: y - 12 }]}>
+        <Text style={[styles.badgeFlutuanteTexto, desajuste.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{texto}</Text>
+      </View>
+    </>
   );
 }
 
@@ -386,6 +394,7 @@ const styles = StyleSheet.create({
   btnEdicaoAtivo: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
   btnEdicaoText: { color: '#334155', fontWeight: '600', fontSize: 14 },
   btnEdicaoTextAtivo: { color: '#FFF' },
+  linhaChamada: { position: 'absolute', height: 1, backgroundColor: 'rgba(255,255,255,0.55)' },
   linhaPrumo: { position: 'absolute', width: 2, height: '100%', backgroundColor: 'rgba(74,222,128,0.6)' },
   linhaRefArea: { position: 'absolute', height: 20, justifyContent: 'center' },
   linhaRefTraco: { height: 1.5, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', width: '100%' },
