@@ -107,7 +107,14 @@ export default function ConfiguracoesScreen() {
         <Text style={styles.refTexto}>Valores normativos de amplitude de movimento (referencia AAOS/Kendall).</Text>
 
         <Text style={styles.refTitulo}>Fases do Ciclo da Marcha</Text>
-        <Text style={styles.refTexto}>Perry, J. Gait Analysis: Normal and Pathological Function.</Text>
+        <Text style={styles.refTexto}>Perry, J. Gait Analysis: Normal and Pathological Function. SLACK Incorporated.</Text>
+        <Text style={styles.refTexto}>
+          A analise da marcha deste aplicativo usa apenas o plano sagital (vista lateral),
+          onde os angulos de flexao e extensao de quadril, joelho e tornozelo sao mensuraveis.
+          Sao avaliadas tres fases de apoio: contato inicial, resposta a carga e apoio medio.
+          Achados do plano frontal, como assimetrias e desvios laterais, sao cobertos pelo
+          modulo de avaliacao postural.
+        </Text>
       </View>
     </ScrollView>
   );
