@@ -353,7 +353,7 @@ export default function PatientDetailScreen() {
         ) : null}
 
         {paciente.anotacoes_clinicas ? (
-          <View style={styles.section}>
+          <View style={[styles.section, styles.highlightBlue]}>
             <Text style={styles.sectionTitle}>Anotações Clínicas</Text>
             <Text style={styles.infoText}>{paciente.anotacoes_clinicas}</Text>
           </View>
@@ -490,6 +490,7 @@ const styles = StyleSheet.create({
   infoLabel: { fontSize: 12, fontWeight: '600', color: '#64748B', marginBottom: 2 },
   infoText: { fontSize: 14, color: '#334155', lineHeight: 20 },
   highlightYellow: { backgroundColor: '#FEFCE8', borderColor: '#FDE68A' },
+  highlightBlue: { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' },
   highlightGreen: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#FFFFFF', padding: 24, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', maxHeight: '85%' },
