@@ -30,6 +30,15 @@ const MAPA_LATERAL: Record<string, string> = {
   joelho: 'Desvio do Joelho',
 };
 
+// Cadeia vertical da linha de prumo real (vista lateral): liga os pontos do
+// corpo de cima a baixo. O desvio em relacao a vertical verde e o achado clinico.
+const CADEIA_PRUMO: [string, string][] = [
+  ['trago', 'acromio'],
+  ['acromio', 'trocanter'],
+  ['trocanter', 'joelho'],
+  ['joelho', 'maleolo'],
+];
+
 export default function PosturalResultScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, vista, modo, pontos } = route.params as {
     fotoUri: string; pacienteId: number; vista: Vista; modo: 'rapida' | 'completa'; pontos: Record<string, Ponto>;
@@ -146,6 +155,13 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         {ehLateral && pontosPx.maleolo && (
           <View style={[styles.linhaPrumo, { left: pontosPx.maleolo.x }]} />
         )}
+
+        {ehLateral && pontosPx.maleolo && CADEIA_PRUMO.map((par, i) => {
+          const a = pontosPx[par[0]];
+          const b = pontosPx[par[1]];
+          if (!a || !b) return null;
+          return <LinhaSegmento key={`prumo-${i}`} a={a} b={b} alerta />;
+        })}
 
         {segmentos.map(([idA, idB], i) => {
           const a = pontosPx[idA];
