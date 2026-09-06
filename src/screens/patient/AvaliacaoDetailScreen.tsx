@@ -63,6 +63,12 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
     }
   }, [registro]);
 
+  // Circulos de desajuste marcados sobre os frames da marcha.
+  const observacoesMarcha = useMemo(() => {
+    if (!registro?.observacoes_json) return {} as Record<string, { x: number; y: number }>;
+    try { return JSON.parse(registro.observacoes_json); } catch { return {}; }
+  }, [registro]);
+
   // Frames capturados de cada fase da marcha, guardados na avaliacao.
   const framesMarcha = useMemo(() => {
     if (!registro?.frames_json) return {} as Record<string, string>;
@@ -210,6 +216,12 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
                         />
                       );
                     })}
+                    {Object.entries(observacoesMarcha).map(([oid, pt]: any) => (
+                      <View
+                        key={`o-${oid}`}
+                        style={[styles.frameObs, { left: pt.x * FRAME_W - 12, top: pt.y * FRAME_H - 12 }]}
+                      />
+                    ))}
                   </View>
                 ) : null}
                 {resultados.map((r, i) => (
@@ -344,6 +356,7 @@ const styles = StyleSheet.create({
   frameWrap: { width: FRAME_W, height: FRAME_H, backgroundColor: '#000', borderRadius: 10, overflow: 'hidden', marginBottom: 10 },
   frameImg: { width: FRAME_W, height: FRAME_H },
   frameLinha: { position: 'absolute', height: 2, backgroundColor: '#22C55E', transformOrigin: 'left' },
+  frameObs: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#EF4444' },
   framePonto: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#22C55E' },
   btnReeditar: { backgroundColor: '#2563EB', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 12, marginBottom: 4 },
   btnReeditarText: { color: '#FFF', fontWeight: '700', fontSize: 15 },

@@ -176,8 +176,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const videoPermanente = await salvarMidiaPermanente(videoUri);
       db.runSync(
-        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify(DIMENSOES_VIDEO)]
+        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify(DIMENSOES_VIDEO), JSON.stringify(observacoes)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [

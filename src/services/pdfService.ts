@@ -275,6 +275,8 @@ async function montarImagensMarcha(av: any): Promise<string> {
     // area do video. Desenhamos por cima do frame extraido do proprio arquivo.
     let marcacoes: Record<string, Record<string, { x: number; y: number }>> = {};
     try { marcacoes = av.marcacoes_json ? JSON.parse(av.marcacoes_json) : {}; } catch {}
+    let observacoes: Record<string, { x: number; y: number }> = {};
+    try { observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {}; } catch {}
     const CADEIA = ['tronco', 'quadril', 'joelho', 'tornozelo', 'pe'];
 
     let html = '';
@@ -293,6 +295,9 @@ async function montarImagensMarcha(av: any): Promise<string> {
         const pt = pts[id];
         if (!pt) continue;
         camadas += `<circle cx="${pt.x * 100}%" cy="${pt.y * 100}%" r="6" fill="none" stroke="#22C55E" stroke-width="2.5" />`;
+      }
+      for (const pt of Object.values(observacoes)) {
+        camadas += `<circle cx="${pt.x * 100}%" cy="${pt.y * 100}%" r="14" fill="none" stroke="#EF4444" stroke-width="2.5" />`;
       }
       html += `
         <div style="margin-top:12px;">

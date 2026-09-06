@@ -156,6 +156,13 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    // Circulos de desajuste marcados pelo terapeuta sobre o frame da marcha.
+    try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN observacoes_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     console.log("Banco de dados inicializado com sucesso!");
   } catch (error) {
     console.error("Erro ao inicializar o banco de dados:", error);
