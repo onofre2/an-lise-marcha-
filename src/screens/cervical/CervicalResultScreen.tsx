@@ -153,6 +153,8 @@ export default function CervicalResultScreen({ route, navigation }: any) {
             onMove={moverObservacao}
             onLongPress={removerObservacao}
             cor="#EF4444"
+            tamanho={28}
+            rotulo="desajuste"
             fotoUri={fotoUri}
             larguraImagem={IMAGE_WIDTH}
             alturaImagem={IMAGE_HEIGHT}
