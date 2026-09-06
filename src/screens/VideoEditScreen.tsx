@@ -6,6 +6,7 @@ import db from '../services/database';
 import { salvarMidiaPermanente } from '../services/armazenamento';
 import { gerarRelatorioMarcha } from '../services/pdfService';
 import ViewShot, { captureRef } from 'react-native-view-shot';
+import MarcadorComLupa from '../components/MarcadorComLupa';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
 import { calcularFase, PontosFase } from '../services/marchaCalculations';
@@ -35,6 +36,28 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const [pontosFaseAtual, setPontosFaseAtual] = useState<PontosFase>({});
   const [marcacoes, setMarcacoes] = useState<Record<string, PontosFase>>({});
 
+  // Frame congelado do momento pausado. A marcacao acontece sobre esta imagem,
+  // nao sobre o player: so assim a lupa consegue ampliar a anatomia do paciente.
+  const [frameCongelado, setFrameCongelado] = useState<string | null>(null);
+  const [extraindoFrame, setExtraindoFrame] = useState(false);
+
+  const congelarFrame = React.useCallback(async () => {
+    if (extraindoFrame) return;
+    setExtraindoFrame(true);
+    try {
+      const tempoMs = Math.max(Math.round((player.currentTime || 0) * 1000), 0);
+      const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+        time: tempoMs,
+        quality: 1,
+      });
+      setFrameCongelado(uri);
+    } catch (e) {
+      console.error('Erro ao congelar frame:', e);
+    } finally {
+      setExtraindoFrame(false);
+    }
+  }, [player, videoUri, extraindoFrame]);
+
   const fase = FASES_MARCHA[faseIndice];
   const pontoIndice = Object.keys(pontosFaseAtual).length;
   const pontoAtual = pontoIndice < PONTOS_FASE.length ? PONTOS_FASE[pontoIndice] : null;
@@ -43,14 +66,23 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const temAlgumaFase = Object.keys(marcacoes).length > 0;
 
   const alternarPlayPause = () => {
-    if (isPlaying) player.pause();
-    else player.play();
+    if (isPlaying) {
+      player.pause();
+      congelarFrame();
+    } else {
+      // Ao voltar a reproduzir, o frame congelado sai de cena.
+      setFrameCongelado(null);
+      player.play();
+    }
   };
 
   const pular = (segundos: number) => {
     player.pause();
     const nova = Math.max(0, currentTime + segundos);
     player.currentTime = nova;
+    // Pequeno atraso: o player precisa assentar no novo tempo antes de
+    // extrairmos o frame, senao a imagem congelada fica defasada.
+    setTimeout(() => { congelarFrame(); }, 120);
   };
 
   const alterarVelocidade = (v: number) => {
@@ -69,6 +101,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
   };
 
   const limparFase = () => setPontosFaseAtual({});
+
+  const moverPontoFase = (id: string, x: number, y: number) => {
+    const nx = Math.min(Math.max(x / VIDEO_WIDTH, 0), 1);
+    const ny = Math.min(Math.max(y / VIDEO_HEIGHT, 0), 1);
+    setPontosFaseAtual(prev => ({ ...prev, [id]: { x: nx, y: ny } }));
+  };
 
   // Versao em pixel dos pontos, para desenhar as linhas sobre o video.
   const pontosPx = React.useMemo(() => {
@@ -138,14 +176,22 @@ export default function VideoEditScreen({ route, navigation }: any) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <ViewShot ref={areaVideoRef} style={styles.videoContainer}>
         <VideoView player={player} style={styles.video} contentFit="contain" nativeControls={false} />
+        {frameCongelado && (
+          <Image source={{ uri: frameCongelado }} style={styles.frameCongelado} resizeMode="contain" />
+        )}
         <TouchableOpacity activeOpacity={1} style={styles.overlay} onPress={marcarPonto}>
-          {Object.entries(pontosFaseAtual).map(([id, p]) => (
-            <View
+          <Segmentos pontos={pontosPx} />
+          {Object.entries(pontosPx).map(([id, p]) => (
+            <MarcadorComLupa
               key={id}
-              style={[styles.marcador, { left: p.x * VIDEO_WIDTH - 8, top: p.y * VIDEO_HEIGHT - 8 }]}
+              id={id}
+              ponto={p}
+              onMove={moverPontoFase}
+              fotoUri={frameCongelado || ''}
+              larguraImagem={VIDEO_WIDTH}
+              alturaImagem={VIDEO_HEIGHT}
             />
           ))}
-          <Segmentos pontos={pontosPx} />
         </TouchableOpacity>
       </ViewShot>
 
@@ -285,6 +331,7 @@ const styles = StyleSheet.create({
   videoContainer: { width: '100%', height: VIDEO_HEIGHT, backgroundColor: '#000', borderRadius: 14, overflow: 'hidden', marginBottom: 12 },
   video: { width: '100%', height: '100%' },
   overlay: { position: 'absolute', width: '100%', height: '100%' },
+  frameCongelado: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF' },
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
   controles: { flexDirection: 'row', gap: 6, marginBottom: 10, alignItems: 'center' },
