@@ -14,6 +14,13 @@ export default function PosturalFramingScreen({ route, navigation }: any) {
 
   const base = useRef({ escala: 1, x: 0, y: 0, dist: 0 });
 
+  // Refs espelham o estado atual: o PanResponder e criado uma unica vez e
+  // congelaria os valores do primeiro render se lesse escala/offset direto.
+  const escalaRef = useRef(1);
+  const offsetRef = useRef({ x: 0, y: 0 });
+  escalaRef.current = escala;
+  offsetRef.current = offset;
+
   const dist = (t: any[]) =>
     Math.sqrt((t[0].pageX - t[1].pageX) ** 2 + (t[0].pageY - t[1].pageY) ** 2);
 
@@ -24,9 +31,9 @@ export default function PosturalFramingScreen({ route, navigation }: any) {
       onPanResponderGrant: (evt) => {
         const t = evt.nativeEvent.touches;
         base.current = {
-          escala,
-          x: offset.x,
-          y: offset.y,
+          escala: escalaRef.current,
+          x: offsetRef.current.x,
+          y: offsetRef.current.y,
           dist: t.length >= 2 ? dist(t as any) : 0,
         };
       },
