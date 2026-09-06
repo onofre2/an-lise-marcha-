@@ -26,15 +26,14 @@ export default function MarcadorComLupa({
 
   const panResponder = React.useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => false,
-      onMoveShouldSetPanResponder: (evt: any, g: any) =>
-        Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4,
+      onStartShouldSetPanResponder: () => true,
       onPanResponderGrant: () => {
         startPos.current = { x: pontoRef.current.x, y: pontoRef.current.y };
         tempoToque.current = Date.now();
         setArrastando(true);
       },
       onPanResponderMove: (evt, gestureState) => {
+        if (Math.abs(gestureState.dx) <= 4 && Math.abs(gestureState.dy) <= 4) return;
         onMove(id, startPos.current.x + gestureState.dx, startPos.current.y + gestureState.dy);
       },
       onPanResponderRelease: () => setArrastando(false),
