@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import db from '../../services/database';
 
 interface Medida { label: string; valor: number; unidade: string; alerta: boolean; }
-interface Avaliacao { id: number; vista: string; data_avaliacao: string; medidas_json: string | null; }
+interface Ponto { x: number; y: number; }
+interface Avaliacao { id: number; vista: string; data_avaliacao: string; medidas_json: string | null; foto_uri: string | null; pontos_json: string | null; observacoes_json: string | null; }
 
 export default function ComparacaoScreen({ route }: any) {
   const { pacienteId } = route.params as { pacienteId: number };
@@ -11,7 +12,7 @@ export default function ComparacaoScreen({ route }: any) {
   const avaliacoes = useMemo(() => {
     try {
       return db.getAllSync(
-        'SELECT id, vista, data_avaliacao, medidas_json FROM avaliacoes_posturais WHERE id_paciente = ? ORDER BY data_avaliacao DESC, id DESC',
+        'SELECT id, vista, data_avaliacao, medidas_json, foto_uri, pontos_json, observacoes_json FROM avaliacoes_posturais WHERE id_paciente = ? ORDER BY data_avaliacao DESC, id DESC',
         [pacienteId]
       ) as Avaliacao[];
     } catch {
@@ -74,6 +75,31 @@ export default function ComparacaoScreen({ route }: any) {
         ))}
       </View>
 
+      <View style={styles.fotos}>
+        {[idA, idB].map((idSel, i) => {
+          const av = avaliacoes.find(a => a.id === idSel);
+          if (!av || !av.foto_uri) return <View key={i} style={styles.fotoBox} />;
+          let pts: Record<string, Ponto> = {};
+          let obs: Record<string, Ponto> = {};
+          try { pts = av.pontos_json ? JSON.parse(av.pontos_json) : {}; } catch {}
+          try { obs = av.observacoes_json ? JSON.parse(av.observacoes_json) : {}; } catch {}
+          return (
+            <View key={i} style={styles.fotoBox}>
+              <Text style={styles.fotoLegenda}>{i === 0 ? 'Antes' : 'Depois'} - {av.data_avaliacao}</Text>
+              <View style={styles.fotoWrap}>
+                <Image source={{ uri: av.foto_uri }} style={styles.foto} resizeMode="contain" />
+                {Object.entries(pts).map(([id, p]) => (
+                  <View key={id} style={[styles.ponto, { left: p.x * FOTO_W - 5, top: p.y * FOTO_H - 5 }]} />
+                ))}
+                {Object.entries(obs).map(([id, p]) => (
+                  <View key={id} style={[styles.obs, { left: p.x * FOTO_W - 9, top: p.y * FOTO_H - 9 }]} />
+                ))}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
       <View style={styles.tabelaHeader}>
         <Text style={[styles.th, { flex: 2 }]}>Medida</Text>
         <Text style={styles.th}>Antes</Text>
@@ -100,7 +126,17 @@ export default function ComparacaoScreen({ route }: any) {
   );
 }
 
+const FOTO_W = (Dimensions.get('window').width - 44) / 2;
+const FOTO_H = FOTO_W * 1.6;
+
 const styles = StyleSheet.create({
+  fotos: { flexDirection: 'row', gap: 12, marginTop: 20 },
+  fotoBox: { flex: 1 },
+  fotoLegenda: { fontSize: 11, color: '#64748B', marginBottom: 4, fontWeight: '600' },
+  fotoWrap: { width: FOTO_W, height: FOTO_H, backgroundColor: '#000', borderRadius: 8, overflow: 'hidden' },
+  foto: { width: FOTO_W, height: FOTO_H },
+  ponto: { position: 'absolute', width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: '#22C55E' },
+  obs: { position: 'absolute', width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: '#EF4444' },
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   vazio: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, backgroundColor: '#F8FAFC' },
   vazioTexto: { color: '#64748B', fontSize: 15, textAlign: 'center' },
