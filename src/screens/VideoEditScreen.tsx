@@ -35,6 +35,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const pontoAtual = pontoIndice < PONTOS_FASE.length ? PONTOS_FASE[pontoIndice] : null;
   const faseCompleta = pontoAtual === null;
   const todasFasesFeitas = Object.keys(marcacoes).length === FASES_MARCHA.length;
+  const temAlgumaFase = Object.keys(marcacoes).length > 0;
 
   const alternarPlayPause = () => {
     if (isPlaying) player.pause();
@@ -166,6 +167,11 @@ export default function VideoEditScreen({ route, navigation }: any) {
               </TouchableOpacity>
             )}
           </View>
+          {temAlgumaFase && (
+            <TouchableOpacity style={styles.btnSalvar} onPress={salvar}>
+              <Text style={styles.btnSalvarText}>Salvar no Historico do Paciente</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <View>
