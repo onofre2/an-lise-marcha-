@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import db from '../../services/database';
 import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
@@ -11,7 +11,7 @@ interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 
-export default function AvaliacaoDetailScreen({ route }: any) {
+export default function AvaliacaoDetailScreen({ route, navigation }: any) {
   const { tipo, id } = route.params as { tipo: 'postural' | 'cervical' | 'adm' | 'marcha' | 'adams'; id: number };
 
   const [registro, setRegistro] = useState<any>(null);
@@ -88,6 +88,21 @@ export default function AvaliacaoDetailScreen({ route }: any) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.titulo}>{tituloDaAvaliacao(tipo, registro)}</Text>
       <Text style={styles.data}>{registro.data_avaliacao}</Text>
+
+      {tipo === 'postural' && registro.foto_uri ? (
+        <TouchableOpacity
+          style={styles.btnReeditar}
+          onPress={() => navigation.navigate('PosturalResult', {
+            fotoUri: registro.foto_uri,
+            pacienteId: registro.id_paciente,
+            vista: registro.vista,
+            modo: registro.modo,
+            pontos,
+          })}
+        >
+          <Text style={styles.btnReeditarText}>Reabrir para editar pontos</Text>
+        </TouchableOpacity>
+      ) : null}
 
       {registro.foto_uri ? (
         <View style={styles.imageContainer}>
@@ -268,6 +283,8 @@ function Linha({ a, b }: { a: Ponto; b: Ponto }) {
 }
 
 const styles = StyleSheet.create({
+  btnReeditar: { backgroundColor: '#2563EB', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 12, marginBottom: 4 },
+  btnReeditarText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 16, paddingBottom: 40 },
   centro: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC', padding: 20 },
