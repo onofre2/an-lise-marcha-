@@ -125,6 +125,14 @@ export const initDatabase = () => {
       }
     });
 
+    // Migracao: altura do paciente em cm, usada como referencia de escala
+    // para converter desnivel em pixels para centimetros reais
+    try {
+      db.execSync('ALTER TABLE pacientes ADD COLUMN altura_cm REAL');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     // Migracao: adiciona coluna de marcacoes por fase na tabela de marcha (bancos antigos)
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN marcacoes_json TEXT');

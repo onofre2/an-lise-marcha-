@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert , KeyboardAvoidingView, Platform} from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import db from '../../services/database';
 import { gerarRelatorioCompleto } from '../../services/pdfService';
@@ -351,6 +351,7 @@ export default function PatientDetailScreen() {
       </ScrollView>
 
       <Modal visible={editModalVisible} animationType="slide" transparent={true}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar Paciente</Text>
@@ -394,6 +395,7 @@ export default function PatientDetailScreen() {
             </View>
           </View>
         </View>
+      </KeyboardAvoidingView>
       </Modal>
     </View>
   );

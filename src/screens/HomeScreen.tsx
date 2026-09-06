@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking , KeyboardAvoidingView, Platform} from 'react-native';
 import db from '../services/database';
 import { useNavigation } from '@react-navigation/native';
 import { usePacienteAtivo } from '../context/PacienteAtivoContext';
@@ -234,6 +234,7 @@ export default function HomeScreen() {
       </TouchableOpacity>
 
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Novo Paciente</Text>
@@ -355,6 +356,7 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
+      </KeyboardAvoidingView>
       </Modal>
     </View>
   );
