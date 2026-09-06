@@ -73,6 +73,7 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   const [observacoes, setObservacoes] = useState<Record<string, Ponto>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
   const [mostrarGrade, setMostrarGrade] = useState(false);
+  const [painelEdicao, setPainelEdicao] = useState(false);
 
   const adicionarObservacao = (evt: any) => {
     if (!modoObservacao) return;
@@ -291,12 +292,10 @@ export default function PosturalResultScreen({ route, navigation }: any) {
 
       <View style={styles.barraEdicao}>
         <TouchableOpacity
-          style={[styles.btnEdicao, modoObservacao && styles.btnEdicaoAtivo]}
-          onPress={() => setModoObservacao(!modoObservacao)}
+          style={[styles.btnEdicao, painelEdicao && styles.btnEdicaoAtivo]}
+          onPress={() => setPainelEdicao(!painelEdicao)}
         >
-          <Text style={[styles.btnEdicaoText, modoObservacao && styles.btnEdicaoTextAtivo]}>
-            {modoObservacao ? 'Marcando' : 'Incluir'}
-          </Text>
+          <Text style={[styles.btnEdicaoText, painelEdicao && styles.btnEdicaoTextAtivo]}>Editar</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -314,6 +313,25 @@ export default function PosturalResultScreen({ route, navigation }: any) {
           <Text style={[styles.btnEdicaoText, mostrarGrade && styles.btnEdicaoTextAtivo]}>Grade</Text>
         </TouchableOpacity>
       </View>
+
+      {painelEdicao && (
+        <View style={styles.painelEdicao}>
+          <TouchableOpacity
+            style={[styles.btnPainel, modoObservacao && styles.btnEdicaoAtivo]}
+            onPress={() => setModoObservacao(!modoObservacao)}
+          >
+            <Text style={[styles.btnEdicaoText, modoObservacao && styles.btnEdicaoTextAtivo]}>
+              {modoObservacao ? 'Marcando - toque na foto' : 'Marcacao importante'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.btnPainel, !modoObservacao && styles.btnEdicaoAtivo]}
+            onPress={() => setModoObservacao(false)}
+          >
+            <Text style={[styles.btnEdicaoText, !modoObservacao && styles.btnEdicaoTextAtivo]}>Ajuste de pontos</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {Object.keys(observacoes).length > 0 && (
         <Text style={styles.dicaArrastar}>Toque longo em um circulo vermelho para remove-lo.</Text>
@@ -423,8 +441,10 @@ const styles = StyleSheet.create({
   linha: { position: 'absolute', height: 1.5, transformOrigin: 'left' },
   linhaOk: { backgroundColor: '#4ADE80' },
   linhaAlerta: { backgroundColor: '#F59E0B' },
-  gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
-  gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
+  gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  painelEdicao: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  btnPainel: { flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 10, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
   barraEdicao: { flexDirection: 'row', gap: 8, marginTop: 4 },
   btnEdicao: { flex: 1, backgroundColor: '#F1F5F9', paddingVertical: 12, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
   btnEdicaoAtivo: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
