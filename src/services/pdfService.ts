@@ -91,8 +91,22 @@ function paginaReferencias(): string {
   return `
     <div style="page-break-before: always;"></div>
     <h2>Valores de Referencia</h2>
-    <div class="info">Parametros normativos utilizados por este aplicativo para identificar desajustes.</div>
-    <img src="${REFERENCIA_BASE64}" style="width: 100%; margin-top: 12px; border: 1px solid #E2E8F0; border-radius: 6px;" />
+    <div class="info">
+      Os parametros normativos adotados neste relatorio seguem protocolos consagrados
+      na avaliacao fisioterapeutica:
+    </div>
+    <ul class="info" style="margin-top: 8px; padding-left: 18px; line-height: 1.6;">
+      <li><b>SAPO</b> (Duarte et al., 2005) - Software para Avaliacao Postural.</li>
+      <li><b>POTSI / ATSI</b> (Suzuki et al., 1999) - Indices de simetria do tronco.</li>
+      <li><b>Angulo Craniovertebral</b> - posicionamento anterior da cabeca.</li>
+      <li><b>Goniometria de Kendall / AAOS</b> - amplitudes articulares.</li>
+      <li><b>Ciclo da Marcha de Perry</b> - angulos por fase da marcha.</li>
+    </ul>
+    <div class="info" style="margin-top: 10px;">
+      Limite de alerta para alinhamentos: 5 graus. Desniveis lineares a partir de 1 cm
+      tambem sao sinalizados quando a altura do paciente esta registrada.
+      Documento de apoio clinico - nao substitui avaliacao presencial.
+    </div>
   `;
 }
 
