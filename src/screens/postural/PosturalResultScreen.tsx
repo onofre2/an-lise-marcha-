@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
-  linha: { position: 'absolute', height: 3, transformOrigin: 'left' },
+  linha: { position: 'absolute', height: 1.5, transformOrigin: 'left' },
   linhaOk: { backgroundColor: '#4ADE80' },
   linhaAlerta: { backgroundColor: '#F59E0B' },
   gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
