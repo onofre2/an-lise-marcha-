@@ -41,6 +41,20 @@ const CADEIA_PRUMO: [string, string][] = [
   ['joelho', 'maleolo'],
 ];
 
+// Eixo real do paciente: liga o ponto medio dos acromios ao ponto medio das
+// espinhas iliacas. Comparado a vertical ideal (verde), mostra a tendencia
+// de deslocamento lateral do tronco.
+function LinhaEixoReal({ a, b }: { a: Ponto; b: Ponto }) {
+  const comprimento = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
+  const angulo = Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
+  return (
+    <View
+      pointerEvents="none"
+      style={[styles.eixoReal, { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
+    />
+  );
+}
+
 export default function PosturalResultScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, vista, modo, pontos } = route.params as {
     fotoUri: string; pacienteId: number; vista: Vista; modo: 'rapida' | 'completa'; pontos: Record<string, Ponto>;
@@ -175,6 +189,26 @@ export default function PosturalResultScreen({ route, navigation }: any) {
             ))}
           </View>
         )}
+
+        {!ehLateral && (() => {
+          const tD = pontosPx.tornozelo_d;
+          const tE = pontosPx.tornozelo_e;
+          const aD = pontosPx.acromio_d;
+          const aE = pontosPx.acromio_e;
+          const eD = pontosPx.eias_d || pontosPx.eips_d;
+          const eE = pontosPx.eias_e || pontosPx.eips_e;
+          if (!tD || !tE) return null;
+          const baseX = (tD.x + tE.x) / 2;
+          const eixo = [
+            <View key="eixo-ideal" pointerEvents="none" style={[styles.eixoIdeal, { left: baseX }]} />,
+          ];
+          if (aD && aE && eD && eE) {
+            const topo = { x: (aD.x + aE.x) / 2, y: (aD.y + aE.y) / 2 };
+            const baixo = { x: (eD.x + eE.x) / 2, y: (eD.y + eE.y) / 2 };
+            eixo.push(<LinhaEixoReal key="eixo-real" a={topo} b={baixo} />);
+          }
+          return eixo;
+        })()}
 
         {ehLateral && pontosPx.maleolo && (
           <View style={[styles.linhaPrumo, { left: pontosPx.maleolo.x }]} />
@@ -397,6 +431,8 @@ const styles = StyleSheet.create({
   btnEdicaoText: { color: '#334155', fontWeight: '600', fontSize: 14 },
   btnEdicaoTextAtivo: { color: '#FFF' },
   linhaChamada: { position: 'absolute', height: 1, backgroundColor: 'rgba(255,255,255,0.55)' },
+  eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
+  eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444', transformOrigin: 'left' },
   linhaPrumo: { position: 'absolute', width: 2, height: '100%', backgroundColor: 'rgba(74,222,128,0.6)' },
   linhaRefArea: { position: 'absolute', height: 20, justifyContent: 'center' },
   linhaRefTraco: { height: 1.5, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', width: '100%' },
