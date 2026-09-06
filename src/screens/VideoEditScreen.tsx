@@ -95,9 +95,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
     if (modoObservacao) {
       const { locationX, locationY } = evt.nativeEvent;
       const novoId = `obs_${Date.now()}`;
-      setObservacoes(prev => ({
+      setObservacoesPorFase(prev => ({
         ...prev,
-        [novoId]: { x: locationX / VIDEO_WIDTH, y: locationY / VIDEO_HEIGHT },
+        [fase.id]: {
+          ...(prev[fase.id] || {}),
+          [novoId]: { x: locationX / VIDEO_WIDTH, y: locationY / VIDEO_HEIGHT },
+        },
       }));
       return;
     }
@@ -113,20 +116,26 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const limparFase = () => setPontosFaseAtual({});
 
   const [modoObservacao, setModoObservacao] = useState(false);
-  const [observacoes, setObservacoes] = useState<Record<string, { x: number; y: number }>>({});
+  // Observacoes por fase: o desajuste marcado no Contato Inicial nao deve
+  // aparecer sobre o frame do Apoio Medio.
+  const [observacoesPorFase, setObservacoesPorFase] = useState<Record<string, Record<string, { x: number; y: number }>>>({});
+  const observacoes = observacoesPorFase[fase.id] || {};
 
   const moverObservacao = (id: string, x: number, y: number) => {
-    setObservacoes(prev => ({
+    setObservacoesPorFase(prev => ({
       ...prev,
-      [id]: { x: Math.min(Math.max(x / VIDEO_WIDTH, 0), 1), y: Math.min(Math.max(y / VIDEO_HEIGHT, 0), 1) },
+      [fase.id]: {
+        ...(prev[fase.id] || {}),
+        [id]: { x: Math.min(Math.max(x / VIDEO_WIDTH, 0), 1), y: Math.min(Math.max(y / VIDEO_HEIGHT, 0), 1) },
+      },
     }));
   };
 
   const removerObservacao = (id: string) => {
-    setObservacoes(prev => {
-      const copia = { ...prev };
-      delete copia[id];
-      return copia;
+    setObservacoesPorFase(prev => {
+      const daFase = { ...(prev[fase.id] || {}) };
+      delete daFase[id];
+      return { ...prev, [fase.id]: daFase };
     });
   };
 
@@ -177,7 +186,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
       const videoPermanente = await salvarMidiaPermanente(videoUri);
       db.runSync(
         'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify(DIMENSOES_VIDEO), JSON.stringify(observacoes)]
+        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify(DIMENSOES_VIDEO), JSON.stringify(observacoesPorFase)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [

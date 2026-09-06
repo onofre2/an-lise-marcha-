@@ -65,7 +65,7 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
 
   // Circulos de desajuste marcados sobre os frames da marcha.
   const observacoesMarcha = useMemo(() => {
-    if (!registro?.observacoes_json) return {} as Record<string, { x: number; y: number }>;
+    if (!registro?.observacoes_json) return {} as Record<string, Record<string, { x: number; y: number }>>;
     try { return JSON.parse(registro.observacoes_json); } catch { return {}; }
   }, [registro]);
 
@@ -216,7 +216,7 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
                         />
                       );
                     })}
-                    {Object.entries(observacoesMarcha).map(([oid, pt]: any) => (
+                    {Object.entries(observacoesMarcha[f.id] || {}).map(([oid, pt]: any) => (
                       <View
                         key={`o-${oid}`}
                         style={[styles.frameObs, { left: pt.x * FRAME_W - 12, top: pt.y * FRAME_H - 12 }]}
