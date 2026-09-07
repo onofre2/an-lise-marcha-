@@ -6,6 +6,8 @@ import db from '../services/database';
 import { salvarMidiaPermanente } from '../services/armazenamento';
 import { gerarRelatorioMarcha } from '../services/pdfService';
 import ViewShot, { captureRef } from 'react-native-view-shot';
+import SetaDesajuste from '../components/SetaDesajuste';
+import { Observacao } from '../services/observacoes';
 import MarcadorComLupa from '../components/MarcadorComLupa';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
@@ -95,11 +97,13 @@ export default function VideoEditScreen({ route, navigation }: any) {
     if (modoObservacao) {
       const { locationX, locationY } = evt.nativeEvent;
       const novoId = `obs_${Date.now()}`;
+      const bx = locationX / VIDEO_WIDTH;
+      const by = locationY / VIDEO_HEIGHT;
       setObservacoesPorFase(prev => ({
         ...prev,
         [fase.id]: {
           ...(prev[fase.id] || {}),
-          [novoId]: { x: locationX / VIDEO_WIDTH, y: locationY / VIDEO_HEIGHT },
+          [novoId]: { base: { x: bx, y: by }, ponta: { x: Math.min(bx + 0.16, 1), y: by } },
         },
       }));
       return;
@@ -118,17 +122,28 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const [modoObservacao, setModoObservacao] = useState(false);
   // Observacoes por fase: o desajuste marcado no Contato Inicial nao deve
   // aparecer sobre o frame do Apoio Medio.
-  const [observacoesPorFase, setObservacoesPorFase] = useState<Record<string, Record<string, { x: number; y: number }>>>({});
+  const [observacoesPorFase, setObservacoesPorFase] = useState<Record<string, Record<string, Observacao>>>({});
   const observacoes = observacoesPorFase[fase.id] || {};
 
-  const moverObservacao = (id: string, x: number, y: number) => {
-    setObservacoesPorFase(prev => ({
-      ...prev,
-      [fase.id]: {
-        ...(prev[fase.id] || {}),
-        [id]: { x: Math.min(Math.max(x / VIDEO_WIDTH, 0), 1), y: Math.min(Math.max(y / VIDEO_HEIGHT, 0), 1) },
-      },
-    }));
+  const moverPontaObservacao = (id: string, x: number, y: number) => {
+    setObservacoesPorFase(prev => {
+      const daFase = prev[fase.id] || {};
+      const atual = daFase[id];
+      if (!atual) return prev;
+      return {
+        ...prev,
+        [fase.id]: {
+          ...daFase,
+          [id]: {
+            ...atual,
+            ponta: {
+              x: Math.min(Math.max(x / VIDEO_WIDTH, 0), 1),
+              y: Math.min(Math.max(y / VIDEO_HEIGHT, 0), 1),
+            },
+          },
+        },
+      };
+    });
   };
 
   const removerObservacao = (id: string) => {
@@ -229,19 +244,14 @@ export default function VideoEditScreen({ route, navigation }: any) {
               alturaImagem={VIDEO_HEIGHT}
             />
           ))}
-          {Object.entries(observacoes).map(([id, p]) => (
-            <MarcadorComLupa
+          {Object.entries(observacoes).map(([id, o]) => (
+            <SetaDesajuste
               key={id}
               id={id}
-              ponto={{ x: p.x * VIDEO_WIDTH, y: p.y * VIDEO_HEIGHT }}
-              onMove={moverObservacao}
+              base={{ x: o.base.x * VIDEO_WIDTH, y: o.base.y * VIDEO_HEIGHT }}
+              ponta={{ x: o.ponta.x * VIDEO_WIDTH, y: o.ponta.y * VIDEO_HEIGHT }}
+              onMoverPonta={moverPontaObservacao}
               onLongPress={removerObservacao}
-              cor="#EF4444"
-              tamanho={28}
-              rotulo="desajuste"
-              fotoUri={frameCongelado || ''}
-              larguraImagem={VIDEO_WIDTH}
-              alturaImagem={VIDEO_HEIGHT}
             />
           ))}
         </TouchableOpacity>

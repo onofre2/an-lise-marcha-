@@ -4,6 +4,8 @@ import db from '../../services/database';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { gerarRelatorioADM } from '../../services/pdfService';
 import { MOVIMENTOS } from '../../constants/movimentos';
+import { Observacao } from '../../services/observacoes';
+import SetaDesajuste from '../../components/SetaDesajuste';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
 
 interface Ponto { x: number; y: number; }
@@ -27,18 +29,36 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
   const restaurarPontos = () => setPontosEditaveis(pontos);
 
-  const [observacoes, setObservacoes] = useState<Record<string, Ponto>>({});
+  const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
 
   const adicionarObservacao = (evt: any) => {
     if (!modoObservacao) return;
     const { locationX, locationY } = evt.nativeEvent;
     const novoId = `obs_${Date.now()}`;
-    setObservacoes(prev => ({ ...prev, [novoId]: { x: locationX, y: locationY } }));
+    const bx = locationX / IMAGE_WIDTH;
+    const by = locationY / IMAGE_HEIGHT;
+    setObservacoes(prev => ({
+      ...prev,
+      [novoId]: { base: { x: bx, y: by }, ponta: { x: Math.min(bx + 0.16, 1), y: by } },
+    }));
   };
 
-  const moverObservacao = (id: string, x: number, y: number) => {
-    setObservacoes(prev => ({ ...prev, [id]: { x, y } }));
+  const moverPontaObservacao = (id: string, x: number, y: number) => {
+    setObservacoes(prev => {
+      const atual = prev[id];
+      if (!atual) return prev;
+      return {
+        ...prev,
+        [id]: {
+          ...atual,
+          ponta: {
+            x: Math.min(Math.max(x / IMAGE_WIDTH, 0), 1),
+            y: Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1),
+          },
+        },
+      };
+    });
   };
 
   const removerObservacao = (id: string) => {
@@ -147,7 +167,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <View style={styles.imageContainer} onStartShouldSetResponder={() => modoObservacao} onResponderRelease={adicionarObservacao}>
+      <View style={styles.imageContainer} onStartShouldSetResponderCapture={() => modoObservacao} onResponderRelease={adicionarObservacao}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
         {ids.length === 3 && pontosEditaveis[ids[0]] && pontosEditaveis[ids[1]] && (
           <LinhaSegmento a={pontosEditaveis[ids[1]]} b={pontosEditaveis[ids[0]]} />
@@ -173,19 +193,14 @@ export default function ADMResultScreen({ route, navigation }: any) {
           />
         ))}
 
-        {Object.entries(observacoes).map(([id, p]) => (
-          <MarcadorComLupa
+        {Object.entries(observacoes).map(([id, o]) => (
+          <SetaDesajuste
             key={id}
             id={id}
-            ponto={p}
-            onMove={moverObservacao}
+            base={{ x: o.base.x * IMAGE_WIDTH, y: o.base.y * IMAGE_HEIGHT }}
+            ponta={{ x: o.ponta.x * IMAGE_WIDTH, y: o.ponta.y * IMAGE_HEIGHT }}
+            onMoverPonta={moverPontaObservacao}
             onLongPress={removerObservacao}
-            cor="#EF4444"
-            tamanho={28}
-            rotulo="desajuste"
-            fotoUri={fotoUri}
-            larguraImagem={IMAGE_WIDTH}
-            alturaImagem={IMAGE_HEIGHT}
           />
         ))}
       </View>

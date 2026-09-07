@@ -69,12 +69,22 @@ function marcador(p: Ponto): string {
 }
 
 /** Circulo vermelho de observacao marcado pelo terapeuta. */
-function observacao(p: Ponto): string {
-  return `<circle cx="${p.x}" cy="${p.y}" r="12" fill="none" stroke="${VERMELHO}" stroke-width="3" />`;
+function observacao(o: { base: Ponto; ponta: Ponto }): string {
+  const dx = o.ponta.x - o.base.x;
+  const dy = o.ponta.y - o.base.y;
+  const ang = Math.atan2(dy, dx) * (180 / Math.PI);
+  const rotuloX = dx > 0 ? o.base.x - 8 : o.base.x + 8;
+  const ancora = dx > 0 ? 'end' : 'start';
+  return `
+    <line x1="${o.base.x}" y1="${o.base.y}" x2="${o.ponta.x}" y2="${o.ponta.y}" stroke="${VERMELHO}" stroke-width="2.5" />
+    <polygon points="0,-5 11,0 0,5" fill="${VERMELHO}" transform="translate(${o.ponta.x},${o.ponta.y}) rotate(${ang})" />
+    <text x="${rotuloX}" y="${o.base.y + 4}" fill="${VERMELHO}" font-size="11" font-weight="bold" text-anchor="${ancora}">desajuste</text>
+  `;
 }
 
 export const elementos = { linha, badge, marcador, observacao };
 export type { Ponto, Medida, Dimensoes };
+import { normalizarObservacoes, observacoesEmPixel } from './observacoes';
 
 // Mapeia pares de pontos para o rotulo da medida correspondente.
 // Mesma logica usada na tela de resultado, para que o PDF mostre
@@ -114,7 +124,7 @@ export function imagemPostural(
     return out;
   };
   const pontosPx = px(pontos);
-  const observacoesPx = px(observacoes);
+  const observacoesPx = observacoesEmPixel(normalizarObservacoes(observacoes), largura, altura);
 
 
   segmentos.forEach(([idA, idB]) => {
@@ -194,7 +204,7 @@ export function imagemSimples(
     return out;
   };
   const pontosPx = px(pontos);
-  const observacoesPx = px(observacoes);
+  const observacoesPx = observacoesEmPixel(normalizarObservacoes(observacoes), largura, altura);
 
 
   ligacoes.forEach(([idA, idB]) => {

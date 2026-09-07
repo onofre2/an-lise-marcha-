@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, Dimensions, TouchableOpacity } from 'react-native';
 import db from '../../services/database';
+import { normalizarObservacoes, observacoesEmPixel } from '../../services/observacoes';
 import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
 import { MOVIMENTOS } from '../../constants/movimentos';
@@ -89,23 +90,15 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
     try { return JSON.parse(registro.frames_json) as Record<string, string>; } catch { return {}; }
   }, [registro]);
 
-  const observacoes: Record<string, Ponto> = useMemo(() => {
-    if (!registro || !registro.observacoes_json) return {};
-    try {
-      return JSON.parse(registro.observacoes_json);
-    } catch {
-      return {};
-    }
+  const observacoes = useMemo(() => {
+    if (!registro?.observacoes_json) return {};
+    try { return normalizarObservacoes(JSON.parse(registro.observacoes_json)); } catch { return {}; }
   }, [registro]);
 
   // Mesma conversao para os circulos de observacao da avaliacao postural.
   const observacoesDesenho = useMemo(() => {
     if (tipo !== 'postural') return observacoes;
-    const out: Record<string, { x: number; y: number }> = {};
-    for (const [id, pt] of Object.entries(observacoes as Record<string, { x: number; y: number }>)) {
-      out[id] = { x: pt.x * IMAGE_WIDTH, y: pt.y * IMAGE_HEIGHT };
-    }
-    return out;
+    return observacoesEmPixel(observacoes, IMAGE_WIDTH, IMAGE_HEIGHT);
   }, [observacoes, tipo]);
 
 
@@ -189,9 +182,18 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
             <View key={i} style={[styles.marcador, { left: p.x - 6, top: p.y - 6 }]} />
           ))}
 
-          {Object.values(observacoesDesenho).map((p, i) => (
-            <View key={`obs-${i}`} style={[styles.marcadorObservacao, { left: p.x - 12, top: p.y - 12 }]} />
-          ))}
+          {Object.values(observacoesDesenho).map((o: any, i) => {
+            const dx = o.ponta.x - o.base.x;
+            const dy = o.ponta.y - o.base.y;
+            const comp = Math.sqrt(dx * dx + dy * dy);
+            const ang = Math.atan2(dy, dx) * (180 / Math.PI);
+            return (
+              <View key={`obs-${i}`}>
+                <View style={[styles.setaHaste, { left: o.base.x, top: o.base.y, width: comp, transform: [{ rotate: `${ang}deg` }] }]} />
+                <Text style={[styles.setaRotulo, { left: dx > 0 ? o.base.x - 60 : o.base.x + 6, top: o.base.y - 7 }]}>desajuste</Text>
+              </View>
+            );
+          })}
         </View>
       ) : null}
 
@@ -396,6 +398,8 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
+  setaHaste: { position: 'absolute', height: 2, backgroundColor: '#EF4444', transformOrigin: 'left' },
+  setaRotulo: { position: 'absolute', fontSize: 10, fontWeight: '700', color: '#EF4444', width: 54, textAlign: 'center' },
   marcadorObservacao: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 3, borderColor: '#EF4444', backgroundColor: 'transparent' },
   aviso: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12, marginBottom: 16 },
   blocoFase: { marginBottom: 16 },
