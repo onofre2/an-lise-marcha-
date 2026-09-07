@@ -212,7 +212,11 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         })()}
 
         {ehLateral && pontosPx.maleolo && (
-          <View style={[styles.linhaPrumo, { left: pontosPx.maleolo.x }]} />
+          <View style={[styles.eixoIdeal, { left: pontosPx.maleolo.x }]} />
+        )}
+
+        {ehLateral && pontosPx.acromio && pontosPx.trocanter && (
+          <LinhaEixoReal a={pontosPx.acromio} b={pontosPx.trocanter} />
         )}
 
         {ehLateral && pontosPx.maleolo && CADEIA_PRUMO.map((par, i) => {
