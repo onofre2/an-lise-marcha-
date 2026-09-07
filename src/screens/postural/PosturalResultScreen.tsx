@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, PanResponder } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, PanResponder, TextInput } from 'react-native';
 import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
+import { gerarAchados, montarDiagnosticoSugerido } from '../../services/interpretacaoClinica';
 import db from '../../services/database';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { gerarRelatorioPostural } from '../../services/pdfService';
@@ -169,6 +170,31 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   }, [pacienteId]);
 
   const desajustes = useMemo(() => calcularDesajustes(vista, pontosEditaveis, alturaCm), [vista, pontosEditaveis, alturaCm]);
+
+  // Quantos centimetros vale uma unidade normalizada, usando a altura do
+  // paciente e o segmento do trago ao tornozelo como regua.
+  const cmPorUnidade = useMemo(() => {
+    if (!alturaCm || alturaCm <= 0) return null;
+    const topo = pontosEditaveis.trago_d || pontosEditaveis.trago_e || pontosEditaveis.trago;
+    const base = pontosEditaveis.tornozelo_d || pontosEditaveis.tornozelo_e || pontosEditaveis.maleolo;
+    if (!topo || !base) return null;
+    const vao = Math.abs(base.y - topo.y);
+    if (vao <= 0) return null;
+    return (alturaCm * 0.87) / vao;
+  }, [alturaCm, pontosEditaveis]);
+
+  const achados = useMemo(
+    () => gerarAchados(vista, pontosEditaveis, cmPorUnidade),
+    [vista, pontosEditaveis, cmPorUnidade]
+  );
+
+  // O texto nasce da leitura automatica e fica editavel: o terapeuta revisa,
+  // ajusta e assina. Uma vez editado, nao e mais sobrescrito.
+  const [diagnostico, setDiagnostico] = useState('');
+  const [diagnosticoEditado, setDiagnosticoEditado] = useState(false);
+  useEffect(() => {
+    if (!diagnosticoEditado) setDiagnostico(montarDiagnosticoSugerido(achados, vista));
+  }, [achados, vista, diagnosticoEditado]);
   const segmentos = SEGMENTOS_RAPIDA[vista];
   const ehLateral = vista.startsWith('lateral');
   const alterados = desajustes.filter(d => d.alerta);
@@ -374,6 +400,28 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      {achados.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Achados Clínicos</Text>
+          {achados.map((a, i) => (
+            <View key={i} style={[styles.cardAchado, a.alerta && styles.cardAchadoAlerta]}>
+              <Text style={styles.cardAchadoTitulo}>{a.titulo}</Text>
+              <Text style={styles.cardAchadoTexto}>{a.descricao}</Text>
+            </View>
+          ))}
+        </>
+      )}
+
+      <Text style={styles.sectionTitle}>Diagnóstico Sugerido</Text>
+      <TextInput
+        style={styles.campoDiagnostico}
+        value={diagnostico}
+        onChangeText={(t) => { setDiagnostico(t); setDiagnosticoEditado(true); }}
+        multiline
+        placeholder="Revise e ajuste o texto antes de salvar."
+        placeholderTextColor="#94A3B8"
+      />
+
       <Text style={styles.sectionTitle}>Desajustes Encontrados</Text>
       {desajustes.length === 0 ? (
         <Text style={styles.semDados}>Nenhum desajuste calculável com os pontos marcados.</Text>
@@ -537,6 +585,11 @@ const styles = StyleSheet.create({
   linhaRefTraco: { height: 1.5, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', width: '100%' },
   badgeFlutuante: { position: 'absolute', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, minWidth: 40, alignItems: 'center' },
   badgeFlutuanteTexto: { fontSize: 11, fontWeight: 'bold' },
+  cardAchado: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 12, marginBottom: 8, borderLeftWidth: 4, borderLeftColor: '#94A3B8' },
+  cardAchadoAlerta: { backgroundColor: '#FFFBEB', borderLeftColor: '#F59E0B' },
+  cardAchadoTitulo: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 2 },
+  cardAchadoTexto: { fontSize: 13, color: '#475569', lineHeight: 18 },
+  campoDiagnostico: { backgroundColor: '#FFFFFF', borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', padding: 12, fontSize: 14, color: '#0F172A', minHeight: 90, textAlignVertical: 'top', marginBottom: 20 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
   card: { backgroundColor: '#FFFFFF', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1 },

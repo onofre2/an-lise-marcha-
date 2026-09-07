@@ -330,6 +330,7 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Relatorio de Avaliacao Postural')}
+      ${av.diagnostico_sugerido ? `<h2>Diagnostico Sugerido</h2><div class="info">${av.diagnostico_sugerido}</div>` : ''}
       <h2>Avaliacao ${av.vista.replace('_', ' ')} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       ${tabelaMedidas(medidas)}

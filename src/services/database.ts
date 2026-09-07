@@ -174,6 +174,15 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    // Diagnostico sugerido pelo aplicativo e revisado pelo terapeuta.
+    ['avaliacoes_posturais', 'avaliacoes_cervicais', 'avaliacoes_adm', 'avaliacoes_adams'].forEach(tabela => {
+      try {
+        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN diagnostico_sugerido TEXT`);
+      } catch {
+        // coluna ja existe - ignora
+      }
+    });
+
     // Circulos de desajuste marcados pelo terapeuta sobre o frame da marcha.
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN observacoes_json TEXT');

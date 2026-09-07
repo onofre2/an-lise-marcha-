@@ -138,6 +138,13 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       <Text style={styles.titulo}>{tituloDaAvaliacao(tipo, registro)}</Text>
       <Text style={styles.data}>{registro.data_avaliacao}</Text>
 
+      {registro.diagnostico_sugerido ? (
+        <View style={styles.blocoDiagnostico}>
+          <Text style={styles.blocoDiagnosticoTitulo}>Diagnóstico Sugerido</Text>
+          <Text style={styles.blocoDiagnosticoTexto}>{registro.diagnostico_sugerido}</Text>
+        </View>
+      ) : null}
+
       {tipo === 'postural' && registro.foto_uri ? (
         <TouchableOpacity
           style={styles.btnReeditar}
@@ -435,6 +442,9 @@ const styles = StyleSheet.create({
   frameLinha: { position: 'absolute', height: 2, backgroundColor: '#22C55E', transformOrigin: 'left' },
   frameObs: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#EF4444' },
   framePonto: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#22C55E' },
+  blocoDiagnostico: { backgroundColor: '#EFF6FF', borderRadius: 12, padding: 14, marginTop: 12, borderWidth: 1, borderColor: '#BFDBFE' },
+  blocoDiagnosticoTitulo: { fontSize: 13, fontWeight: '700', color: '#1E40AF', marginBottom: 4 },
+  blocoDiagnosticoTexto: { fontSize: 14, color: '#1E3A8A', lineHeight: 20 },
   btnReeditar: { backgroundColor: '#2563EB', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 12, marginBottom: 4 },
   btnReeditarText: { color: '#FFF', fontWeight: '700', fontSize: 15 },
   container: { flex: 1, backgroundColor: '#F8FAFC' },
