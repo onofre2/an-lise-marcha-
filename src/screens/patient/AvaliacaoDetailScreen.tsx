@@ -98,6 +98,17 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
     }
   }, [registro]);
 
+  // Mesma conversao para os circulos de observacao da avaliacao postural.
+  const observacoesDesenho = useMemo(() => {
+    if (tipo !== 'postural') return observacoes;
+    const out: Record<string, { x: number; y: number }> = {};
+    for (const [id, pt] of Object.entries(observacoes as Record<string, { x: number; y: number }>)) {
+      out[id] = { x: pt.x * IMAGE_WIDTH, y: pt.y * IMAGE_HEIGHT };
+    }
+    return out;
+  }, [observacoes, tipo]);
+
+
   const desajustes: Desajuste[] = useMemo(() => {
     if (!registro) return [];
     if (tipo === 'postural') {
@@ -174,11 +185,11 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
             <Linha a={pontos[idsADM[1]]} b={pontos[idsADM[2]]} />
           )}
 
-          {Object.values(pontos).map((p, i) => (
+          {Object.values(pontosDesenho).map((p, i) => (
             <View key={i} style={[styles.marcador, { left: p.x - 6, top: p.y - 6 }]} />
           ))}
 
-          {Object.values(observacoes).map((p, i) => (
+          {Object.values(observacoesDesenho).map((p, i) => (
             <View key={`obs-${i}`} style={[styles.marcadorObservacao, { left: p.x - 12, top: p.y - 12 }]} />
           ))}
         </View>
