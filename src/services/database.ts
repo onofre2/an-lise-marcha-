@@ -200,6 +200,15 @@ export const initDatabase = () => {
       }
     });
 
+    // Opcao de exibir a foto sem cor, escolhida na edicao e seguida pelo relatorio.
+    ['avaliacoes_posturais', 'avaliacoes_cervicais', 'avaliacoes_adm', 'avaliacoes_adams'].forEach(tabela => {
+      try {
+        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN sem_cor INTEGER DEFAULT 0`);
+      } catch {
+        // coluna ja existe - ignora
+      }
+    });
+
     // Circulos de desajuste marcados pelo terapeuta sobre o frame da marcha.
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN observacoes_json TEXT');

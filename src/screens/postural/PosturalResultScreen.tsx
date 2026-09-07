@@ -98,6 +98,9 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
   const [mostrarGrade, setMostrarGrade] = useState(false);
+
+  // Preto e branco: sem a cor da pele, os pontos e linhas ficam mais legiveis.
+  const [semCor, setSemCor] = useState(false);
   const [painelEdicao, setPainelEdicao] = useState(false);
 
   // Cada observacao e uma seta: a base fica onde o terapeuta tocou e a ponta,
@@ -235,16 +238,16 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       if (avaliacaoId) {
         db.runSync(
           `UPDATE avaliacoes_posturais
-           SET foto_uri = ?, pontos_json = ?, medidas_json = ?, observacoes_json = ?, dimensoes_json = ?, diagnostico_sugerido = ?, achados_json = ?
+           SET foto_uri = ?, pontos_json = ?, medidas_json = ?, observacoes_json = ?, dimensoes_json = ?, diagnostico_sugerido = ?, achados_json = ?, sem_cor = ?
            WHERE id = ?`,
-          [fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico, JSON.stringify(achados), avaliacaoId]
+          [fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico, JSON.stringify(achados), semCor ? 1 : 0, avaliacaoId]
         );
         idAvaliacao = avaliacaoId;
       } else {
         db.runSync(
-          `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json, dimensoes_json, diagnostico_sugerido, achados_json)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico, JSON.stringify(achados)]
+          `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json, dimensoes_json, diagnostico_sugerido, achados_json, sem_cor)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico, JSON.stringify(achados), semCor ? 1 : 0]
         );
         const criada = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
         idAvaliacao = criada.id;
@@ -295,7 +298,12 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         }}
         onResponderRelease={adicionarObservacao}
       >
-        <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
+        <Image
+          source={{ uri: fotoUri }}
+          style={[styles.image, semCor && styles.imagemSemCor]}
+          resizeMode="contain"
+        />
+        {semCor && <View pointerEvents="none" style={styles.camadaSemCor} />}
 
         {mostrarGrade && (
           <View pointerEvents="none" style={StyleSheet.absoluteFill}>
@@ -408,6 +416,13 @@ export default function PosturalResultScreen({ route, navigation }: any) {
           onPress={() => setMostrarGrade(!mostrarGrade)}
         >
           <Text style={[styles.btnEdicaoText, mostrarGrade && styles.btnEdicaoTextAtivo]}>Grade</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.btnEdicao, semCor && styles.btnEdicaoAtivo]}
+          onPress={() => setSemCor(!semCor)}
+        >
+          <Text style={[styles.btnEdicaoText, semCor && styles.btnEdicaoTextAtivo]}>P e B</Text>
         </TouchableOpacity>
       </View>
 
@@ -569,6 +584,8 @@ const styles = StyleSheet.create({
   linha: { position: 'absolute', height: 1.5, transformOrigin: 'left' },
   linhaOk: { backgroundColor: '#4ADE80' },
   linhaAlerta: { backgroundColor: '#F59E0B' },
+  imagemSemCor: { opacity: 0.55 },
+  camadaSemCor: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.18 },
   gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
   gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
   painelEdicao: { flexDirection: 'row', gap: 8, marginTop: 8 },

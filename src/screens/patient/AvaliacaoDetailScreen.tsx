@@ -176,7 +176,12 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
 
       {registro.foto_uri ? (
         <View style={styles.imageContainer}>
-          <Image source={{ uri: registro.foto_uri }} style={styles.image} resizeMode="contain" />
+          <Image
+            source={{ uri: registro.foto_uri }}
+            style={[styles.image, registro.sem_cor === 1 && styles.imagemSemCor]}
+            resizeMode="contain"
+          />
+          {registro.sem_cor === 1 && <View pointerEvents="none" style={styles.camadaSemCor} />}
 
           {tipo === 'postural' && (() => {
             // Eixo ideal (vertical verde) e eixo real do tronco (vermelho),
@@ -452,6 +457,8 @@ const styles = StyleSheet.create({
   frameLinha: { position: 'absolute', height: 2, backgroundColor: '#22C55E', transformOrigin: 'left' },
   frameObs: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#EF4444' },
   framePonto: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#22C55E' },
+  imagemSemCor: { opacity: 0.55 },
+  camadaSemCor: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.18 },
   cardAchado: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 12, marginBottom: 8, borderLeftWidth: 4, borderLeftColor: '#94A3B8' },
   cardAchadoAlerta: { backgroundColor: '#FFFBEB', borderLeftColor: '#F59E0B' },
   cardAchadoTitulo: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 2 },

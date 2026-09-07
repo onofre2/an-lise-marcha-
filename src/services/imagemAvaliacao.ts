@@ -112,6 +112,7 @@ export function imagemPostural(
   medidas: Medida[],
   dimensoes: Dimensoes,
   observacoes: Record<string, Ponto>,
+  semCor = false,
 ): string {
   const { largura, altura } = dimensoes;
   let camadas = '';
@@ -184,7 +185,8 @@ export function imagemPostural(
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura} ${altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
-      <image href="${fotoBase64}" x="0" y="0" width="${largura}" height="${altura}" preserveAspectRatio="xMidYMid meet" />
+      ${semCor ? '<filter id="semCor"><feColorMatrix type="saturate" values="0"/></filter>' : ''}
+      <image href="${fotoBase64}" x="0" y="0" width="${largura}" height="${altura}" preserveAspectRatio="xMidYMid meet" ${semCor ? 'filter="url(#semCor)"' : ''} />
       ${camadas}
     </svg>
   `;
@@ -201,6 +203,7 @@ export function imagemSimples(
   valorPrincipal: { texto: string; alerta: boolean; ancora: string } | null,
   dimensoes: Dimensoes,
   observacoes: Record<string, Ponto>,
+  semCor = false,
 ): string {
   const { largura, altura } = dimensoes;
   let camadas = '';
@@ -234,7 +237,8 @@ export function imagemSimples(
 
   return `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura} ${altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
-      <image href="${fotoBase64}" x="0" y="0" width="${largura}" height="${altura}" preserveAspectRatio="xMidYMid meet" />
+      ${semCor ? '<filter id="semCor"><feColorMatrix type="saturate" values="0"/></filter>' : ''}
+      <image href="${fotoBase64}" x="0" y="0" width="${largura}" height="${altura}" preserveAspectRatio="xMidYMid meet" ${semCor ? 'filter="url(#semCor)"' : ''} />
       ${camadas}
     </svg>
   `;
