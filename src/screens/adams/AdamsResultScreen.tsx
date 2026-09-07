@@ -160,6 +160,25 @@ export default function AdamsResultScreen({ route, navigation }: any) {
       <View style={styles.imageContainer} onStartShouldSetResponder={() => modoObservacao} onResponderRelease={adicionarObservacao}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
 
+        {vista === 'lateral' && pontosEditaveis.c7 && pontosEditaveis.l5 && (
+          <LinhaDorso a={pontosEditaveis.c7} b={pontosEditaveis.l5} alerta={false} />
+        )}
+
+        {vista === 'lateral' && pontosEditaveis.c7 && pontosEditaveis.l5 && pontosEditaveis.apice && (() => {
+          // Perpendicular do apice ate a linha C7-L5: e essa distancia que
+          // representa a altura da gibosidade.
+          const c7 = pontosEditaveis.c7;
+          const l5 = pontosEditaveis.l5;
+          const ap = pontosEditaveis.apice;
+          const dx = l5.x - c7.x;
+          const dy = l5.y - c7.y;
+          const comp2 = dx * dx + dy * dy;
+          if (comp2 === 0) return null;
+          const t = ((ap.x - c7.x) * dx + (ap.y - c7.y) * dy) / comp2;
+          const pe = { x: c7.x + t * dx, y: c7.y + t * dy };
+          return <LinhaDorso a={ap} b={pe} alerta={resultadoLateral ? resultadoLateral.alerta : false} />;
+        })()}
+
         {pontosEditaveis.dorso_d && pontosEditaveis.dorso_e && (
           <>
             <LinhaReferencia a={pontosEditaveis.dorso_d} b={pontosEditaveis.dorso_e} />
