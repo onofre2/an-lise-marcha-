@@ -47,6 +47,19 @@ export default function AdamsHomeScreen({ navigation }: any) {
         </Text>
       </View>
 
+      <Text style={styles.sectionTitle}>Sinais visuais de alerta</Text>
+      <View style={styles.cardProtocolo}>
+        <Image
+          source={require('../../../assets/referencias/sinais-escoliose.webp')}
+          style={styles.imagemReferencia}
+          resizeMode="contain"
+        />
+        <Text style={styles.protocoloTexto}>
+          Em pe, observe ombros, escapulas, curva da coluna, quadris e cintura.
+          Na flexao, observe a gibosidade na parte superior e inferior das costas.
+        </Text>
+      </View>
+
       <CardReferencia card="adams" />
 
       <View style={styles.cardAviso}>
