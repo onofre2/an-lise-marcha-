@@ -15,6 +15,7 @@ interface Paciente {
   id: number;
   nome: string;
   idade: number | null;
+  altura_cm?: number | null;
   data_nascimento: string | null;
   sexo: string | null;
   diagnostico: string | null;
@@ -60,6 +61,7 @@ function cabecalho(p: Paciente, titulo: string): string {
       <b>Nome:</b> ${p.nome}<br/>
       ${p.data_nascimento ? '<b>Nascimento:</b> ' + p.data_nascimento + '<br/>' : ''}
       ${p.sexo ? '<b>Sexo:</b> ' + p.sexo + '<br/>' : ''}
+      ${p.altura_cm ? '<b>Altura:</b> ' + p.altura_cm + ' cm<br/>' : ''}
       ${p.diagnostico ? '<b>Diagnostico:</b> ' + p.diagnostico + '<br/>' : ''}
     </div>
   `;

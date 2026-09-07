@@ -305,6 +305,7 @@ export default function PatientDetailScreen() {
           <Text style={styles.subInfo}>
             {paciente.idade ? `${paciente.idade} anos` : 'Idade não informada'}
             {paciente.sexo ? ` • ${paciente.sexo}` : ''}
+            {paciente.altura_cm ? ` • ${paciente.altura_cm} cm` : ''}
           </Text>
           {paciente.data_nascimento ? (
             <Text style={styles.subInfo}>Nascimento: {paciente.data_nascimento}</Text>
