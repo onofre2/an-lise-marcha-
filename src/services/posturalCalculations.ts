@@ -166,6 +166,11 @@ function calcularPosterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
     const dn = desnivelCm(p.acromio_d, p.acromio_e, escala);
     resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
+  if (p.escapula_d && p.escapula_e) {
+    const ang = anguloComHorizontal(p.escapula_d, p.escapula_e);
+    const dn = desnivelCm(p.escapula_d, p.escapula_e, escala);
+    resultado.push({ label: 'Alinhamento das Escápulas', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+  }
   if (p.eips_d && p.eips_e) {
     const ang = anguloComHorizontal(p.eips_d, p.eips_e);
     const dn = desnivelCm(p.eips_d, p.eips_e, escala);

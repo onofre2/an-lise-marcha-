@@ -19,6 +19,7 @@ const MAPA_LABEL: Record<string, string> = {
   'acromio_d|acromio_e': 'Alinhamento dos Ombros',
   'eias_d|eias_e': 'Alinhamento da Pelve (EIAS)',
   'eips_d|eips_e': 'Alinhamento da Pelve (EIPS)',
+  'escapula_d|escapula_e': 'Alinhamento das Escápulas',
   'joelho_d|joelho_e': 'Alinhamento dos Joelhos',
   'halux_d|halux_e': 'Alinhamento dos Pés',
   'tornozelo_d|tornozelo_e': 'Alinhamento dos Tornozelos',
