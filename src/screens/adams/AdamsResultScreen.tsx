@@ -209,12 +209,21 @@ function LinhaDorso({ a, b, alerta }: { a: Ponto; b: Ponto; alerta: boolean }) {
   );
 }
 
+/**
+ * Duas horizontais de referencia: verde no ponto mais baixo e vermelha no mais
+ * alto. A distancia entre elas e a gibosidade, visivel de imediato.
+ */
 function LinhaReferencia({ a, b }: { a: Ponto; b: Ponto }) {
-  const yMedio = (a.y + b.y) / 2;
   const esquerda = Math.min(a.x, b.x) - 20;
   const largura = Math.abs(b.x - a.x) + 40;
+  // Em coordenadas de tela, y maior significa mais baixo na imagem.
+  const yBaixo = Math.max(a.y, b.y);
+  const yAlto = Math.min(a.y, b.y);
   return (
-    <View style={[styles.linhaRef, { left: esquerda, top: yMedio, width: largura }]} />
+    <>
+      <View style={[styles.linhaRefBaixa, { left: esquerda, top: yBaixo, width: largura }]} />
+      <View style={[styles.linhaRefAlta, { left: esquerda, top: yAlto, width: largura }]} />
+    </>
   );
 }
 
@@ -242,6 +251,8 @@ const styles = StyleSheet.create({
   linha: { position: 'absolute', height: 3, transformOrigin: 'left' },
   linhaOk: { backgroundColor: '#4ADE80' },
   linhaAlerta: { backgroundColor: '#F59E0B' },
+  linhaRefBaixa: { position: 'absolute', height: 2, backgroundColor: '#22C55E' },
+  linhaRefAlta: { position: 'absolute', height: 2, backgroundColor: '#EF4444' },
   linhaRef: { position: 'absolute', height: 1.5, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.6)' },
   badgeFlutuante: { position: 'absolute', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, minWidth: 40, alignItems: 'center' },
   badgeFlutuanteTexto: { fontSize: 11, fontWeight: 'bold' },

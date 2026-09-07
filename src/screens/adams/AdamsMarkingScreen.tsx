@@ -8,8 +8,8 @@ const IMAGE_HEIGHT = Dimensions.get('window').height * 0.62;
 const IMAGE_WIDTH = Dimensions.get('window').width;
 
 const PONTOS_SEQUENCIA = [
-  { id: 'dorso_d', nome: 'Ponto mais alto do lado DIREITO das costas' },
-  { id: 'dorso_e', nome: 'Ponto mais alto do lado ESQUERDO das costas' },
+  { id: 'dorso_d', nome: 'Gibosidade DIREITA: ponto mais proeminente do dorso' },
+  { id: 'dorso_e', nome: 'Lado ESQUERDO: mesma altura da coluna, no lado oposto' },
 ];
 
 export default function AdamsMarkingScreen({ route, navigation }: any) {
