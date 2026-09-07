@@ -129,6 +129,11 @@ function calcularAnterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
     resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
   }
 
+  if (p.trocanter_d && p.trocanter_e) {
+    const ang = anguloComHorizontal(p.trocanter_d, p.trocanter_e);
+    const dn = desnivelCm(p.trocanter_d, p.trocanter_e, escala);
+    resultado.push({ label: 'Alinhamento dos Trocânteres', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+  }
   if (p.joelho_d && p.joelho_e) {
     const ang = anguloComHorizontal(p.joelho_d, p.joelho_e);
     const dn = desnivelCm(p.joelho_d, p.joelho_e, escala);
@@ -184,6 +189,11 @@ function calcularPosterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
     resultado.push({ label: 'Desvio Lateral da Coluna (C7)', valor: Number(desvioRel.toFixed(1)), unidade: '% da largura dos ombros', alerta: desvioRel >= 5 });
   }
 
+  if (p.trocanter_d && p.trocanter_e) {
+    const ang = anguloComHorizontal(p.trocanter_d, p.trocanter_e);
+    const dn = desnivelCm(p.trocanter_d, p.trocanter_e, escala);
+    resultado.push({ label: 'Alinhamento dos Trocânteres', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+  }
   if (p.joelho_d && p.joelho_e) {
     const ang = anguloComHorizontal(p.joelho_d, p.joelho_e);
     const dn = desnivelCm(p.joelho_d, p.joelho_e, escala);
@@ -209,6 +219,22 @@ function calcularPosterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
 
 function calcularLateral(p: Pontos): Desajuste[] {
   const resultado: Desajuste[] = [];
+
+  // Inclinacao pelvica no plano sagital: angulo da linha entre a espinha
+  // iliaca antero-superior e a postero-superior em relacao a horizontal.
+  // Referencia usual em avaliacao fotografica: 10 a 15 graus de anteversao.
+  if (p.eias && p.eips) {
+    const ang = anguloComHorizontal(p.eips, p.eias);
+    // A espinha antero-superior abaixo da postero-superior indica anteversao.
+    const anteversao = p.eias.y > p.eips.y;
+    const valor = Number(ang.toFixed(1));
+    resultado.push({
+      label: anteversao ? 'Inclinação Pélvica (anteversão)' : 'Inclinação Pélvica (retroversão)',
+      valor,
+      unidade: '°',
+      alerta: anteversao ? valor > 15 : valor > 5,
+    });
+  }
 
   if (p.trago && p.acromio && p.trocanter && p.maleolo) {
     const dxTrago = p.trago.x - p.maleolo.x;
