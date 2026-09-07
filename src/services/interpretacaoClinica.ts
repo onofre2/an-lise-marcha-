@@ -23,40 +23,44 @@ function grausEntre(a: Ponto, b: Ponto): number {
 }
 
 /**
- * Classifica o joelho pela posicao da patela em relacao a linha entre o
- * trocanter maior e o maleolo do mesmo membro. Patela medial indica valgo;
- * lateral, varo. O afastamento e convertido em centimetros quando ha altura.
+ * Angulo Q: formado no centro da patela pela interseccao de duas linhas, uma
+ * vinda da espinha iliaca antero-superior e outra da tuberosidade da tibia.
+ *
+ * Valores de referencia usuais: cerca de 13 graus em homens e 18 em mulheres.
+ * Acima de 20 graus ha maior incidencia de alteracoes femoropatelares; abaixo
+ * da faixa normal, tendencia a joelho varo.
+ *
+ * Ressalva: o angulo Q e classicamente medido em decubito dorsal e nao ha
+ * consenso universal sobre valores normais. Aqui e obtido por fotogrametria
+ * em ortostatismo, o que serve de triagem, nao de medida definitiva.
  */
 function classificarJoelho(
-  trocanter: Ponto, patela: Ponto, maleolo: Ponto,
+  espinha: Ponto, patela: Ponto, tuberosidade: Ponto,
   lado: 'direito' | 'esquerdo',
-  cmPorUnidade: number | null,
+  sexo: string | null,
 ): Achado | null {
-  const dx = maleolo.x - trocanter.x;
-  const dy = maleolo.y - trocanter.y;
-  const comprimento = Math.sqrt(dx * dx + dy * dy);
-  if (comprimento === 0) return null;
+  const a1 = Math.atan2(espinha.y - patela.y, espinha.x - patela.x);
+  const a2 = Math.atan2(tuberosidade.y - patela.y, tuberosidade.x - patela.x);
+  let ang = Math.abs((a1 - a2) * (180 / Math.PI));
+  if (ang > 180) ang = 360 - ang;
+  const anguloQ = Number((180 - ang).toFixed(1));
 
-  // Sinal do produto vetorial: de que lado da linha a patela caiu.
-  const cruz = dx * (patela.y - trocanter.y) - dy * (patela.x - trocanter.x);
-  const afastamento = Math.abs(cruz) / comprimento;
+  const feminino = (sexo || '').toLowerCase().startsWith('f');
+  const referencia = feminino ? 18 : 13;
+  const faixaMin = feminino ? 15 : 10;
 
-  // Na imagem, x menor e mais a esquerda. Para o membro direito do paciente,
-  // que aparece a esquerda da foto na vista anterior, medial e para a direita.
-  const patelaMedial = lado === 'direito' ? cruz < 0 : cruz > 0;
-  const tipo = patelaMedial ? 'valgo' : 'varo';
-
-  const cm = cmPorUnidade !== null ? afastamento * cmPorUnidade : null;
-  const acentuado = cm !== null ? cm > 1 : afastamento / comprimento > 0.04;
-  if (cm !== null && cm < 0.3) return null;
-
-  const intensidade = acentuado ? 'acentuado' : 'leve';
-  const medida = cm !== null ? ` (${cm.toFixed(1)} cm)` : '';
-  return {
-    titulo: `Joelho ${lado}`,
-    descricao: `Joelho ${tipo} ${intensidade}${medida}.`,
-    alerta: acentuado,
-  };
+  let descricao: string;
+  let alerta = false;
+  if (anguloQ > 20) {
+    descricao = `Angulo Q de ${anguloQ} graus, acima da faixa esperada (referencia ${referencia} graus). Tendencia a joelho valgo.`;
+    alerta = true;
+  } else if (anguloQ < faixaMin) {
+    descricao = `Angulo Q de ${anguloQ} graus, abaixo da faixa esperada (referencia ${referencia} graus). Tendencia a joelho varo.`;
+    alerta = true;
+  } else {
+    descricao = `Angulo Q de ${anguloQ} graus, dentro da faixa esperada (referencia ${referencia} graus).`;
+  }
+  return { titulo: `Joelho ${lado}`, descricao, alerta };
 }
 
 /**
@@ -67,6 +71,7 @@ export function gerarAchados(
   vista: string,
   pontos: Record<string, Ponto>,
   cmPorUnidade: number | null,
+  sexo: string | null = null,
 ): Achado[] {
   const achados: Achado[] = [];
   const p = pontos;
@@ -112,12 +117,12 @@ export function gerarAchados(
       }
     }
 
-    if (p.trocanter_d && p.joelho_d && p.tornozelo_d) {
-      const a = classificarJoelho(p.trocanter_d, p.joelho_d, p.tornozelo_d, 'direito', cmPorUnidade);
+    if (p.eias_d && p.joelho_d && p.tuberosidade_d) {
+      const a = classificarJoelho(p.eias_d, p.joelho_d, p.tuberosidade_d, 'direito', sexo);
       if (a) achados.push(a);
     }
-    if (p.trocanter_e && p.joelho_e && p.tornozelo_e) {
-      const a = classificarJoelho(p.trocanter_e, p.joelho_e, p.tornozelo_e, 'esquerdo', cmPorUnidade);
+    if (p.eias_e && p.joelho_e && p.tuberosidade_e) {
+      const a = classificarJoelho(p.eias_e, p.joelho_e, p.tuberosidade_e, 'esquerdo', sexo);
       if (a) achados.push(a);
     }
   } else {

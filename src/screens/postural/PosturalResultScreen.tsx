@@ -183,9 +183,20 @@ export default function PosturalResultScreen({ route, navigation }: any) {
     return (alturaCm * 0.87) / vao;
   }, [alturaCm, pontosEditaveis]);
 
+  // O angulo Q tem referencia distinta por sexo: cerca de 13 graus em homens
+  // e 18 em mulheres, pela largura da pelve.
+  const sexoPaciente = useMemo(() => {
+    try {
+      const row = db.getFirstSync('SELECT sexo FROM pacientes WHERE id = ?', [pacienteId]) as { sexo: string | null } | null;
+      return row?.sexo ?? null;
+    } catch {
+      return null;
+    }
+  }, [pacienteId]);
+
   const achados = useMemo(
-    () => gerarAchados(vista, pontosEditaveis, cmPorUnidade),
-    [vista, pontosEditaveis, cmPorUnidade]
+    () => gerarAchados(vista, pontosEditaveis, cmPorUnidade, sexoPaciente),
+    [vista, pontosEditaveis, cmPorUnidade, sexoPaciente]
   );
 
   // O texto nasce da leitura automatica e fica editavel: o terapeuta revisa,
