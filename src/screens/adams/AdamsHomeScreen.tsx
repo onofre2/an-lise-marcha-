@@ -6,12 +6,14 @@ import CardReferencia from '../../components/CardReferencia';
 export default function AdamsHomeScreen({ navigation }: any) {
   const { pacienteAtivo } = usePacienteAtivo();
 
-  const iniciar = () => {
+  // O teste tem duas vistas: posterior, que mede a assimetria entre os lados,
+  // e lateral, que mede a altura da gibosidade contra a linha C7-L5.
+  const iniciar = (vista: 'posterior' | 'lateral') => {
     if (!pacienteAtivo) {
       Alert.alert('Atencao', 'Selecione o paciente na aba Historico antes de continuar.');
       return;
     }
-    navigation.navigate('AdamsCapture', { pacienteId: pacienteAtivo.id });
+    navigation.navigate('AdamsCapture', { pacienteId: pacienteAtivo.id, vista });
   };
 
   return (
@@ -53,8 +55,12 @@ export default function AdamsHomeScreen({ navigation }: any) {
         </Text>
       </View>
 
-      <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
-        <Text style={styles.btnIniciarText}>Abrir Camera</Text>
+      <TouchableOpacity style={styles.btnIniciar} onPress={() => iniciar('posterior')}>
+        <Text style={styles.btnIniciarText}>Vista Posterior (assimetria entre os lados)</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.btnIniciarSec} onPress={() => iniciar('lateral')}>
+        <Text style={styles.btnIniciarText}>Vista Lateral (altura da gibosidade)</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -75,5 +81,6 @@ const styles = StyleSheet.create({
   cardAviso: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12, marginTop: 14 },
   cardAvisoTexto: { color: '#92400E', fontSize: 12, lineHeight: 17 },
   btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 24, alignItems: 'center' },
+  btnIniciarSec: { backgroundColor: '#0EA5E9', padding: 18, borderRadius: 16, marginTop: 24, alignItems: 'center' },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });

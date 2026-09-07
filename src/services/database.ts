@@ -156,6 +156,24 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    // Vista do teste de Adams (posterior ou lateral) e, na lateral, a altura
+    // da gibosidade medida em relacao a linha C7-L5.
+    try {
+      db.execSync("ALTER TABLE avaliacoes_adams ADD COLUMN vista TEXT DEFAULT 'posterior'");
+    } catch {
+      // coluna ja existe - ignora
+    }
+    try {
+      db.execSync('ALTER TABLE avaliacoes_adams ADD COLUMN gibosidade_cm REAL');
+    } catch {
+      // coluna ja existe - ignora
+    }
+    try {
+      db.execSync('ALTER TABLE avaliacoes_adams ADD COLUMN gibosidade_pct REAL');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     // Circulos de desajuste marcados pelo terapeuta sobre o frame da marcha.
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN observacoes_json TEXT');

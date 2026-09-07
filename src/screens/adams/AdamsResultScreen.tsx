@@ -14,9 +14,20 @@ const IMAGE_WIDTH = Dimensions.get('window').width - 32;
 const LIMIAR = 5;
 
 export default function AdamsResultScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId, pontos } = route.params as {
+  const { fotoUri, pacienteId, pontos, vista = 'posterior' } = route.params as {
     fotoUri: string; pacienteId: number; pontos: Record<string, Ponto>;
+    vista?: 'posterior' | 'lateral';
   };
+
+  // Altura do paciente: converte a gibosidade de pixel para centimetros.
+  const alturaCm = useMemo(() => {
+    try {
+      const row = db.getFirstSync('SELECT altura_cm FROM pacientes WHERE id = ?', [pacienteId]) as { altura_cm: number | null } | null;
+      return row?.altura_cm ?? null;
+    } catch {
+      return null;
+    }
+  }, [pacienteId]);
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
   const [observacoes, setObservacoes] = useState<Record<string, Ponto>>({});
@@ -47,6 +58,34 @@ export default function AdamsResultScreen({ route, navigation }: any) {
     });
   };
 
+  // Vista lateral: altura da gibosidade, medida como a distancia perpendicular
+  // do apice ate a linha C7-L5. Em centimetros quando ha altura cadastrada;
+  // caso contrario, em porcentagem do proprio segmento C7-L5.
+  const resultadoLateral = useMemo(() => {
+    if (vista !== 'lateral') return null;
+    const c7 = pontosEditaveis.c7;
+    const apice = pontosEditaveis.apice;
+    const l5 = pontosEditaveis.l5;
+    if (!c7 || !apice || !l5) return null;
+
+    const dx = l5.x - c7.x;
+    const dy = l5.y - c7.y;
+    const comprimento = Math.sqrt(dx * dx + dy * dy);
+    if (comprimento === 0) return null;
+
+    // Distancia ponto-reta: area do paralelogramo dividida pela base.
+    const distancia = Math.abs(dy * apice.x - dx * apice.y + l5.x * c7.y - l5.y * c7.x) / comprimento;
+    const percentual = Number(((distancia / comprimento) * 100).toFixed(1));
+
+    let cm: number | null = null;
+    if (alturaCm && alturaCm > 0) {
+      // O segmento C7-L5 corresponde a cerca de 30% da estatura.
+      const cmPorUnidade = (alturaCm * 0.30) / comprimento;
+      cm = Number((distancia * cmPorUnidade).toFixed(1));
+    }
+    return { distancia, percentual, cm, alerta: (cm !== null ? cm >= 1 : percentual >= 5) };
+  }, [pontosEditaveis, vista, alturaCm]);
+
   // Angulo de inclinacao entre os dois lados do dorso, em relacao a horizontal
   const resultado = useMemo(() => {
     const d = pontosEditaveis.dorso_d;
@@ -65,16 +104,25 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   }, [pontosEditaveis]);
 
   const salvarAvaliacao = async () => {
-    if (!resultado) {
-      Alert.alert('Erro', 'Marque os dois pontos antes de salvar.');
+    if (vista === 'lateral' ? !resultadoLateral : !resultado) {
+      Alert.alert('Erro', 'Marque todos os pontos antes de salvar.');
       return;
     }
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), resultado.angulo, resultado.ladoElevado, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
+        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis),
+          resultado ? resultado.angulo : null,
+          resultado ? resultado.ladoElevado : null,
+          JSON.stringify(observacoes),
+          JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }),
+          vista,
+          resultadoLateral ? resultadoLateral.cm : null,
+          resultadoLateral ? resultadoLateral.percentual : null,
+        ]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -157,7 +205,27 @@ export default function AdamsResultScreen({ route, navigation }: any) {
       </View>
 
       <Text style={styles.sectionTitle}>Resultado</Text>
-      {!resultado ? (
+      {vista === 'lateral' ? (
+        !resultadoLateral ? (
+          <Text style={styles.semDados}>Marque C7, o apice e L5 para calcular.</Text>
+        ) : (
+          <View style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>Altura da gibosidade</Text>
+              <Text style={styles.cardRef}>
+                {resultadoLateral.cm !== null
+                  ? 'Alerta a partir de 1 cm'
+                  : 'Sem altura cadastrada: valor relativo ao segmento C7-L5'}
+              </Text>
+            </View>
+            <View style={[styles.badge, resultadoLateral.alerta ? styles.badgeAlerta : styles.badgeOk]}>
+              <Text style={[styles.badgeText, resultadoLateral.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+                {resultadoLateral.cm !== null ? `${resultadoLateral.cm} cm` : `${resultadoLateral.percentual}%`}
+              </Text>
+            </View>
+          </View>
+        )
+      ) : !resultado ? (
         <Text style={styles.semDados}>Marque os dois pontos para calcular.</Text>
       ) : (
         <>

@@ -7,7 +7,7 @@ import SilhuetaGuia from '../../components/SilhuetaGuia';
 export default function AdamsCaptureScreen({ route, navigation }: any) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
-  const { pacienteId } = route.params as { pacienteId: number };
+  const { pacienteId, vista = 'posterior' } = route.params as { pacienteId: number; vista?: 'posterior' | 'lateral' };
 
   async function escolherDaGaleria() {
     const resultado = await ImagePicker.launchImageLibraryAsync({
@@ -15,7 +15,7 @@ export default function AdamsCaptureScreen({ route, navigation }: any) {
       quality: 0.8,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {
-      navigation.navigate('AdamsMarking', { fotoUri: resultado.assets[0].uri, pacienteId });
+      navigation.navigate('AdamsMarking', { fotoUri: resultado.assets[0].uri, pacienteId, vista });
     }
   }
 
@@ -41,7 +41,7 @@ export default function AdamsCaptureScreen({ route, navigation }: any) {
     if (cameraRef.current) {
       try {
         const foto = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-        navigation.navigate('AdamsMarking', { fotoUri: foto.uri, pacienteId });
+        navigation.navigate('AdamsMarking', { fotoUri: foto.uri, pacienteId, vista });
       } catch (error) {
         console.error('Erro ao tirar foto:', error);
       }

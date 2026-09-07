@@ -7,13 +7,25 @@ interface Ponto { x: number; y: number; }
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.62;
 const IMAGE_WIDTH = Dimensions.get('window').width;
 
-const PONTOS_SEQUENCIA = [
-  { id: 'dorso_d', nome: 'Gibosidade DIREITA: ponto mais proeminente do dorso' },
-  { id: 'dorso_e', nome: 'Lado ESQUERDO: mesma altura da coluna, no lado oposto' },
-];
+// Vista posterior: compara a altura das gibosidades entre os lados.
+// Vista lateral: mede o quanto o apice se projeta alem da linha C7-L5.
+const SEQUENCIAS = {
+  posterior: [
+    { id: 'dorso_d', nome: 'Gibosidade DIREITA: ponto mais proeminente do dorso' },
+    { id: 'dorso_e', nome: 'Lado ESQUERDO: mesma altura da coluna, no lado oposto' },
+  ],
+  lateral: [
+    { id: 'c7', nome: 'C7: base do pescoco, vertebra mais saliente' },
+    { id: 'apice', nome: 'Apice da gibosidade: ponto mais alto do dorso' },
+    { id: 'l5', nome: 'L5: base da coluna lombar' },
+  ],
+};
 
 export default function AdamsMarkingScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId } = route.params as { fotoUri: string; pacienteId: number };
+  const { fotoUri, pacienteId, vista = 'posterior' } = route.params as {
+    fotoUri: string; pacienteId: number; vista?: 'posterior' | 'lateral';
+  };
+  const PONTOS_SEQUENCIA = SEQUENCIAS[vista];
 
   const [indiceAtual, setIndiceAtual] = useState(0);
   const [pontosMarcados, setPontosMarcados] = useState<Record<string, Ponto>>({});
@@ -49,7 +61,7 @@ export default function AdamsMarkingScreen({ route, navigation }: any) {
   };
 
   const confirmar = () => {
-    navigation.navigate('AdamsResult', { fotoUri, pacienteId, pontos: pontosMarcados });
+    navigation.navigate('AdamsResult', { fotoUri, pacienteId, vista, pontos: pontosMarcados });
   };
 
   return (
