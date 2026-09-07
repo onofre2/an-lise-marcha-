@@ -138,12 +138,22 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       <Text style={styles.titulo}>{tituloDaAvaliacao(tipo, registro)}</Text>
       <Text style={styles.data}>{registro.data_avaliacao}</Text>
 
-      {registro.diagnostico_sugerido ? (
-        <View style={styles.blocoDiagnostico}>
-          <Text style={styles.blocoDiagnosticoTitulo}>Diagnóstico Sugerido</Text>
-          <Text style={styles.blocoDiagnosticoTexto}>{registro.diagnostico_sugerido}</Text>
-        </View>
-      ) : null}
+      {(() => {
+        let achados: any[] = [];
+        try { achados = registro.achados_json ? JSON.parse(registro.achados_json) : []; } catch {}
+        if (achados.length === 0) return null;
+        return (
+          <>
+            <Text style={styles.sectionTitle}>Diagnóstico Clínico Sugerido</Text>
+            {achados.map((a: any, i: number) => (
+              <View key={i} style={[styles.cardAchado, a.alerta && styles.cardAchadoAlerta]}>
+                <Text style={styles.cardAchadoTitulo}>{a.titulo}</Text>
+                <Text style={styles.cardAchadoTexto}>{a.descricao}</Text>
+              </View>
+            ))}
+          </>
+        );
+      })()}
 
       {tipo === 'postural' && registro.foto_uri ? (
         <TouchableOpacity
@@ -442,6 +452,10 @@ const styles = StyleSheet.create({
   frameLinha: { position: 'absolute', height: 2, backgroundColor: '#22C55E', transformOrigin: 'left' },
   frameObs: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#EF4444' },
   framePonto: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#22C55E' },
+  cardAchado: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 12, marginBottom: 8, borderLeftWidth: 4, borderLeftColor: '#94A3B8' },
+  cardAchadoAlerta: { backgroundColor: '#FFFBEB', borderLeftColor: '#F59E0B' },
+  cardAchadoTitulo: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 2 },
+  cardAchadoTexto: { fontSize: 13, color: '#475569', lineHeight: 18 },
   blocoDiagnostico: { backgroundColor: '#EFF6FF', borderRadius: 12, padding: 14, marginTop: 12, borderWidth: 1, borderColor: '#BFDBFE' },
   blocoDiagnosticoTitulo: { fontSize: 13, fontWeight: '700', color: '#1E40AF', marginBottom: 4 },
   blocoDiagnosticoTexto: { fontSize: 14, color: '#1E3A8A', lineHeight: 20 },

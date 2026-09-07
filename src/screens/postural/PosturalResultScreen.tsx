@@ -224,16 +224,16 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       if (avaliacaoId) {
         db.runSync(
           `UPDATE avaliacoes_posturais
-           SET foto_uri = ?, pontos_json = ?, medidas_json = ?, observacoes_json = ?, dimensoes_json = ?, diagnostico_sugerido = ?
+           SET foto_uri = ?, pontos_json = ?, medidas_json = ?, observacoes_json = ?, dimensoes_json = ?, diagnostico_sugerido = ?, achados_json = ?
            WHERE id = ?`,
-          [fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico, avaliacaoId]
+          [fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico, JSON.stringify(achados), avaliacaoId]
         );
         idAvaliacao = avaliacaoId;
       } else {
         db.runSync(
-          `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json, dimensoes_json, diagnostico_sugerido)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico]
+          `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json, dimensoes_json, diagnostico_sugerido, achados_json)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico, JSON.stringify(achados)]
         );
         const criada = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
         idAvaliacao = criada.id;
@@ -402,7 +402,7 @@ export default function PosturalResultScreen({ route, navigation }: any) {
 
       {achados.length > 0 && (
         <>
-          <Text style={styles.sectionTitle}>Achados Clínicos</Text>
+          <Text style={styles.sectionTitle}>Diagnóstico Clínico Sugerido</Text>
           {achados.map((a, i) => (
             <View key={i} style={[styles.cardAchado, a.alerta && styles.cardAchadoAlerta]}>
               <Text style={styles.cardAchadoTitulo}>{a.titulo}</Text>
@@ -411,16 +411,6 @@ export default function PosturalResultScreen({ route, navigation }: any) {
           ))}
         </>
       )}
-
-      <Text style={styles.sectionTitle}>Diagnóstico Sugerido</Text>
-      <TextInput
-        style={styles.campoDiagnostico}
-        value={diagnostico}
-        onChangeText={(t) => { setDiagnostico(t); setDiagnosticoEditado(true); }}
-        multiline
-        placeholder="Revise e ajuste o texto antes de salvar."
-        placeholderTextColor="#94A3B8"
-      />
 
       <Text style={styles.sectionTitle}>Desajustes Encontrados</Text>
       {desajustes.length === 0 ? (

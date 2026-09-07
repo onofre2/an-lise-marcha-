@@ -190,6 +190,16 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    // Achados clinicos estruturados, para reproduzir os cards no historico
+    // e no relatorio com o mesmo formato da tela de avaliacao.
+    ['avaliacoes_posturais', 'avaliacoes_cervicais', 'avaliacoes_adm', 'avaliacoes_adams'].forEach(tabela => {
+      try {
+        db.execSync(`ALTER TABLE ${tabela} ADD COLUMN achados_json TEXT`);
+      } catch {
+        // coluna ja existe - ignora
+      }
+    });
+
     // Circulos de desajuste marcados pelo terapeuta sobre o frame da marcha.
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN observacoes_json TEXT');
