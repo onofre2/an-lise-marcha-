@@ -189,8 +189,19 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
               const xBase = topo.x + (IMAGE_HEIGHT - topo.y) * inc;
               const comp = Math.sqrt((xBase - xTopo) ** 2 + IMAGE_HEIGHT ** 2);
               const ang = Math.atan2(IMAGE_HEIGHT, xBase - xTopo) * (180 / Math.PI);
+              // Posicionada pelo centro: o giro a partir da borda tiraria a
+              // linha do lugar quando o angulo se aproxima de 90 graus.
+              const centroX = (xTopo + xBase) / 2;
               camadas.push(
-                <View key="eixo-vermelho" style={[styles.eixoReal, { left: xTopo, top: 0, width: comp, transform: [{ rotate: `${ang}deg` }] }]} />
+                <View
+                  key="eixo-vermelho"
+                  style={[styles.eixoReal, {
+                    left: centroX - comp / 2,
+                    top: IMAGE_HEIGHT / 2,
+                    width: comp,
+                    transform: [{ rotate: `${ang}deg` }],
+                  }]}
+                />
               );
             }
             return camadas;
@@ -438,7 +449,7 @@ const styles = StyleSheet.create({
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
   eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
-  eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444', transformOrigin: 'left' },
+  eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444' },
   setaPonta: {
     position: 'absolute', width: 0, height: 0, backgroundColor: 'transparent',
     borderTopWidth: 5, borderBottomWidth: 5, borderLeftWidth: 10,

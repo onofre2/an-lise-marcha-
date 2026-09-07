@@ -54,11 +54,23 @@ function LinhaEixoReal({ a, b }: { a: Ponto; b: Ponto }) {
   const xTopo = a.x + (0 - a.y) * inclinacao;
   const xBase = a.x + (IMAGE_HEIGHT - a.y) * inclinacao;
   const comprimento = Math.sqrt((xBase - xTopo) ** 2 + IMAGE_HEIGHT ** 2);
+  // Rotaciona pelo centro: a linha e posicionada pelo seu ponto medio, senao
+  // o giro a partir da borda a tira do lugar quando o angulo e proximo de 90.
   const angulo = Math.atan2(IMAGE_HEIGHT, xBase - xTopo) * (180 / Math.PI);
+  const centroX = (xTopo + xBase) / 2;
+  const centroY = IMAGE_HEIGHT / 2;
   return (
     <View
       pointerEvents="none"
-      style={[styles.eixoReal, { left: xTopo, top: 0, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
+      style={[
+        styles.eixoReal,
+        {
+          left: centroX - comprimento / 2,
+          top: centroY,
+          width: comprimento,
+          transform: [{ rotate: `${angulo}deg` }],
+        },
+      ]}
     />
   );
 }
@@ -518,7 +530,7 @@ const styles = StyleSheet.create({
   btnEdicaoTextAtivo: { color: '#FFF' },
   linhaChamada: { position: 'absolute', height: 1, backgroundColor: 'rgba(255,255,255,0.55)' },
   eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
-  eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444', transformOrigin: 'left' },
+  eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444' },
   linhaPrumo: { position: 'absolute', width: 2, height: '100%', backgroundColor: 'rgba(74,222,128,0.6)' },
   linhaRefArea: { position: 'absolute', height: 20, justifyContent: 'center' },
   linhaRefTraco: { height: 1.5, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', width: '100%' },
