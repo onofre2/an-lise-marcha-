@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert , Image} from 'react-native';
 import CardReferencia from '../components/CardReferencia';
 import { usePacienteAtivo } from '../context/PacienteAtivoContext';
 
@@ -44,12 +44,11 @@ export default function EvaluationScreen({ navigation }: any) {
 
       <Text style={styles.sectionTitle}>Protocolo de Posicionamento</Text>
       <View style={styles.protocolCard}>
-        <Text style={styles.protocolText}>• Paciente deve estar **Descalço**</Text>
-        <Text style={styles.protocolText}>• Caminhando em **Fundo Branco**</Text>
-        <Text style={styles.protocolText}>• Câmera a **3 a 4 metros**, perpendicular ao trajeto</Text>
-        <Text style={styles.protocolText}>• Câmera na **altura do quadril**</Text>
-        <Text style={styles.protocolText}>• Paciente caminha **paralelo à câmera**</Text>
-        <Text style={styles.protocolText}>• Gravar **ao menos 2 ciclos** de marcha</Text>
+        <Image
+          source={require('../../assets/referencias/protocolo-marcha.jpg')}
+          style={styles.imagemProtocolo}
+          resizeMode="contain"
+        />
       </View>
 
       <Text style={styles.sectionTitle}>Selecione o Ângulo da Marcha</Text>
@@ -87,6 +86,7 @@ const styles = StyleSheet.create({
   trocarLink: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
   avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
   avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
+  imagemProtocolo: { width: '100%', height: 190, borderRadius: 8 },
   protocolCard: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
   protocolText: { fontSize: 14, color: '#0F172A', marginBottom: 6 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
