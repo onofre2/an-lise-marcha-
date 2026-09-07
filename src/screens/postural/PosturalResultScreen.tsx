@@ -426,37 +426,6 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {achados.length > 0 && (
-        <>
-          <Text style={styles.sectionTitle}>Diagnóstico Clínico Sugerido</Text>
-          {achados.map((a, i) => (
-            <View key={i} style={[styles.cardAchado, a.alerta && styles.cardAchadoAlerta]}>
-              <Text style={styles.cardAchadoTitulo}>{a.titulo}</Text>
-              <Text style={styles.cardAchadoTexto}>{a.descricao}</Text>
-            </View>
-          ))}
-        </>
-      )}
-
-      <Text style={styles.sectionTitle}>Desajustes Encontrados</Text>
-      {desajustes.length === 0 ? (
-        <Text style={styles.semDados}>Nenhum desajuste calculável com os pontos marcados.</Text>
-      ) : (
-        desajustes.map((d, i) => (
-          <View key={i} style={styles.card}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardLabel}>{d.label}</Text>
-              <Text style={styles.cardDescricao}>{descreverAchado(d)}</Text>
-            </View>
-            <View style={[styles.badge, d.alerta ? styles.badgeAlerta : styles.badgeOk]}>
-              <Text style={[styles.badgeText, d.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
-                {d.valor}{d.unidade}
-              </Text>
-            </View>
-          </View>
-        ))
-      )}
-
       {painelEdicao && (
         <View style={styles.painelEdicao}>
           <TouchableOpacity
@@ -489,6 +458,38 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       <TouchableOpacity style={styles.btnSalvar} onPress={salvarAvaliacao}>
         <Text style={styles.btnSalvarText}>Salvar no Histórico do Paciente</Text>
       </TouchableOpacity>
+
+      {achados.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Diagnóstico Clínico Sugerido</Text>
+          {achados.map((a, i) => (
+            <View key={i} style={[styles.cardAchado, a.alerta && styles.cardAchadoAlerta]}>
+              <Text style={styles.cardAchadoTitulo}>{a.titulo}</Text>
+              <Text style={styles.cardAchadoTexto}>{a.descricao}</Text>
+            </View>
+          ))}
+        </>
+      )}
+
+      <Text style={styles.sectionTitle}>Desajustes Encontrados</Text>
+      {desajustes.length === 0 ? (
+        <Text style={styles.semDados}>Nenhum desajuste calculável com os pontos marcados.</Text>
+      ) : (
+        desajustes.map((d, i) => (
+          <View key={i} style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>{d.label}</Text>
+              <Text style={styles.cardDescricao}>{descreverAchado(d)}</Text>
+            </View>
+            <View style={[styles.badge, d.alerta ? styles.badgeAlerta : styles.badgeOk]}>
+              <Text style={[styles.badgeText, d.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+                {d.valor}{d.unidade}
+              </Text>
+            </View>
+          </View>
+        ))
+      )}
+
     </ScrollView>
   );
 }
