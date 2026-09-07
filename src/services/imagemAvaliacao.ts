@@ -157,16 +157,25 @@ export function imagemPostural(
   const acE = pontosPx.acromio_e;
   const eiD = pontosPx.eias_d || pontosPx.eips_d;
   const eiE = pontosPx.eias_e || pontosPx.eips_e;
+  // A linha vermelha atravessa a imagem inteira, como a verde: so assim da
+  // para ler a inclinacao e o afastamento entre o eixo real e o ideal.
+  const eixoInteiro = (a: Ponto, b: Ponto) => {
+    const dy = b.y - a.y;
+    if (dy === 0) {
+      return `<line x1="0" y1="${a.y}" x2="${largura}" y2="${a.y}" stroke="#EF4444" stroke-width="2" />`;
+    }
+    const inclinacao = (b.x - a.x) / dy;
+    const xTopo = a.x + (0 - a.y) * inclinacao;
+    const xBase = a.x + (altura - a.y) * inclinacao;
+    return `<line x1="${xTopo}" y1="0" x2="${xBase}" y2="${altura}" stroke="#EF4444" stroke-width="2" />`;
+  };
+
   if (acD && acE && eiD && eiE) {
-    const tx = (acD.x + acE.x) / 2;
-    const ty = (acD.y + acE.y) / 2;
-    const bx = (eiD.x + eiE.x) / 2;
-    const by = (eiD.y + eiE.y) / 2;
-    camadas += `<line x1="${tx}" y1="${ty}" x2="${bx}" y2="${by}" stroke="#EF4444" stroke-width="2" />`;
+    const topo = { x: (acD.x + acE.x) / 2, y: (acD.y + acE.y) / 2 };
+    const baixo = { x: (eiD.x + eiE.x) / 2, y: (eiD.y + eiE.y) / 2 };
+    camadas += eixoInteiro(topo, baixo);
   } else if (pontosPx.acromio && pontosPx.trocanter) {
-    const a = pontosPx.acromio;
-    const b = pontosPx.trocanter;
-    camadas += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#EF4444" stroke-width="2" />`;
+    camadas += eixoInteiro(pontosPx.acromio, pontosPx.trocanter);
   }
 
   Object.values(pontosPx).forEach(p => { camadas += marcador(p); });

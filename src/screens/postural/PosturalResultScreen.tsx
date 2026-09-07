@@ -47,19 +47,26 @@ const CADEIA_PRUMO: [string, string][] = [
 // espinhas iliacas. Comparado a vertical ideal (verde), mostra a tendencia
 // de deslocamento lateral do tronco.
 function LinhaEixoReal({ a, b }: { a: Ponto; b: Ponto }) {
-  const comprimento = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
-  const angulo = Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
+  // Prolonga a linha por toda a altura da imagem, como a vertical verde: e a
+  // comparacao entre as duas que mostra o desvio do eixo de equilibrio.
+  const dy = b.y - a.y;
+  const inclinacao = dy === 0 ? 0 : (b.x - a.x) / dy;
+  const xTopo = a.x + (0 - a.y) * inclinacao;
+  const xBase = a.x + (IMAGE_HEIGHT - a.y) * inclinacao;
+  const comprimento = Math.sqrt((xBase - xTopo) ** 2 + IMAGE_HEIGHT ** 2);
+  const angulo = Math.atan2(IMAGE_HEIGHT, xBase - xTopo) * (180 / Math.PI);
   return (
     <View
       pointerEvents="none"
-      style={[styles.eixoReal, { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
+      style={[styles.eixoReal, { left: xTopo, top: 0, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
     />
   );
 }
 
 export default function PosturalResultScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId, vista, modo, pontos } = route.params as {
+  const { fotoUri, pacienteId, vista, modo, pontos, avaliacaoId } = route.params as {
     fotoUri: string; pacienteId: number; vista: Vista; modo: 'rapida' | 'completa'; pontos: Record<string, Ponto>;
+    avaliacaoId?: number;
   };
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
@@ -170,12 +177,29 @@ export default function PosturalResultScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
-      db.runSync(
-        `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json, dimensoes_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
-      );
-      const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+      const dimensoes = JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT });
+
+      // Quando a avaliacao foi reaberta para edicao, atualizamos o registro
+      // existente. Criar outro encheria o historico de duplicatas da mesma vista.
+      let idAvaliacao: number;
+      if (avaliacaoId) {
+        db.runSync(
+          `UPDATE avaliacoes_posturais
+           SET foto_uri = ?, pontos_json = ?, medidas_json = ?, observacoes_json = ?, dimensoes_json = ?
+           WHERE id = ?`,
+          [fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, avaliacaoId]
+        );
+        idAvaliacao = avaliacaoId;
+      } else {
+        db.runSync(
+          `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json, dimensoes_json)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes]
+        );
+        const criada = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+        idAvaliacao = criada.id;
+      }
+      const nova = { id: idAvaliacao };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
         { text: 'Agora nao', onPress: () => navigation.navigate('PosturalHome') },
         {

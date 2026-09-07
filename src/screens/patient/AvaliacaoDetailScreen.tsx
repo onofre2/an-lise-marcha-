@@ -144,6 +144,7 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
           onPress={() => navigation.navigate('PosturalTab', {
             screen: 'PosturalResult',
             params: {
+              avaliacaoId: registro.id,
               fotoUri: registro.foto_uri,
               pacienteId: registro.id_paciente,
               vista: registro.vista,
@@ -159,6 +160,41 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       {registro.foto_uri ? (
         <View style={styles.imageContainer}>
           <Image source={{ uri: registro.foto_uri }} style={styles.image} resizeMode="contain" />
+
+          {tipo === 'postural' && (() => {
+            // Eixo ideal (vertical verde) e eixo real do tronco (vermelho),
+            // os mesmos da tela de edicao e do relatorio.
+            const p = pontosDesenho as Record<string, { x: number; y: number }>;
+            const tD = p.tornozelo_d, tE = p.tornozelo_e, ml = p.maleolo;
+            const baseX = tD && tE ? (tD.x + tE.x) / 2 : ml ? ml.x : null;
+            const acD = p.acromio_d, acE = p.acromio_e;
+            const eiD = p.eias_d || p.eips_d, eiE = p.eias_e || p.eips_e;
+            let topo: { x: number; y: number } | null = null;
+            let baixo: { x: number; y: number } | null = null;
+            if (acD && acE && eiD && eiE) {
+              topo = { x: (acD.x + acE.x) / 2, y: (acD.y + acE.y) / 2 };
+              baixo = { x: (eiD.x + eiE.x) / 2, y: (eiD.y + eiE.y) / 2 };
+            } else if (p.acromio && p.trocanter) {
+              topo = p.acromio;
+              baixo = p.trocanter;
+            }
+            const camadas = [] as any[];
+            if (baseX !== null) {
+              camadas.push(<View key="eixo-verde" style={[styles.eixoIdeal, { left: baseX }]} />);
+            }
+            if (topo && baixo) {
+              const dy = baixo.y - topo.y;
+              const inc = dy === 0 ? 0 : (baixo.x - topo.x) / dy;
+              const xTopo = topo.x + (0 - topo.y) * inc;
+              const xBase = topo.x + (IMAGE_HEIGHT - topo.y) * inc;
+              const comp = Math.sqrt((xBase - xTopo) ** 2 + IMAGE_HEIGHT ** 2);
+              const ang = Math.atan2(IMAGE_HEIGHT, xBase - xTopo) * (180 / Math.PI);
+              camadas.push(
+                <View key="eixo-vermelho" style={[styles.eixoReal, { left: xTopo, top: 0, width: comp, transform: [{ rotate: `${ang}deg` }] }]} />
+              );
+            }
+            return camadas;
+          })()}
 
           {tipo === 'postural' && segmentos.map(([idA, idB], i) => {
             const a = pontosDesenho[idA];
@@ -398,6 +434,8 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
+  eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
+  eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444', transformOrigin: 'left' },
   setaHaste: { position: 'absolute', height: 2, backgroundColor: '#EF4444', transformOrigin: 'left' },
   setaRotulo: { position: 'absolute', fontSize: 10, fontWeight: '700', color: '#EF4444', width: 54, textAlign: 'center' },
   marcadorObservacao: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 3, borderColor: '#EF4444', backgroundColor: 'transparent' },
