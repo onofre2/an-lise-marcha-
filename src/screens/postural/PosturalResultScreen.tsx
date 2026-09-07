@@ -224,16 +224,16 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       if (avaliacaoId) {
         db.runSync(
           `UPDATE avaliacoes_posturais
-           SET foto_uri = ?, pontos_json = ?, medidas_json = ?, observacoes_json = ?, dimensoes_json = ?
+           SET foto_uri = ?, pontos_json = ?, medidas_json = ?, observacoes_json = ?, dimensoes_json = ?, diagnostico_sugerido = ?
            WHERE id = ?`,
-          [fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, avaliacaoId]
+          [fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico, avaliacaoId]
         );
         idAvaliacao = avaliacaoId;
       } else {
         db.runSync(
-          `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json, dimensoes_json)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes]
+          `INSERT INTO avaliacoes_posturais (id_paciente, vista, modo, data_avaliacao, foto_uri, pontos_json, medidas_json, observacoes_json, dimensoes_json, diagnostico_sugerido)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [pacienteId, vista, modo, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), JSON.stringify(desajustes), JSON.stringify(observacoes), dimensoes, diagnostico]
         );
         const criada = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
         idAvaliacao = criada.id;
