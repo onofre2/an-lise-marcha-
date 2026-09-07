@@ -10,6 +10,7 @@ import { calcularFase } from '../../services/marchaCalculations';
 interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
+const IMAGE_WIDTH = Dimensions.get('window').width - 40;
 
 // Dimensoes de referencia da area de video onde os pontos da marcha foram
 // marcados. Usadas para converter as coordenadas normalizadas de volta.
@@ -62,6 +63,19 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       return {};
     }
   }, [registro]);
+
+  // A avaliacao postural grava os pontos normalizados (0 a 1) para que possam
+  // ser redesenhados em qualquer tela. Os demais modulos ainda gravam em pixel.
+  const pontosDesenho = useMemo(() => {
+    if (tipo !== 'postural') return pontos;
+    // Multiplica pela area de exibicao DESTA tela, nao pela da tela de edicao:
+    // a coordenada normalizada e independente de tamanho, e por isso funciona.
+    const out: Record<string, { x: number; y: number }> = {};
+    for (const [id, pt] of Object.entries(pontos as Record<string, { x: number; y: number }>)) {
+      out[id] = { x: pt.x * IMAGE_WIDTH, y: pt.y * IMAGE_HEIGHT };
+    }
+    return out;
+  }, [pontos, tipo]);
 
   // Circulos de desajuste marcados sobre os frames da marcha.
   const observacoesMarcha = useMemo(() => {
@@ -143,8 +157,8 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
           <Image source={{ uri: registro.foto_uri }} style={styles.image} resizeMode="contain" />
 
           {tipo === 'postural' && segmentos.map(([idA, idB], i) => {
-            const a = pontos[idA];
-            const b = pontos[idB];
+            const a = pontosDesenho[idA];
+            const b = pontosDesenho[idB];
             if (!a || !b) return null;
             return <Linha key={i} a={a} b={b} />;
           })}
