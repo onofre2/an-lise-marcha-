@@ -134,6 +134,30 @@ export function imagemPostural(
     }
   });
 
+  // Eixo ideal (vertical verde) e eixo real do tronco (vermelho).
+  const tD = pontosPx.tornozelo_d;
+  const tE = pontosPx.tornozelo_e;
+  const maleoloPx = pontosPx.maleolo;
+  const baseX = tD && tE ? (tD.x + tE.x) / 2 : maleoloPx ? maleoloPx.x : null;
+  if (baseX !== null) {
+    camadas += `<line x1="${baseX}" y1="0" x2="${baseX}" y2="${altura}" stroke="#22C55E" stroke-width="2" />`;
+  }
+  const acD = pontosPx.acromio_d;
+  const acE = pontosPx.acromio_e;
+  const eiD = pontosPx.eias_d || pontosPx.eips_d;
+  const eiE = pontosPx.eias_e || pontosPx.eips_e;
+  if (acD && acE && eiD && eiE) {
+    const tx = (acD.x + acE.x) / 2;
+    const ty = (acD.y + acE.y) / 2;
+    const bx = (eiD.x + eiE.x) / 2;
+    const by = (eiD.y + eiE.y) / 2;
+    camadas += `<line x1="${tx}" y1="${ty}" x2="${bx}" y2="${by}" stroke="#EF4444" stroke-width="2" />`;
+  } else if (pontosPx.acromio && pontosPx.trocanter) {
+    const a = pontosPx.acromio;
+    const b = pontosPx.trocanter;
+    camadas += `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#EF4444" stroke-width="2" />`;
+  }
+
   Object.values(pontosPx).forEach(p => { camadas += marcador(p); });
   Object.values(observacoesPx).forEach(p => { camadas += observacao(p); });
 
