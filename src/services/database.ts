@@ -183,6 +183,13 @@ export const initDatabase = () => {
       }
     });
 
+    // Caracteristicas do pe observadas pelo terapeuta na analise da marcha.
+    try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN pisada_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     // Circulos de desajuste marcados pelo terapeuta sobre o frame da marcha.
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN observacoes_json TEXT');

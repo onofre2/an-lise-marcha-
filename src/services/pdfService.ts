@@ -441,6 +441,21 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
       <h2>Captura ${av.angulo} - ${av.data_avaliacao}</h2>
       ${imagensHtml}
       ${tabelaFases || '<div class="info">Sem marcacoes por fase registradas nesta avaliacao.</div>'}
+      ${(() => {
+        try {
+          const pis = av.pisada_json ? JSON.parse(av.pisada_json) : {};
+          const linhas = [
+            ['Pe direito', pis.pisada_direito, pis.arco_direito],
+            ['Pe esquerdo', pis.pisada_esquerdo, pis.arco_esquerdo],
+          ].filter(l => l[1] || l[2]);
+          if (linhas.length === 0) return '';
+          let html = '<h2>Caracteristicas do Pe</h2><table><tr><th>Lado</th><th>Pisada</th><th>Arco</th></tr>';
+          linhas.forEach(l => {
+            html += `<tr><td>${l[0]}</td><td>${l[1] || '-'}</td><td>${l[2] || '-'}</td></tr>`;
+          });
+          return html + '</table>';
+        } catch { return ''; }
+      })()}
       ${rodapeHtml}
     </body></html>
   `;

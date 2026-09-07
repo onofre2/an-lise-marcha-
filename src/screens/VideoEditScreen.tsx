@@ -140,6 +140,11 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const limparFase = () => setPontosFaseAtual({});
 
   const [modoObservacao, setModoObservacao] = useState(false);
+
+  // Caracteristicas do pe: observadas pelo terapeuta, nao calculadas pelo app.
+  const [pisada, setPisada] = useState<Record<string, string>>({});
+  const alternar = (chave: string, valor: string) =>
+    setPisada(prev => ({ ...prev, [chave]: prev[chave] === valor ? '' : valor }));
   // Observacoes por fase: o desajuste marcado no Contato Inicial nao deve
   // aparecer sobre o frame do Apoio Medio.
   const [observacoesPorFase, setObservacoesPorFase] = useState<Record<string, Record<string, Observacao>>>({});
@@ -220,8 +225,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const videoPermanente = await salvarMidiaPermanente(videoUri);
       db.runSync(
-        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura }), JSON.stringify(observacoesPorFase)]
+        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json, pisada_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura }), JSON.stringify(observacoesPorFase), JSON.stringify(pisada)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -335,6 +340,40 @@ export default function VideoEditScreen({ route, navigation }: any) {
               </TouchableOpacity>
             )}
           </View>
+          <View style={styles.blocoPisada}>
+            <Text style={styles.blocoPisadaTitulo}>Características do pé</Text>
+            {[
+              { lado: 'direito', rotulo: 'Pé direito' },
+              { lado: 'esquerdo', rotulo: 'Pé esquerdo' },
+            ].map(({ lado, rotulo }) => (
+              <View key={lado} style={styles.grupoPisada}>
+                <Text style={styles.grupoPisadaRotulo}>{rotulo}</Text>
+                <View style={styles.linhaOpcoes}>
+                  {['Pronada', 'Neutra', 'Supinada'].map(op => (
+                    <TouchableOpacity
+                      key={op}
+                      style={[styles.opcao, pisada[`pisada_${lado}`] === op && styles.opcaoAtiva]}
+                      onPress={() => alternar(`pisada_${lado}`, op)}
+                    >
+                      <Text style={[styles.opcaoTexto, pisada[`pisada_${lado}`] === op && styles.opcaoTextoAtivo]}>{op}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <View style={styles.linhaOpcoes}>
+                  {['Cavo', 'Normal', 'Plano'].map(op => (
+                    <TouchableOpacity
+                      key={op}
+                      style={[styles.opcao, pisada[`arco_${lado}`] === op && styles.opcaoAtiva]}
+                      onPress={() => alternar(`arco_${lado}`, op)}
+                    >
+                      <Text style={[styles.opcaoTexto, pisada[`arco_${lado}`] === op && styles.opcaoTextoAtivo]}>{op}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+
           {temAlgumaFase && (
             <TouchableOpacity style={styles.btnSalvar} onPress={salvar}>
               <Text style={styles.btnSalvarText}>Salvar no Historico do Paciente</Text>
@@ -425,6 +464,15 @@ const styles = StyleSheet.create({
   video: { width: '100%', height: '100%' },
   overlay: { position: 'absolute', width: '100%', height: '100%' },
   frameCongelado: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
+  blocoPisada: { marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: '#E2E8F0' },
+  blocoPisadaTitulo: { fontSize: 14, fontWeight: '700', color: '#0F172A', marginBottom: 10 },
+  grupoPisada: { marginBottom: 12 },
+  grupoPisadaRotulo: { fontSize: 12, color: '#64748B', fontWeight: '600', marginBottom: 6 },
+  linhaOpcoes: { flexDirection: 'row', gap: 6, marginBottom: 6 },
+  opcao: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F1F5F9', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  opcaoAtiva: { backgroundColor: '#0EA5E9', borderColor: '#0EA5E9' },
+  opcaoTexto: { fontSize: 12, color: '#475569', fontWeight: '600' },
+  opcaoTextoAtivo: { color: '#FFFFFF' },
   btnSecAtivo: { backgroundColor: '#EF4444', borderColor: '#EF4444' },
   btnSecTextAtivo: { color: '#FFFFFF' },
   marcador: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF' },
