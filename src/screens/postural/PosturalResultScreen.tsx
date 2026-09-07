@@ -228,7 +228,23 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         </View>
       )}
 
-      <View style={styles.imageContainer} onStartShouldSetResponderCapture={() => modoObservacao} onResponderRelease={adicionarObservacao}>
+      <View
+        style={styles.imageContainer}
+        // Captura antes dos filhos para a marcacao nascer mesmo sobre um ponto,
+        // mas nao intercepta o toque na ponta de uma seta ja existente, que
+        // precisa continuar arrastavel.
+        onStartShouldSetResponderCapture={(evt: any) => {
+          if (!modoObservacao) return false;
+          const { locationX, locationY } = evt.nativeEvent;
+          const sobreUmaSeta = Object.values(observacoes).some(o => {
+            const px = o.ponta.x * IMAGE_WIDTH;
+            const py = o.ponta.y * IMAGE_HEIGHT;
+            return Math.abs(locationX - px) < 22 && Math.abs(locationY - py) < 22;
+          });
+          return !sobreUmaSeta;
+        }}
+        onResponderRelease={adicionarObservacao}
+      >
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
 
         {mostrarGrade && (

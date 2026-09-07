@@ -223,11 +223,14 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
             const dy = o.ponta.y - o.base.y;
             const comp = Math.sqrt(dx * dx + dy * dy);
             const ang = Math.atan2(dy, dx) * (180 / Math.PI);
+            // Fragmento, nao View: um View comum entraria no fluxo normal e
+            // tiraria os filhos absolutos da area da imagem.
             return (
-              <View key={`obs-${i}`}>
+              <React.Fragment key={`obs-${i}`}>
                 <View style={[styles.setaHaste, { left: o.base.x, top: o.base.y, width: comp, transform: [{ rotate: `${ang}deg` }] }]} />
+                <View style={[styles.setaPonta, { left: o.ponta.x - 5, top: o.ponta.y - 5, transform: [{ rotate: `${ang}deg` }] }]} />
                 <Text style={[styles.setaRotulo, { left: dx > 0 ? o.base.x - 60 : o.base.x + 6, top: o.base.y - 7 }]}>desajuste</Text>
-              </View>
+              </React.Fragment>
             );
           })}
         </View>
@@ -436,6 +439,11 @@ const styles = StyleSheet.create({
   linha: { position: 'absolute', height: 2, backgroundColor: '#4ADE80', transformOrigin: 'left' },
   eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
   eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444', transformOrigin: 'left' },
+  setaPonta: {
+    position: 'absolute', width: 0, height: 0, backgroundColor: 'transparent',
+    borderTopWidth: 5, borderBottomWidth: 5, borderLeftWidth: 10,
+    borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: '#EF4444',
+  },
   setaHaste: { position: 'absolute', height: 2, backgroundColor: '#EF4444', transformOrigin: 'left' },
   setaRotulo: { position: 'absolute', fontSize: 10, fontWeight: '700', color: '#EF4444', width: 54, textAlign: 'center' },
   marcadorObservacao: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 3, borderColor: '#EF4444', backgroundColor: 'transparent' },
