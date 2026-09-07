@@ -15,7 +15,6 @@ import { calcularFase, PontosFase } from '../services/marchaCalculations';
 
 const VIDEO_HEIGHT = Dimensions.get('window').height * 0.38;
 const VIDEO_WIDTH = Dimensions.get('window').width - 32;
-const DIMENSOES_VIDEO = { largura: VIDEO_WIDTH, altura: VIDEO_HEIGHT };
 
 const IMG_FASES = require('../../assets/referencias/fases-marcha.jpg');
 
@@ -43,16 +42,34 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const [frameCongelado, setFrameCongelado] = useState<string | null>(null);
   const [extraindoFrame, setExtraindoFrame] = useState(false);
 
+  // Proporcao real do video. O player usa "contain": o video fica centralizado
+  // com faixas pretas nas laterais, e a marcacao precisa descontar essa faixa
+  // para cair no mesmo lugar do frame extraido, que nao tem faixa nenhuma.
+  const [proporcaoFrame, setProporcaoFrame] = useState<number | null>(null);
+
+  // Area util do video dentro do player, sem as faixas pretas.
+  const areaVideo = React.useMemo(() => {
+    if (!proporcaoFrame) return { largura: VIDEO_WIDTH, altura: VIDEO_HEIGHT, offsetX: 0, offsetY: 0 };
+    const propArea = VIDEO_WIDTH / VIDEO_HEIGHT;
+    if (proporcaoFrame > propArea) {
+      const altura = VIDEO_WIDTH / proporcaoFrame;
+      return { largura: VIDEO_WIDTH, altura, offsetX: 0, offsetY: (VIDEO_HEIGHT - altura) / 2 };
+    }
+    const largura = VIDEO_HEIGHT * proporcaoFrame;
+    return { largura, altura: VIDEO_HEIGHT, offsetX: (VIDEO_WIDTH - largura) / 2, offsetY: 0 };
+  }, [proporcaoFrame]);
+
   const congelarFrame = React.useCallback(async () => {
     if (extraindoFrame) return;
     setExtraindoFrame(true);
     try {
       const tempoMs = Math.max(Math.round((player.currentTime || 0) * 1000), 0);
-      const { uri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+      const { uri, width, height } = await VideoThumbnails.getThumbnailAsync(videoUri, {
         time: tempoMs,
         quality: 1,
       });
       setFrameCongelado(uri);
+      if (width > 0 && height > 0) setProporcaoFrame(width / height);
     } catch (e) {
       console.error('Erro ao congelar frame:', e);
     } finally {
@@ -97,8 +114,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
     if (modoObservacao) {
       const { locationX, locationY } = evt.nativeEvent;
       const novoId = `obs_${Date.now()}`;
-      const bx = locationX / VIDEO_WIDTH;
-      const by = locationY / VIDEO_HEIGHT;
+      const bx = (locationX - areaVideo.offsetX) / areaVideo.largura;
+      const by = (locationY - areaVideo.offsetY) / areaVideo.altura;
       setObservacoesPorFase(prev => ({
         ...prev,
         [fase.id]: {
@@ -113,7 +130,10 @@ export default function VideoEditScreen({ route, navigation }: any) {
     // Normalizado (0 a 1) para o PDF poder redesenhar em qualquer tamanho.
     setPontosFaseAtual(prev => ({
       ...prev,
-      [pontoAtual!.id]: { x: locationX / VIDEO_WIDTH, y: locationY / VIDEO_HEIGHT },
+      [pontoAtual!.id]: {
+        x: (locationX - areaVideo.offsetX) / areaVideo.largura,
+        y: (locationY - areaVideo.offsetY) / areaVideo.altura,
+      },
     }));
   };
 
@@ -137,8 +157,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
           [id]: {
             ...atual,
             ponta: {
-              x: Math.min(Math.max(x / VIDEO_WIDTH, 0), 1),
-              y: Math.min(Math.max(y / VIDEO_HEIGHT, 0), 1),
+              x: Math.min(Math.max((x - areaVideo.offsetX) / areaVideo.largura, 0), 1),
+              y: Math.min(Math.max((y - areaVideo.offsetY) / areaVideo.altura, 0), 1),
             },
           },
         },
@@ -155,8 +175,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
   };
 
   const moverPontoFase = (id: string, x: number, y: number) => {
-    const nx = Math.min(Math.max(x / VIDEO_WIDTH, 0), 1);
-    const ny = Math.min(Math.max(y / VIDEO_HEIGHT, 0), 1);
+    const nx = Math.min(Math.max((x - areaVideo.offsetX) / areaVideo.largura, 0), 1);
+    const ny = Math.min(Math.max((y - areaVideo.offsetY) / areaVideo.altura, 0), 1);
     setPontosFaseAtual(prev => ({ ...prev, [id]: { x: nx, y: ny } }));
   };
 
@@ -164,10 +184,10 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const pontosPx = React.useMemo(() => {
     const out: Record<string, { x: number; y: number }> = {};
     for (const [id, p] of Object.entries(pontosFaseAtual)) {
-      out[id] = { x: p.x * VIDEO_WIDTH, y: p.y * VIDEO_HEIGHT };
+      out[id] = { x: p.x * areaVideo.largura + areaVideo.offsetX, y: p.y * areaVideo.altura + areaVideo.offsetY };
     }
     return out;
-  }, [pontosFaseAtual]);
+  }, [pontosFaseAtual, areaVideo]);
 
   // Referencia da area do video, usada para capturar o frame com as marcacoes
   const areaVideoRef = React.useRef<any>(null);
@@ -201,7 +221,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
       const videoPermanente = await salvarMidiaPermanente(videoUri);
       db.runSync(
         'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify(DIMENSOES_VIDEO), JSON.stringify(observacoesPorFase)]
+        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura }), JSON.stringify(observacoesPorFase)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -248,8 +268,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
             <SetaDesajuste
               key={id}
               id={id}
-              base={{ x: o.base.x * VIDEO_WIDTH, y: o.base.y * VIDEO_HEIGHT }}
-              ponta={{ x: o.ponta.x * VIDEO_WIDTH, y: o.ponta.y * VIDEO_HEIGHT }}
+              base={{ x: o.base.x * areaVideo.largura + areaVideo.offsetX, y: o.base.y * areaVideo.altura + areaVideo.offsetY }}
+              ponta={{ x: o.ponta.x * areaVideo.largura + areaVideo.offsetX, y: o.ponta.y * areaVideo.altura + areaVideo.offsetY }}
               onMoverPonta={moverPontaObservacao}
               onLongPress={removerObservacao}
             />
@@ -323,12 +343,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
         </View>
       ) : (
         <View>
-          <ResumoMarcha marcacoes={marcacoes} />
+          <ResumoMarcha marcacoes={marcacoes} area={areaVideo} />
           <Text style={styles.tituloResultado}>Resultado por Fase</Text>
           {FASES_MARCHA.map(f => (
             <View key={f.id} style={styles.blocoFase}>
               <Text style={styles.blocoFaseNome}>{f.nome}</Text>
-              {calcularFase(f.id, marcacoes[f.id] || {}, DIMENSOES_VIDEO).map((r, i) => (
+              {calcularFase(f.id, marcacoes[f.id] || {}, areaVideo).map((r, i) => (
                 <View key={i} style={styles.linhaRes}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.resNome}>{r.nome}</Text>
@@ -350,8 +370,11 @@ export default function VideoEditScreen({ route, navigation }: any) {
   );
 }
 
-function ResumoMarcha({ marcacoes }: { marcacoes: Record<string, PontosFase> }) {
-  const todosResultados = FASES_MARCHA.flatMap(f => calcularFase(f.id, marcacoes[f.id] || {}, DIMENSOES_VIDEO));
+function ResumoMarcha({ marcacoes, area }: {
+  marcacoes: Record<string, PontosFase>;
+  area: { largura: number; altura: number };
+}) {
+  const todosResultados = FASES_MARCHA.flatMap(f => calcularFase(f.id, marcacoes[f.id] || {}, area));
   const alterados = todosResultados.filter(r => !r.dentroFaixa);
 
   if (todosResultados.length === 0) return null;
