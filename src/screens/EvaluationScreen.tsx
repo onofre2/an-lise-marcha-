@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert , Image} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert , Image, Modal, Dimensions} from 'react-native';
 import CardReferencia from '../components/CardReferencia';
 import { usePacienteAtivo } from '../context/PacienteAtivoContext';
 
 export default function EvaluationScreen({ navigation }: any) {
   const { pacienteAtivo } = usePacienteAtivo();
   const [anguloSelecionado, setAnguloSelecionado] = useState<string | null>(null);
+  const [protocoloAberto, setProtocoloAberto] = useState(false);
 
   // A analise da marcha usa apenas o plano sagital: os angulos de referencia
   // do ciclo (Perry) sao medidos de perfil. Vistas frontais avaliam outro
@@ -44,12 +45,30 @@ export default function EvaluationScreen({ navigation }: any) {
 
       <Text style={styles.sectionTitle}>Protocolo de Posicionamento</Text>
       <View style={styles.protocolCard}>
-        <Image
-          source={require('../../assets/referencias/protocolo-marcha.jpg')}
-          style={styles.imagemProtocolo}
-          resizeMode="contain"
-        />
+        <TouchableOpacity activeOpacity={0.8} onPress={() => setProtocoloAberto(true)}>
+          <Image
+            source={require('../../assets/referencias/protocolo-marcha.jpg')}
+            style={styles.imagemProtocolo}
+            resizeMode="contain"
+          />
+          <Text style={styles.dicaAmpliar}>Toque para ampliar</Text>
+        </TouchableOpacity>
       </View>
+
+      <Modal visible={protocoloAberto} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.fundoAmpliado}
+          activeOpacity={1}
+          onPress={() => setProtocoloAberto(false)}
+        >
+          <Image
+            source={require('../../assets/referencias/protocolo-marcha.jpg')}
+            style={styles.imagemAmpliada}
+            resizeMode="contain"
+          />
+          <Text style={styles.dicaFechar}>Toque para fechar</Text>
+        </TouchableOpacity>
+      </Modal>
 
       <Text style={styles.sectionTitle}>Selecione o Ângulo da Marcha</Text>
       <View style={styles.grid}>
@@ -87,6 +106,10 @@ const styles = StyleSheet.create({
   avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
   avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
   imagemProtocolo: { width: '100%', height: 190, borderRadius: 8 },
+  dicaAmpliar: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
+  fundoAmpliado: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
+  imagemAmpliada: { width: Dimensions.get('window').width, height: Dimensions.get('window').height * 0.8 },
+  dicaFechar: { color: '#94A3B8', fontSize: 12, marginTop: 12 },
   protocolCard: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
   protocolText: { fontSize: 14, color: '#0F172A', marginBottom: 6 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
