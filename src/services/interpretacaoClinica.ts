@@ -144,6 +144,42 @@ export function gerarAchados(
 }
 
 /**
+ * Achados da avaliacao cervical, a partir do angulo craniovertebral e do
+ * angulo do ombro. Valores de referencia: craniovertebral igual ou maior que
+ * 48 graus; abaixo disso indica anteriorizacao da cabeca.
+ */
+export function gerarAchadosCervical(
+  anguloCraniovertebral: number | null,
+  anguloOmbro: number | null,
+): Achado[] {
+  const achados: Achado[] = [];
+
+  if (anguloCraniovertebral !== null) {
+    const fora = anguloCraniovertebral < 48;
+    achados.push({
+      titulo: 'Coluna cervical',
+      descricao: fora
+        ? `Angulo craniovertebral de ${anguloCraniovertebral.toFixed(1)} graus, abaixo da referencia de 48 graus. Indica anteriorizacao da cabeca.`
+        : `Angulo craniovertebral de ${anguloCraniovertebral.toFixed(1)} graus, dentro da referencia de 48 graus ou mais.`,
+      alerta: fora,
+    });
+  }
+
+  if (anguloOmbro !== null) {
+    const fora = anguloOmbro < 52;
+    achados.push({
+      titulo: 'Cintura escapular',
+      descricao: fora
+        ? `Angulo do ombro de ${anguloOmbro.toFixed(1)} graus, abaixo da referencia de 52 graus. Indica protrusao do ombro.`
+        : `Angulo do ombro de ${anguloOmbro.toFixed(1)} graus, dentro da referencia de 52 graus ou mais.`,
+      alerta: fora,
+    });
+  }
+
+  return achados;
+}
+
+/**
  * Reune os achados num texto corrido, pronto para revisao do terapeuta.
  */
 export function montarDiagnosticoSugerido(achados: Achado[], vista: string): string {

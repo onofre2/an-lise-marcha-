@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, PanResponder } from 'react-native';
 import db from '../../services/database';
+import { gerarAchadosCervical } from '../../services/interpretacaoClinica';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { gerarRelatorioCervical } from '../../services/pdfService';
 import { Observacao } from '../../services/observacoes';
@@ -96,6 +97,11 @@ export default function CervicalResultScreen({ route, navigation }: any) {
   }, [pontosEditaveis]);
 
   // Referencias clinicas: CVA normal >= 48 graus; angulo do ombro normal > 52 graus
+  const achados = React.useMemo(
+    () => gerarAchadosCervical(cva, anguloOmbro),
+    [cva, anguloOmbro]
+  );
+
   const alertaCva = cva !== null && cva < 48;
   const alertaOmbro = anguloOmbro !== null && anguloOmbro < 52;
   const totalAlertas = (alertaCva ? 1 : 0) + (alertaOmbro ? 1 : 0);
@@ -118,8 +124,8 @@ export default function CervicalResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
+        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json, achados_json, sem_cor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), JSON.stringify(achados), 0]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -169,6 +175,33 @@ export default function CervicalResultScreen({ route, navigation }: any) {
       >
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
         {pontosPx.c7 && <LinhaReferenciaHorizontal ponto={pontosPx.c7} />}
+
+        {/* Eixo ideal: vertical a partir do acromio. Eixo real: acromio ate o
+            trago, mostrando o quanto a cabeca se projeta a frente. */}
+        {pontosPx.acromio && (
+          <View pointerEvents="none" style={[styles.eixoIdeal, { left: pontosPx.acromio.x }]} />
+        )}
+        {pontosPx.acromio && pontosPx.trago && (() => {
+          const a = pontosPx.acromio;
+          const b = pontosPx.trago;
+          const dy = b.y - a.y;
+          const inc = dy === 0 ? 0 : (b.x - a.x) / dy;
+          const xTopo = a.x + (0 - a.y) * inc;
+          const xBase = a.x + (IMAGE_HEIGHT - a.y) * inc;
+          const comp = Math.sqrt((xBase - xTopo) ** 2 + IMAGE_HEIGHT ** 2);
+          const ang = Math.atan2(IMAGE_HEIGHT, xBase - xTopo) * (180 / Math.PI);
+          return (
+            <View
+              pointerEvents="none"
+              style={[styles.eixoReal, {
+                left: (xTopo + xBase) / 2 - comp / 2,
+                top: IMAGE_HEIGHT / 2,
+                width: comp,
+                transform: [{ rotate: `${ang}deg` }],
+              }]}
+            />
+          );
+        })()}
         {pontosPx.c7 && pontosPx.trago && (
           <>
             <LinhaSegmento a={pontosPx.c7} b={pontosPx.trago} alerta={alertaCva} />
@@ -204,6 +237,18 @@ export default function CervicalResultScreen({ route, navigation }: any) {
           />
         ))}
       </View>
+
+      {achados.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Diagnóstico Clínico Sugerido</Text>
+          {achados.map((a, i) => (
+            <View key={i} style={[styles.cardAchado, a.alerta && styles.cardAchadoAlerta]}>
+              <Text style={styles.cardAchadoTitulo}>{a.titulo}</Text>
+              <Text style={styles.cardAchadoTexto}>{a.descricao}</Text>
+            </View>
+          ))}
+        </>
+      )}
 
       <Text style={styles.sectionTitle}>Resultado</Text>
 
@@ -305,6 +350,12 @@ const styles = StyleSheet.create({
   resumoTexto: { fontSize: 13, lineHeight: 19 },
   resumoTextoOk: { color: '#166534' },
   resumoTextoAlerta: { color: '#92400E' },
+  cardAchado: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 12, marginBottom: 8, borderLeftWidth: 4, borderLeftColor: '#94A3B8' },
+  cardAchadoAlerta: { backgroundColor: '#FFFBEB', borderLeftColor: '#F59E0B' },
+  cardAchadoTitulo: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 2 },
+  cardAchadoTexto: { fontSize: 13, color: '#475569', lineHeight: 18 },
+  eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
+  eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444' },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: '#22C55E', borderWidth: 1, borderColor: '#FFF' },
