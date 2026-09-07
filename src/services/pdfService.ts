@@ -163,6 +163,25 @@ async function rodapeCompleto(): Promise<string> {
   }
 
   return `
+    <div style="margin-top:26px;padding-top:12px;border-top:1px solid #E2E8F0;font-size:9px;color:#94A3B8;line-height:1.5;text-align:justify;">
+      <b>Referencias cientificas.</b>
+      Protocolo SAPO (Duarte et al., 2005), base do modulo de avaliacao postural.
+      Indices de simetria de tronco POTSI e ATSI (Suzuki et al., 1999).
+      Angulo craniovertebral, padrao clinico para avaliacao de cabeca anteriorizada.
+      Angulo Q, formado no centro da patela entre a linha vinda da espinha iliaca
+      antero-superior e a linha vinda da tuberosidade da tibia, com referencia usual
+      de cerca de 13 graus em homens e 18 em mulheres; acima de 20 graus ha maior
+      incidencia de alteracoes femoropatelares. Inclinacao pelvica medida pelo angulo
+      entre as espinhas iliacas antero e postero-superior em relacao a horizontal,
+      com faixa usualmente descrita entre 10 e 15 graus de anteversao. Goniometria
+      clinica com valores normativos de amplitude de movimento (AAOS e Kendall).
+      Fases do ciclo da marcha segundo Perry, J., Gait Analysis: Normal and
+      Pathological Function, avaliadas apenas no plano sagital.
+      Limite de alerta para alinhamentos: 5 graus; desniveis lineares a partir de
+      1 cm tambem sao sinalizados quando ha altura do paciente registrada.
+      As medidas obtidas por fotogrametria em ortostatismo servem como triagem e
+      nao substituem exame de imagem nem medida instrumental.
+    </div>
     ${terapeutaHtml}
     <div class="rodape">
       <img src="${MARCA_BASE64}" style="height:44px;vertical-align:middle;margin-right:10px;border-radius:8px;" />

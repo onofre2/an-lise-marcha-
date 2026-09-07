@@ -103,6 +103,23 @@ export default function ConfiguracoesScreen() {
         <Text style={styles.refTitulo}>Angulo Craniovertebral</Text>
         <Text style={styles.refTexto}>Padrao clinico para avaliacao de postura de cabeca anteriorizada.</Text>
 
+        <Text style={styles.refTitulo}>Angulo Q</Text>
+        <Text style={styles.refTexto}>
+          Angulo formado no centro da patela entre a linha vinda da espinha iliaca
+          antero-superior e a linha vinda da tuberosidade da tibia. Referencia usual:
+          cerca de 13 graus em homens e 18 em mulheres; acima de 20 graus ha maior
+          incidencia de alteracoes femoropatelares. Ressalva: e classicamente medido
+          em decubito dorsal e nao ha consenso universal sobre valores normais. Aqui
+          e obtido por fotogrametria em ortostatismo, servindo como triagem.
+        </Text>
+
+        <Text style={styles.refTitulo}>Inclinacao Pelvica</Text>
+        <Text style={styles.refTexto}>
+          Angulo da linha entre a espinha iliaca antero-superior e a postero-superior
+          em relacao a horizontal. Faixa usualmente descrita entre 10 e 15 graus de
+          anteversao, com variacao entre estudos.
+        </Text>
+
         <Text style={styles.refTitulo}>Goniometria Clinica</Text>
         <Text style={styles.refTexto}>Valores normativos de amplitude de movimento (referencia AAOS/Kendall).</Text>
 
