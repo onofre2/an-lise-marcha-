@@ -27,8 +27,20 @@ export default function CervicalResultScreen({ route, navigation }: any) {
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
 
+  // Os pontos sao gravados normalizados (0 a 1). O angulo so e correto em
+  // pixel: a area nao e quadrada, entao o espaco normalizado distorce.
+  const pontosPx = React.useMemo(() => {
+    const out: Record<string, Ponto> = {};
+    for (const [id, pt] of Object.entries(pontosEditaveis)) {
+      out[id] = { x: pt.x * IMAGE_WIDTH, y: pt.y * IMAGE_HEIGHT };
+    }
+    return out;
+  }, [pontosEditaveis]);
+
   const moverPonto = (id: string, x: number, y: number) => {
-    setPontosEditaveis(prev => ({ ...prev, [id]: { x, y } }));
+    const nx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
+    const ny = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);
+    setPontosEditaveis(prev => ({ ...prev, [id]: { x: nx, y: ny } }));
   };
 
   const restaurarPontos = () => setPontosEditaveis(pontos);
@@ -74,13 +86,13 @@ export default function CervicalResultScreen({ route, navigation }: any) {
   };
 
   const cva = useMemo(() => {
-    if (!pontosEditaveis.c7 || !pontosEditaveis.trago) return null;
-    return anguloComHorizontal(pontosEditaveis.c7, pontosEditaveis.trago);
+    if (!pontosPx.c7 || !pontosPx.trago) return null;
+    return anguloComHorizontal(pontosPx.c7, pontosPx.trago);
   }, [pontosEditaveis]);
 
   const anguloOmbro = useMemo(() => {
-    if (!pontosEditaveis.acromio || !pontosEditaveis.c7) return null;
-    return anguloComHorizontal(pontosEditaveis.acromio, pontosEditaveis.c7);
+    if (!pontosPx.acromio || !pontosPx.c7) return null;
+    return anguloComHorizontal(pontosPx.acromio, pontosPx.c7);
   }, [pontosEditaveis]);
 
   // Referencias clinicas: CVA normal >= 48 graus; angulo do ombro normal > 52 graus
@@ -156,20 +168,20 @@ export default function CervicalResultScreen({ route, navigation }: any) {
         onResponderRelease={adicionarObservacao}
       >
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
-        {pontosEditaveis.c7 && <LinhaReferenciaHorizontal ponto={pontosEditaveis.c7} />}
-        {pontosEditaveis.c7 && pontosEditaveis.trago && (
+        {pontosPx.c7 && <LinhaReferenciaHorizontal ponto={pontosPx.c7} />}
+        {pontosPx.c7 && pontosPx.trago && (
           <>
-            <LinhaSegmento a={pontosEditaveis.c7} b={pontosEditaveis.trago} alerta={alertaCva} />
-            <BadgeNaLinha a={pontosEditaveis.c7} b={pontosEditaveis.trago} valor={cva} alerta={alertaCva} />
+            <LinhaSegmento a={pontosPx.c7} b={pontosPx.trago} alerta={alertaCva} />
+            <BadgeNaLinha a={pontosPx.c7} b={pontosPx.trago} valor={cva} alerta={alertaCva} />
           </>
         )}
-        {pontosEditaveis.c7 && pontosEditaveis.acromio && (
+        {pontosPx.c7 && pontosPx.acromio && (
           <>
-            <LinhaSegmento a={pontosEditaveis.acromio} b={pontosEditaveis.c7} alerta={alertaOmbro} />
-            <BadgeNaLinha a={pontosEditaveis.acromio} b={pontosEditaveis.c7} valor={anguloOmbro} alerta={alertaOmbro} />
+            <LinhaSegmento a={pontosPx.acromio} b={pontosPx.c7} alerta={alertaOmbro} />
+            <BadgeNaLinha a={pontosPx.acromio} b={pontosPx.c7} valor={anguloOmbro} alerta={alertaOmbro} />
           </>
         )}
-        {Object.entries(pontosEditaveis).map(([id, p]) => (
+        {Object.entries(pontosPx).map(([id, p]) => (
           <MarcadorComLupa
             key={id}
             id={id}

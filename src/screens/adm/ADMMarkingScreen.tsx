@@ -26,12 +26,19 @@ export default function ADMMarkingScreen({ route, navigation }: any) {
   const handleImagePress = (evt: any) => {
     if (finalizado) return;
     const { locationX, locationY } = evt.nativeEvent;
-    setPontosMarcados(prev => ({ ...prev, [pontoAtual!.id]: { x: locationX, y: locationY } }));
+    // Normalizado (0 a 1): a coordenada passa a valer em qualquer tamanho de
+    // tela e no relatorio, sem depender da area onde foi marcada.
+    setPontosMarcados(prev => ({
+      ...prev,
+      [pontoAtual!.id]: { x: locationX / IMAGE_WIDTH, y: locationY / IMAGE_HEIGHT },
+    }));
     setIndiceAtual(prev => prev + 1);
   };
 
   const moverPonto = (id: string, x: number, y: number) => {
-    setPontosMarcados(prev => ({ ...prev, [id]: { x, y } }));
+    const nx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
+    const ny = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);
+    setPontosMarcados(prev => ({ ...prev, [id]: { x: nx, y: ny } }));
   };
 
   const reiniciar = () => {
@@ -72,7 +79,7 @@ export default function ADMMarkingScreen({ route, navigation }: any) {
       <TouchableOpacity activeOpacity={1} onPress={handleImagePress} style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
         {Object.entries(pontosMarcados).map(([id, p]) => (
-          <MarcadorComLupa key={id} id={id} ponto={p} onMove={moverPonto} fotoUri={fotoUri} larguraImagem={IMAGE_WIDTH} alturaImagem={IMAGE_HEIGHT} />
+          <MarcadorComLupa key={id} id={id} ponto={{ x: p.x * IMAGE_WIDTH, y: p.y * IMAGE_HEIGHT }} onMove={moverPonto} fotoUri={fotoUri} larguraImagem={IMAGE_WIDTH} alturaImagem={IMAGE_HEIGHT} />
         ))}
       </TouchableOpacity>
 

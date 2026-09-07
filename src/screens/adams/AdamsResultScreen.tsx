@@ -32,11 +32,23 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   }, [pacienteId]);
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
+
+  // Os pontos sao gravados normalizados (0 a 1). O angulo so e correto em
+  // pixel: a area nao e quadrada, entao o espaco normalizado distorce.
+  const pontosPx = React.useMemo(() => {
+    const out: Record<string, Ponto> = {};
+    for (const [id, pt] of Object.entries(pontosEditaveis)) {
+      out[id] = { x: pt.x * IMAGE_WIDTH, y: pt.y * IMAGE_HEIGHT };
+    }
+    return out;
+  }, [pontosEditaveis]);
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
 
   const moverPonto = (id: string, x: number, y: number) => {
-    setPontosEditaveis(prev => ({ ...prev, [id]: { x, y } }));
+    const nx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
+    const ny = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);
+    setPontosEditaveis(prev => ({ ...prev, [id]: { x: nx, y: ny } }));
   };
 
   const restaurarPontos = () => setPontosEditaveis(pontos);
@@ -83,9 +95,9 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   // caso contrario, em porcentagem do proprio segmento C7-L5.
   const resultadoLateral = useMemo(() => {
     if (vista !== 'lateral') return null;
-    const c7 = pontosEditaveis.c7;
-    const apice = pontosEditaveis.apice;
-    const l5 = pontosEditaveis.l5;
+    const c7 = pontosPx.c7;
+    const apice = pontosPx.apice;
+    const l5 = pontosPx.l5;
     if (!c7 || !apice || !l5) return null;
 
     const dx = l5.x - c7.x;
@@ -108,8 +120,8 @@ export default function AdamsResultScreen({ route, navigation }: any) {
 
   // Angulo de inclinacao entre os dois lados do dorso, em relacao a horizontal
   const resultado = useMemo(() => {
-    const d = pontosEditaveis.dorso_d;
-    const e = pontosEditaveis.dorso_e;
+    const d = pontosPx.dorso_d;
+    const e = pontosPx.dorso_e;
     if (!d || !e) return null;
 
     const dx = Math.abs(e.x - d.x);
@@ -196,16 +208,16 @@ export default function AdamsResultScreen({ route, navigation }: any) {
       >
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
 
-        {vista === 'lateral' && pontosEditaveis.c7 && pontosEditaveis.l5 && (
-          <LinhaDorso a={pontosEditaveis.c7} b={pontosEditaveis.l5} alerta={false} />
+        {vista === 'lateral' && pontosPx.c7 && pontosPx.l5 && (
+          <LinhaDorso a={pontosPx.c7} b={pontosPx.l5} alerta={false} />
         )}
 
-        {vista === 'lateral' && pontosEditaveis.c7 && pontosEditaveis.l5 && pontosEditaveis.apice && (() => {
+        {vista === 'lateral' && pontosPx.c7 && pontosPx.l5 && pontosPx.apice && (() => {
           // Perpendicular do apice ate a linha C7-L5: e essa distancia que
           // representa a altura da gibosidade.
-          const c7 = pontosEditaveis.c7;
-          const l5 = pontosEditaveis.l5;
-          const ap = pontosEditaveis.apice;
+          const c7 = pontosPx.c7;
+          const l5 = pontosPx.l5;
+          const ap = pontosPx.apice;
           const dx = l5.x - c7.x;
           const dy = l5.y - c7.y;
           const comp2 = dx * dx + dy * dy;
@@ -215,14 +227,14 @@ export default function AdamsResultScreen({ route, navigation }: any) {
           return <LinhaDorso a={ap} b={pe} alerta={resultadoLateral ? resultadoLateral.alerta : false} />;
         })()}
 
-        {pontosEditaveis.dorso_d && pontosEditaveis.dorso_e && (
+        {pontosPx.dorso_d && pontosPx.dorso_e && (
           <>
-            <LinhaReferencia a={pontosEditaveis.dorso_d} b={pontosEditaveis.dorso_e} />
-            <LinhaDorso a={pontosEditaveis.dorso_d} b={pontosEditaveis.dorso_e} alerta={resultado ? resultado.alerta : false} />
+            <LinhaReferencia a={pontosPx.dorso_d} b={pontosPx.dorso_e} />
+            <LinhaDorso a={pontosPx.dorso_d} b={pontosPx.dorso_e} alerta={resultado ? resultado.alerta : false} />
             {resultado && (
               <BadgeNaLinha
-                a={pontosEditaveis.dorso_d}
-                b={pontosEditaveis.dorso_e}
+                a={pontosPx.dorso_d}
+                b={pontosPx.dorso_e}
                 valor={resultado.angulo}
                 alerta={resultado.alerta}
               />
@@ -230,7 +242,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
           </>
         )}
 
-        {Object.entries(pontosEditaveis).map(([id, p]) => (
+        {Object.entries(pontosPx).map(([id, p]) => (
           <MarcadorComLupa
             key={id}
             id={id}

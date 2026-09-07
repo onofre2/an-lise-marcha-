@@ -23,8 +23,20 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
 
+  // Os pontos sao gravados normalizados (0 a 1). O angulo so e correto em
+  // pixel: a area nao e quadrada, entao o espaco normalizado distorce.
+  const pontosPx = React.useMemo(() => {
+    const out: Record<string, Ponto> = {};
+    for (const [id, pt] of Object.entries(pontosEditaveis)) {
+      out[id] = { x: pt.x * IMAGE_WIDTH, y: pt.y * IMAGE_HEIGHT };
+    }
+    return out;
+  }, [pontosEditaveis]);
+
   const moverPonto = (id: string, x: number, y: number) => {
-    setPontosEditaveis(prev => ({ ...prev, [id]: { x, y } }));
+    const nx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
+    const ny = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);
+    setPontosEditaveis(prev => ({ ...prev, [id]: { x: nx, y: ny } }));
   };
 
   const restaurarPontos = () => setPontosEditaveis(pontos);
@@ -71,9 +83,9 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
   const angulo = useMemo(() => {
     if (!movimento) return null;
-    const a = pontosEditaveis[ids[0]];
-    const vertice = pontosEditaveis[ids[1]];
-    const c = pontosEditaveis[ids[2]];
+    const a = pontosPx[ids[0]];
+    const vertice = pontosPx[ids[1]];
+    const c = pontosPx[ids[2]];
     if (!a || !vertice || !c) return null;
 
     const v1x = a.x - vertice.x;
@@ -104,9 +116,9 @@ export default function ADMResultScreen({ route, navigation }: any) {
   // e rotacionando o segmento de referencia pelo angulo normativo, no mesmo sentido do movimento real.
   const pontoIdeal = useMemo(() => {
     if (ids.length !== 3) return null;
-    const a = pontosEditaveis[ids[0]];
-    const vertice = pontosEditaveis[ids[1]];
-    const c = pontosEditaveis[ids[2]];
+    const a = pontosPx[ids[0]];
+    const vertice = pontosPx[ids[1]];
+    const c = pontosPx[ids[2]];
     if (!a || !vertice || !c) return null;
 
     const anguloVetor = (dx: number, dy: number) => Math.atan2(dy, dx);
@@ -185,19 +197,19 @@ export default function ADMResultScreen({ route, navigation }: any) {
         onResponderRelease={adicionarObservacao}
       >
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
-        {ids.length === 3 && pontosEditaveis[ids[0]] && pontosEditaveis[ids[1]] && (
-          <LinhaSegmento a={pontosEditaveis[ids[1]]} b={pontosEditaveis[ids[0]]} />
+        {ids.length === 3 && pontosPx[ids[0]] && pontosPx[ids[1]] && (
+          <LinhaSegmento a={pontosPx[ids[1]]} b={pontosPx[ids[0]]} />
         )}
-        {ids.length === 3 && pontosEditaveis[ids[1]] && pontosEditaveis[ids[2]] && (
-          <LinhaSegmento a={pontosEditaveis[ids[1]]} b={pontosEditaveis[ids[2]]} alerta={alerta} destaque />
+        {ids.length === 3 && pontosPx[ids[1]] && pontosPx[ids[2]] && (
+          <LinhaSegmento a={pontosPx[ids[1]]} b={pontosPx[ids[2]]} alerta={alerta} destaque />
         )}
-        {pontoIdeal && pontosEditaveis[ids[1]] && (
-          <LinhaIdeal a={pontosEditaveis[ids[1]]} b={pontoIdeal} />
+        {pontoIdeal && pontosPx[ids[1]] && (
+          <LinhaIdeal a={pontosPx[ids[1]]} b={pontoIdeal} />
         )}
-        {angulo !== null && pontosEditaveis[ids[1]] && (
-          <BadgeNoVertice ponto={pontosEditaveis[ids[1]]} valor={angulo} alerta={alerta} />
+        {angulo !== null && pontosPx[ids[1]] && (
+          <BadgeNoVertice ponto={pontosPx[ids[1]]} valor={angulo} alerta={alerta} />
         )}
-        {Object.entries(pontosEditaveis).map(([id, p]) => (
+        {Object.entries(pontosPx).map(([id, p]) => (
           <MarcadorComLupa
             key={id}
             id={id}
