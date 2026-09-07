@@ -165,7 +165,7 @@ async function rodapeCompleto(): Promise<string> {
   return `
     ${terapeutaHtml}
     <div class="rodape">
-      <img src="${MARCA_BASE64}" style="height:30px;vertical-align:middle;margin-right:8px;border-radius:6px;" />
+      <img src="${MARCA_BASE64}" style="height:44px;vertical-align:middle;margin-right:10px;border-radius:8px;" />
       Postural Global &middot; @fisionofre &mdash; Documento de apoio clinico, nao substitui avaliacao presencial.
     </div>
   `;

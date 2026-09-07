@@ -349,25 +349,6 @@ export default function PosturalResultScreen({ route, navigation }: any) {
         ))}
       </View>
 
-      <Text style={styles.sectionTitle}>Desajustes Encontrados</Text>
-      {desajustes.length === 0 ? (
-        <Text style={styles.semDados}>Nenhum desajuste calculável com os pontos marcados.</Text>
-      ) : (
-        desajustes.map((d, i) => (
-          <View key={i} style={styles.card}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cardLabel}>{d.label}</Text>
-              <Text style={styles.cardDescricao}>{descreverAchado(d)}</Text>
-            </View>
-            <View style={[styles.badge, d.alerta ? styles.badgeAlerta : styles.badgeOk]}>
-              <Text style={[styles.badgeText, d.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
-                {d.valor}{d.unidade}
-              </Text>
-            </View>
-          </View>
-        ))
-      )}
-
       <View style={styles.barraEdicao}>
         <TouchableOpacity
           style={[styles.btnEdicao, painelEdicao && styles.btnEdicaoAtivo]}
@@ -391,6 +372,25 @@ export default function PosturalResultScreen({ route, navigation }: any) {
           <Text style={[styles.btnEdicaoText, mostrarGrade && styles.btnEdicaoTextAtivo]}>Grade</Text>
         </TouchableOpacity>
       </View>
+
+      <Text style={styles.sectionTitle}>Desajustes Encontrados</Text>
+      {desajustes.length === 0 ? (
+        <Text style={styles.semDados}>Nenhum desajuste calculável com os pontos marcados.</Text>
+      ) : (
+        desajustes.map((d, i) => (
+          <View key={i} style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>{d.label}</Text>
+              <Text style={styles.cardDescricao}>{descreverAchado(d)}</Text>
+            </View>
+            <View style={[styles.badge, d.alerta ? styles.badgeAlerta : styles.badgeOk]}>
+              <Text style={[styles.badgeText, d.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+                {d.valor}{d.unidade}
+              </Text>
+            </View>
+          </View>
+        ))
+      )}
 
       {painelEdicao && (
         <View style={styles.painelEdicao}>
@@ -523,10 +523,10 @@ const styles = StyleSheet.create({
   gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
   painelEdicao: { flexDirection: 'row', gap: 8, marginTop: 8 },
   btnPainel: { flex: 1, backgroundColor: '#F8FAFC', paddingVertical: 10, borderRadius: 10, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
-  barraEdicao: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  btnEdicao: { flex: 1, backgroundColor: '#F1F5F9', paddingVertical: 12, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  barraEdicao: { flexDirection: 'row', gap: 8, marginTop: 0, marginBottom: 18 },
+  btnEdicao: { flex: 1, backgroundColor: '#E0F2FE', paddingVertical: 11, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#7DD3FC' },
   btnEdicaoAtivo: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
-  btnEdicaoText: { color: '#334155', fontWeight: '600', fontSize: 14 },
+  btnEdicaoText: { color: '#0369A1', fontWeight: '700', fontSize: 13 },
   btnEdicaoTextAtivo: { color: '#FFF' },
   linhaChamada: { position: 'absolute', height: 1, backgroundColor: 'rgba(255,255,255,0.55)' },
   eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
@@ -552,8 +552,8 @@ const styles = StyleSheet.create({
   btnObservacaoText: { color: '#EF4444', fontWeight: 'bold', fontSize: 13 },
   btnObservacaoTextAtivo: { color: '#B91C1C' },
   dicaArrastar: { color: '#94A3B8', fontSize: 11, textAlign: 'center', marginTop: 4, marginBottom: 12, lineHeight: 16 },
-  btnRestaurar: { backgroundColor: '#F1F5F9', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0' },
+  btnRestaurar: { backgroundColor: '#F1F5F9', paddingVertical: 10, borderRadius: 12, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0' },
   btnRestaurarText: { color: '#475569', fontWeight: 'bold', fontSize: 13 },
-  btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 10, shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
-  btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
+  btnSalvar: { backgroundColor: '#22C55E', paddingVertical: 13, borderRadius: 14, alignItems: 'center', marginTop: 10, shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 15 },
 });
