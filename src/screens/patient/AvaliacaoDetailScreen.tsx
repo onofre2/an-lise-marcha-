@@ -249,6 +249,39 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
           })}
 
           {tipo === 'adams' && pontosDesenho.dorso_d && pontosDesenho.dorso_e && <Linha a={pontosDesenho.dorso_d} b={pontosDesenho.dorso_e} />}
+          {/* Eixos da cervical e do Adams, os mesmos da tela de avaliacao. */}
+          {(() => {
+            const q = pontosDesenho as Record<string, { x: number; y: number }>;
+            let base: number | null = null;
+            let a: { x: number; y: number } | null = null;
+            let b: { x: number; y: number } | null = null;
+            if (tipo === 'cervical' && q.acromio && q.trago) {
+              base = q.acromio.x; a = q.acromio; b = q.trago;
+            } else if (tipo === 'adams' && q.dorso_d && q.dorso_e) {
+              base = (q.dorso_d.x + q.dorso_e.x) / 2; a = q.dorso_d; b = q.dorso_e;
+            }
+            if (base === null || !a || !b) return null;
+            const alto = a.y <= b.y ? a : b;
+            const baixo = a.y <= b.y ? b : a;
+            const dy = baixo.y - alto.y;
+            const inc = dy === 0 ? 0 : (baixo.x - alto.x) / dy;
+            const xTopo = alto.x + (0 - alto.y) * inc;
+            const xBase = alto.x + (IMAGE_HEIGHT - alto.y) * inc;
+            const comp = Math.sqrt((xBase - xTopo) ** 2 + IMAGE_HEIGHT ** 2);
+            const ang = Math.atan2(IMAGE_HEIGHT, xBase - xTopo) * (180 / Math.PI);
+            return (
+              <>
+                <View style={[styles.eixoIdeal, { left: base }]} />
+                <View style={[styles.eixoReal, {
+                  left: (xTopo + xBase) / 2 - comp / 2,
+                  top: IMAGE_HEIGHT / 2,
+                  width: comp,
+                  transform: [{ rotate: `${ang}deg` }],
+                }]} />
+              </>
+            );
+          })()}
+
           {tipo === 'cervical' && pontosDesenho.c7 && pontosDesenho.trago && <Linha a={pontosDesenho.c7} b={pontosDesenho.trago} />}
           {tipo === 'cervical' && pontosDesenho.c7 && pontosDesenho.acromio && <Linha a={pontosDesenho.acromio} b={pontosDesenho.c7} />}
 
