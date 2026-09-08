@@ -247,4 +247,13 @@ export const initDatabase = () => {
   }
 };
 
+// Executa as migracoes na importacao do modulo, antes de qualquer tela
+// consultar o banco: o useEffect do App roda apos a primeira renderizacao, e
+// telas que consultam no foco poderiam chegar antes das colunas existirem.
+try {
+  initDatabase();
+} catch {
+  // o App tambem chama initDatabase; falha aqui nao impede a inicializacao
+}
+
 export default db;
