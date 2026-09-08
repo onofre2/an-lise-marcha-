@@ -274,7 +274,7 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
               <React.Fragment key={`obs-${i}`}>
                 <View style={[styles.setaHaste, { left: o.base.x, top: o.base.y, width: comp, transform: [{ rotate: `${ang}deg` }] }]} />
                 <View style={[styles.setaPonta, { left: o.ponta.x - 5, top: o.ponta.y - 5, transform: [{ rotate: `${ang}deg` }] }]} />
-                <Text style={[styles.setaRotulo, { left: dx > 0 ? o.base.x - 48 : o.base.x + 5, top: o.base.y - 6 }]}>desajuste</Text>
+                <Text style={[styles.setaRotulo, { left: dx > 0 ? o.base.x - 40 : o.base.x + 4, top: o.base.y - 5 }]}>desajuste</Text>
               </React.Fragment>
             );
           })}
@@ -497,11 +497,11 @@ const styles = StyleSheet.create({
   eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444' },
   setaPonta: {
     position: 'absolute', width: 0, height: 0, backgroundColor: 'transparent',
-    borderTopWidth: 3.5, borderBottomWidth: 3.5, borderLeftWidth: 7,
+    borderTopWidth: 2.5, borderBottomWidth: 2.5, borderLeftWidth: 5,
     borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: '#EF4444',
   },
   setaHaste: { position: 'absolute', height: 1.5, backgroundColor: '#EF4444', transformOrigin: 'left' },
-  setaRotulo: { position: 'absolute', fontSize: 8, fontWeight: '700', color: '#EF4444', width: 44, textAlign: 'center' },
+  setaRotulo: { position: 'absolute', fontSize: 7, fontWeight: '700', color: '#EF4444', width: 36, textAlign: 'center' },
   marcadorObservacao: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 3, borderColor: '#EF4444', backgroundColor: 'transparent' },
   aviso: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12, marginBottom: 16 },
   blocoFase: { marginBottom: 16 },

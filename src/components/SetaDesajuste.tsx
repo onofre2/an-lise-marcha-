@@ -61,7 +61,7 @@ export default function SetaDesajuste({
         pointerEvents="none"
         style={[
           styles.rotulo,
-          rotuloAEsquerda ? { left: base.x - 50 } : { left: base.x + 6 },
+          rotuloAEsquerda ? { left: base.x - 42 } : { left: base.x + 5 },
           { top: base.y - 7 },
         ]}
       >
@@ -76,8 +76,8 @@ const styles = StyleSheet.create({
   areaPonta: { position: 'absolute', width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
   triangulo: {
     width: 0, height: 0, backgroundColor: 'transparent',
-    borderTopWidth: 4, borderBottomWidth: 4, borderLeftWidth: 8,
+    borderTopWidth: 3, borderBottomWidth: 3, borderLeftWidth: 6,
     borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: '#EF4444',
   },
-  rotulo: { position: 'absolute', fontSize: 8, fontWeight: '700', color: '#EF4444', width: 46, textAlign: 'center' },
+  rotulo: { position: 'absolute', fontSize: 7, fontWeight: '700', color: '#EF4444', width: 38, textAlign: 'center' },
 });
