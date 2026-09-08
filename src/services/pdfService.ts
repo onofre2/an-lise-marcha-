@@ -9,6 +9,7 @@ import { MARCA_BASE64 } from './marcaImagem';
 import { fotoParaBase64, imagemPostural, imagemSimples } from './imagemAvaliacao';
 import { SEGMENTOS_RAPIDA, Vista } from '../constants/posturalPoints';
 import { calcularFase } from './marchaCalculations';
+import { calcularDesajustes } from './posturalCalculations';
 import * as FileSystem from 'expo-file-system';
 
 interface Paciente {
@@ -51,6 +52,32 @@ const ESTILO = `
   </style>
 `;
 
+
+/**
+ * Medidas da avaliacao postural. Recalcula a partir dos pontos em vez de usar
+ * o valor gravado: avaliacoes antigas foram salvas com a formula anterior, que
+ * devolvia angulos proximos de 180 em vez do desvio real.
+ */
+function medidasDaAvaliacao(av: any): Medida[] {
+  try {
+    const pontos = av.pontos_json ? JSON.parse(av.pontos_json) : {};
+    if (Object.keys(pontos).length > 0) {
+      // A altura fica na tabela de pacientes, nao na avaliacao.
+      const pac = db.getFirstSync(
+        'SELECT altura_cm FROM pacientes WHERE id = ?',
+        [av.id_paciente]
+      ) as { altura_cm: number | null } | null;
+      return calcularDesajustes(av.vista, pontos, pac?.altura_cm ?? null);
+    }
+  } catch {
+    // cai para o valor gravado
+  }
+  try {
+    return av.medidas_json ? JSON.parse(av.medidas_json) : [];
+  } catch {
+    return [];
+  }
+}
 
 /** Cards do diagnostico clinico sugerido, no mesmo formato da tela. */
 function blocoAchados(achadosJson: string | null): string {
@@ -235,7 +262,7 @@ async function montarImagemPostural(av: any): Promise<string> {
     if (!fotoBase64) return '';
 
     const pontos = av.pontos_json ? JSON.parse(av.pontos_json) : {};
-    const medidas = av.medidas_json ? JSON.parse(av.medidas_json) : [];
+    const medidas = medidasDaAvaliacao(av);
     const observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {};
     const dimensoes = av.dimensoes_json
       ? JSON.parse(av.dimensoes_json)
@@ -371,7 +398,7 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_posturais WHERE id = ?', [idAvaliacao]) as any;
   if (!av) throw new Error('Avaliacao nao encontrada');
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
-  const medidas: Medida[] = av.medidas_json ? JSON.parse(av.medidas_json) : [];
+  const medidas: Medida[] = medidasDaAvaliacao(av);
   const rodapeHtml = await rodapeCompleto();
   const imagemHtml = await montarImagemPostural(av);
 
@@ -594,7 +621,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   if (posturais.length > 0) {
     corpo += '<h2>Avaliacoes Posturais</h2>';
     for (const av of posturais) {
-      const medidas: Medida[] = av.medidas_json ? JSON.parse(av.medidas_json) : [];
+      const medidas: Medida[] = medidasDaAvaliacao(av);
       corpo += `<div class="bloco"><b>${av.vista.replace('_', ' ')}</b> - ${av.data_avaliacao}</div>`;
       corpo += await montarImagemPostural(av);
       corpo += tabelaMedidas(medidas);

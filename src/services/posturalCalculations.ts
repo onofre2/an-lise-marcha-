@@ -33,7 +33,12 @@ function distancia(a: Ponto, b: Ponto): number {
 // Ângulo de um segmento em relação à horizontal (em graus)
 function anguloComHorizontal(a: Ponto, b: Ponto): number {
   const rad = Math.atan2(b.y - a.y, b.x - a.x);
-  return Math.abs(rad * (180 / Math.PI));
+  let graus = Math.abs(rad * (180 / Math.PI));
+  // Quando o primeiro ponto esta a direita do segundo na imagem, atan2 devolve
+  // um valor proximo de 180. O desvio em relacao a horizontal e o complemento:
+  // uma linha perfeitamente nivelada deve dar 0, nao 180.
+  if (graus > 90) graus = 180 - graus;
+  return graus;
 }
 
 // Escala da foto: quantos centimetros reais equivalem a 1 unidade normalizada
