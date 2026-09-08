@@ -385,6 +385,39 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
         </View>
       )}
 
+      {tipo === 'adams' && (() => {
+        let e: any = {};
+        try { e = registro.exame_clinico_json ? JSON.parse(registro.exame_clinico_json) : {}; } catch {}
+        const linhas = [
+          ['Resultado', e.resultado],
+          ['Localização', e.localizacao],
+          ['Lado da gibosidade', e.lado],
+          ['Escoliômetro', e.escoliometro ? `${e.escoliometro} graus` : ''],
+        ].filter(l => l[1]);
+        if (linhas.length === 0 && !e.observacao) return null;
+        return (
+          <>
+            <Text style={styles.sectionTitle}>Registro do Exame Clínico</Text>
+            {linhas.map((l, i) => (
+              <View key={i} style={styles.card}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardLabel}>{l[0]}</Text>
+                  <Text style={styles.cardRef}>{l[1]}</Text>
+                </View>
+              </View>
+            ))}
+            {e.observacao ? (
+              <View style={styles.card}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardLabel}>Observação</Text>
+                  <Text style={styles.cardRef}>{e.observacao}</Text>
+                </View>
+              </View>
+            ) : null}
+          </>
+        );
+      })()}
+
       {tipo === 'marcha' && (() => {
         let tempos: Record<string, number> = {};
         try { tempos = registro.tempos_json ? JSON.parse(registro.tempos_json) : {}; } catch {}
