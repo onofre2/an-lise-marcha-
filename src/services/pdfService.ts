@@ -195,6 +195,13 @@ async function rodapeCompleto(): Promise<string> {
       entre as espinhas iliacas antero e postero-superior em relacao a horizontal,
       com faixa usualmente descrita entre 10 e 15 graus de anteversao. Goniometria
       clinica com valores normativos de amplitude de movimento (AAOS e Kendall).
+      Teste de Adams: a gibosidade e a proeminencia rotacional do lado convexo da
+      curva; estudos de rastreamento escolar indicam exame radiologico acima de
+      5 mm, e com escoliometro considera-se positiva a assimetria igual ou maior
+      que 7 graus (indice de massa corporal abaixo do percentil 85) ou 5 graus
+      (percentil 85 ou acima); a graduacao em leve, moderada e acentuada e
+      operacional deste aplicativo. O teste e de triagem: a confirmacao e a
+      medida do angulo de Cobb dependem de radiografia.
       Fases do ciclo da marcha segundo Perry, J., Gait Analysis: Normal and
       Pathological Function, avaliadas apenas no plano sagital.
       Limite de alerta para alinhamentos: 5 graus; desniveis lineares a partir de
@@ -536,6 +543,7 @@ export async function gerarRelatorioAdams(idAvaliacao: number) {
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Teste de Inclinacao de Adams')}
+      ${blocoAchados(av.achados_json)}
       <h2>Triagem de assimetria - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       <table>

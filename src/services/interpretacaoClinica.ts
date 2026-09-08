@@ -182,6 +182,48 @@ export function gerarAchadosCervical(
 /**
  * Reune os achados num texto corrido, pronto para revisao do terapeuta.
  */
+/**
+ * Achados do teste de Adams. A gibosidade e a proeminencia rotacional que
+ * aparece no lado convexo da curva, com as vertebras rodadas nesse sentido.
+ *
+ * Limiar de alerta: 5 mm, valor usado em estudos de rastreamento escolar para
+ * indicar exame radiologico. A graduacao em leve, moderada e acentuada e
+ * operacional deste aplicativo, nao normativa.
+ *
+ * O teste e de triagem: confirma-se escoliose e mede-se o angulo de Cobb
+ * apenas por radiografia.
+ */
+export function gerarAchadosAdams(
+  gibosidadeCm: number | null,
+  ladoElevado: string | null,
+  regiao: 'toracica' | 'lombar' | null = null,
+): Achado[] {
+  if (gibosidadeCm === null) return [];
+
+  if (gibosidadeCm < 0.5) {
+    return [{
+      titulo: 'Teste de Adams',
+      descricao: `Gibosidade de ${gibosidadeCm.toFixed(1)} cm, abaixo do limiar de 0,5 cm. Sem indicativo de rotacao vertebral relevante nesta triagem.`,
+      alerta: false,
+    }];
+  }
+
+  let grau: string;
+  if (gibosidadeCm < 2) grau = 'leve';
+  else if (gibosidadeCm < 2.5) grau = 'moderada';
+  else grau = 'acentuada';
+
+  const lado = ladoElevado ? ` a ${ladoElevado}` : '';
+  const conv = ladoElevado ? ` com convexidade a ${ladoElevado}` : '';
+  const local = regiao ? ` ${regiao}` : '';
+
+  return [{
+    titulo: 'Teste de Adams',
+    descricao: `Gibosidade${local}${lado} de ${gibosidadeCm.toFixed(1)} cm, grau ${grau}. Sugestivo de curva${conv}. Triagem: a confirmacao depende de exame radiologico.`,
+    alerta: true,
+  }];
+}
+
 export function montarDiagnosticoSugerido(achados: Achado[], vista: string): string {
   if (achados.length === 0) {
     return 'Nao foram identificados desvios relevantes nesta vista.';

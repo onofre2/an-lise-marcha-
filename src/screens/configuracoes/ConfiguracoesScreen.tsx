@@ -103,6 +103,21 @@ export default function ConfiguracoesScreen() {
         <Text style={styles.refTitulo}>Angulo Craniovertebral</Text>
         <Text style={styles.refTexto}>Padrao clinico para avaliacao de postura de cabeca anteriorizada.</Text>
 
+        <Text style={styles.refTitulo}>Teste de Adams</Text>
+        <Text style={styles.refTexto}>
+          A gibosidade e a proeminencia rotacional que aparece no lado convexo
+          da curva, com as vertebras rodadas nesse sentido. Estudos de
+          rastreamento escolar solicitaram exame radiologico nas medidas acima
+          de 5 mm, e a gibosidade toracica mostrou boa associacao com o angulo
+          de Cobb toracico. Com escoliometro, considera-se positiva a assimetria
+          igual ou maior que 7 graus em criancas com indice de massa corporal
+          abaixo do percentil 85, ou igual ou maior que 5 graus naquelas com
+          percentil 85 ou acima. A graduacao em leve (ate 2 cm), moderada (ate
+          2,5 cm) e acentuada e operacional deste aplicativo, nao normativa. O
+          teste e de triagem: a confirmacao da escoliose e a medida do angulo de
+          Cobb dependem de radiografia.
+        </Text>
+
         <Text style={styles.refTitulo}>Angulo Q</Text>
         <Text style={styles.refTexto}>
           Angulo formado no centro da patela entre a linha vinda da espinha iliaca

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import db from '../../services/database';
+import { gerarAchadosAdams } from '../../services/interpretacaoClinica';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { gerarRelatorioAdams } from '../../services/pdfService';
 import { Observacao } from '../../services/observacoes';
@@ -120,6 +121,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
     return { distancia, percentual, cm, alerta: (cm !== null ? cm >= 1 : percentual >= 5) };
   }, [pontosEditaveis, vista, alturaCm]);
 
+
   // Angulo de inclinacao entre os dois lados do dorso, em relacao a horizontal
   const resultado = useMemo(() => {
     const d = pontosPx.dorso_d;
@@ -137,6 +139,17 @@ export default function AdamsResultScreen({ route, navigation }: any) {
     return { angulo, ladoElevado, alerta: angulo >= LIMIAR };
   }, [pontosEditaveis]);
 
+  // Gibosidade em centimetros: na lateral vem do resultado; na posterior,
+  // convertida a partir da assimetria entre os lados quando ha altura.
+  const achadosAdams = useMemo(() => {
+    const cm = vista === 'lateral'
+      ? (resultadoLateral ? resultadoLateral.cm : null)
+      : null;
+    if (cm === null) return [];
+    const lado = resultado ? resultado.ladoElevado : null;
+    return gerarAchadosAdams(cm, lado);
+  }, [vista, resultadoLateral, resultado]);
+
   const salvarAvaliacao = async () => {
     if (vista === 'lateral' ? !resultadoLateral : !resultado) {
       Alert.alert('Erro', 'Marque todos os pontos antes de salvar.');
@@ -146,7 +159,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade, achados_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis),
           resultado ? resultado.angulo : null,
@@ -158,6 +171,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
           resultadoLateral ? resultadoLateral.percentual : null,
           semCor ? 1 : 0,
           mostrarGrade ? 1 : 0,
+          JSON.stringify(achadosAdams),
         ]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
@@ -319,6 +333,18 @@ export default function AdamsResultScreen({ route, navigation }: any) {
         ))}
       </View>
 
+      {achadosAdams.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Diagnóstico Clínico Sugerido</Text>
+          {achadosAdams.map((a, i) => (
+            <View key={i} style={[styles.cardAchado, a.alerta && styles.cardAchadoAlerta]}>
+              <Text style={styles.cardAchadoTitulo}>{a.titulo}</Text>
+              <Text style={styles.cardAchadoTexto}>{a.descricao}</Text>
+            </View>
+          ))}
+        </>
+      )}
+
       <Text style={styles.sectionTitle}>Resultado</Text>
       {vista === 'lateral' ? (
         !resultadoLateral ? (
@@ -437,6 +463,10 @@ function BadgeNaLinha({ a, b, valor, alerta }: { a: Ponto; b: Ponto; valor: numb
 }
 
 const styles = StyleSheet.create({
+  cardAchado: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 12, marginBottom: 8, borderLeftWidth: 4, borderLeftColor: '#94A3B8' },
+  cardAchadoAlerta: { backgroundColor: '#FFFBEB', borderLeftColor: '#F59E0B' },
+  cardAchadoTitulo: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 2 },
+  cardAchadoTexto: { fontSize: 13, color: '#475569', lineHeight: 18 },
   barraVisual: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   btnVisual: { flex: 1, backgroundColor: '#E0F2FE', paddingVertical: 11, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#7DD3FC' },
   btnVisualAtivo: { backgroundColor: '#0EA5E9', borderColor: '#0EA5E9' },
