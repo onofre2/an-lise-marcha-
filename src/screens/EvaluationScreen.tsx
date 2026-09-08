@@ -131,7 +131,7 @@ export default function EvaluationScreen({ navigation }: any) {
                       key={f.id}
                       style={styles.cardEvento}
                       activeOpacity={0.8}
-                      onPress={() => navigation.navigate('AvaliacaoDetail', { id: av.id, tipo: 'marcha' })}
+                      onPress={() => navigation.navigate('Pacientes', { screen: 'AvaliacaoDetail', params: { id: av.id, tipo: 'marcha' } })}
                     >
                       {frames[f.id] ? (
                         <Image source={{ uri: frames[f.id] }} style={styles.miniFrame} resizeMode="cover" />
