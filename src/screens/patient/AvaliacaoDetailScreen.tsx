@@ -68,7 +68,6 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
   // A avaliacao postural grava os pontos normalizados (0 a 1) para que possam
   // ser redesenhados em qualquer tela. Os demais modulos ainda gravam em pixel.
   const pontosDesenho = useMemo(() => {
-    if (tipo !== 'postural') return pontos;
     // Multiplica pela area de exibicao DESTA tela, nao pela da tela de edicao:
     // a coordenada normalizada e independente de tamanho, e por isso funciona.
     const out: Record<string, { x: number; y: number }> = {};
@@ -96,10 +95,12 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
   }, [registro]);
 
   // Mesma conversao para os circulos de observacao da avaliacao postural.
-  const observacoesDesenho = useMemo(() => {
-    if (tipo !== 'postural') return observacoes;
-    return observacoesEmPixel(observacoes, IMAGE_WIDTH, IMAGE_HEIGHT);
-  }, [observacoes, tipo]);
+  // Todos os modulos gravam coordenadas normalizadas (0 a 1), entao a
+  // conversao para pixel vale para qualquer tipo de avaliacao.
+  const observacoesDesenho = useMemo(
+    () => observacoesEmPixel(observacoes, IMAGE_WIDTH, IMAGE_HEIGHT),
+    [observacoes]
+  );
 
 
   const desajustes: Desajuste[] = useMemo(() => {
@@ -236,15 +237,15 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
             return <Linha key={i} a={a} b={b} />;
           })}
 
-          {tipo === 'adams' && pontos.dorso_d && pontos.dorso_e && <Linha a={pontos.dorso_d} b={pontos.dorso_e} />}
-          {tipo === 'cervical' && pontos.c7 && pontos.trago && <Linha a={pontos.c7} b={pontos.trago} />}
-          {tipo === 'cervical' && pontos.c7 && pontos.acromio && <Linha a={pontos.acromio} b={pontos.c7} />}
+          {tipo === 'adams' && pontosDesenho.dorso_d && pontosDesenho.dorso_e && <Linha a={pontosDesenho.dorso_d} b={pontosDesenho.dorso_e} />}
+          {tipo === 'cervical' && pontosDesenho.c7 && pontosDesenho.trago && <Linha a={pontosDesenho.c7} b={pontosDesenho.trago} />}
+          {tipo === 'cervical' && pontosDesenho.c7 && pontosDesenho.acromio && <Linha a={pontosDesenho.acromio} b={pontosDesenho.c7} />}
 
-          {tipo === 'adm' && idsADM.length === 3 && pontos[idsADM[1]] && pontos[idsADM[0]] && (
-            <Linha a={pontos[idsADM[1]]} b={pontos[idsADM[0]]} />
+          {tipo === 'adm' && idsADM.length === 3 && pontosDesenho[idsADM[1]] && pontosDesenho[idsADM[0]] && (
+            <Linha a={pontosDesenho[idsADM[1]]} b={pontosDesenho[idsADM[0]]} />
           )}
-          {tipo === 'adm' && idsADM.length === 3 && pontos[idsADM[1]] && pontos[idsADM[2]] && (
-            <Linha a={pontos[idsADM[1]]} b={pontos[idsADM[2]]} />
+          {tipo === 'adm' && idsADM.length === 3 && pontosDesenho[idsADM[1]] && pontosDesenho[idsADM[2]] && (
+            <Linha a={pontosDesenho[idsADM[1]]} b={pontosDesenho[idsADM[2]]} />
           )}
 
           {Object.values(pontosDesenho).map((p, i) => (

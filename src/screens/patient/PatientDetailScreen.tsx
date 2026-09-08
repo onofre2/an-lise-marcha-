@@ -340,7 +340,7 @@ export default function PatientDetailScreen() {
             <Text style={styles.sectionTitle}>Informações Clínicas</Text>
             {paciente.diagnostico ? (
               <View style={styles.infoBlock}>
-                <Text style={styles.infoLabel}>Diagnóstico</Text>
+                <Text style={styles.infoLabel}>Possível Diagnóstico</Text>
                 <Text style={styles.infoText}>{paciente.diagnostico}</Text>
               </View>
             ) : null}
@@ -432,7 +432,7 @@ export default function PatientDetailScreen() {
               <Text style={styles.label}>Sexo</Text>
               <TextInput style={styles.input} placeholderTextColor="#94A3B8" value={sexo} onChangeText={setSexo} />
 
-              <Text style={styles.label}>Diagnóstico</Text>
+              <Text style={styles.label}>Possível Diagnóstico</Text>
               <TextInput style={styles.input} placeholderTextColor="#94A3B8" value={diagnostico} onChangeText={setDiagnostico} />
 
               <Text style={styles.label}>Histórico Médico</Text>

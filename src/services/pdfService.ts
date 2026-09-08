@@ -54,15 +54,18 @@ const ESTILO = `
 function cabecalho(p: Paciente, titulo: string): string {
   const hoje = new Date().toLocaleDateString('pt-BR');
   return `
-    <h1>${titulo}</h1>
-    <div class="sub">Emitido em ${hoje}</div>
+    <h1>Exame de Biofotogrametria</h1>
+    <div class="sub" style="font-size:11px;line-height:1.5;">
+      Metodo de avaliacao que utiliza fotografias ou imagens digitais para medir
+      angulos, distancias e o alinhamento corporal de forma precisa.
+    </div>
+    <div class="sub">${titulo} &middot; Emitido em ${hoje}</div>
     <h2>Dados do Paciente</h2>
     <div class="info">
       <b>Nome:</b> ${p.nome}<br/>
       ${p.data_nascimento ? '<b>Nascimento:</b> ' + p.data_nascimento + '<br/>' : ''}
       ${p.sexo ? '<b>Sexo:</b> ' + p.sexo + '<br/>' : ''}
       ${p.altura_cm ? '<b>Altura:</b> ' + p.altura_cm + ' cm<br/>' : ''}
-      ${p.diagnostico ? '<b>Diagnostico:</b> ' + p.diagnostico + '<br/>' : ''}
     </div>
   `;
 }
@@ -642,8 +645,11 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   let clinico = '';
-  if (p.conclusao_clinica || p.objetivos_terapeuticos) {
+  if (p.conclusao_clinica || p.objetivos_terapeuticos || p.diagnostico) {
     clinico = '<h2>Conclusao Clinica</h2>';
+    // Exame auxiliar: o achado e apresentado como possibilidade, nao como
+    // diagnostico fechado.
+    if (p.diagnostico) clinico += `<div class="bloco"><b>Possivel Diagnostico:</b> ${p.diagnostico}</div>`;
     if (p.conclusao_clinica) clinico += `<div class="bloco">${p.conclusao_clinica}</div>`;
     if (p.objetivos_terapeuticos) clinico += `<div class="bloco"><b>Objetivos:</b> ${p.objetivos_terapeuticos}</div>`;
   }
