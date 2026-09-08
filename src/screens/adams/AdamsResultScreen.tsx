@@ -227,6 +227,38 @@ export default function AdamsResultScreen({ route, navigation }: any) {
         )}
 
 
+        {/* Vista posterior: eixo ideal vertical no meio das gibosidades e eixo
+            real ligando os dois lados, mostrando para onde a curva tende. */}
+        {vista !== 'lateral' && pontosPx.dorso_d && pontosPx.dorso_e && (
+          <View
+            pointerEvents="none"
+            style={[styles.eixoIdeal, { left: (pontosPx.dorso_d.x + pontosPx.dorso_e.x) / 2 }]}
+          />
+        )}
+        {vista !== 'lateral' && pontosPx.dorso_d && pontosPx.dorso_e && (() => {
+          const a = pontosPx.dorso_d;
+          const b = pontosPx.dorso_e;
+          const alto = a.y <= b.y ? a : b;
+          const baixo = a.y <= b.y ? b : a;
+          const dy = baixo.y - alto.y;
+          const inc = dy === 0 ? 0 : (baixo.x - alto.x) / dy;
+          const xTopo = alto.x + (0 - alto.y) * inc;
+          const xBase = alto.x + (IMAGE_HEIGHT - alto.y) * inc;
+          const comp = Math.sqrt((xBase - xTopo) ** 2 + IMAGE_HEIGHT ** 2);
+          const ang = Math.atan2(IMAGE_HEIGHT, xBase - xTopo) * (180 / Math.PI);
+          return (
+            <View
+              pointerEvents="none"
+              style={[styles.eixoReal, {
+                left: (xTopo + xBase) / 2 - comp / 2,
+                top: IMAGE_HEIGHT / 2,
+                width: comp,
+                transform: [{ rotate: `${ang}deg` }],
+              }]}
+            />
+          );
+        })()}
+
         {vista === 'lateral' && pontosPx.c7 && pontosPx.l5 && (
           <LinhaDorso a={pontosPx.c7} b={pontosPx.l5} alerta={false} />
         )}
@@ -410,6 +442,8 @@ const styles = StyleSheet.create({
   btnVisualTextAtivo: { color: '#FFFFFF' },
   imagemSemCor: { opacity: 0.55 },
   camadaSemCor: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.18 },
+  eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
+  eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444' },
   gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
   gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
   container: { flex: 1, backgroundColor: '#F8FAFC' },
