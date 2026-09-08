@@ -6,7 +6,7 @@ import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
 import { MOVIMENTOS } from '../../constants/movimentos';
 import { FASES_MARCHA } from '../../constants/fasesMarcha';
-import { calcularFase } from '../../services/marchaCalculations';
+import { calcularFase, calcularParametrosTemporais } from '../../services/marchaCalculations';
 
 interface Ponto { x: number; y: number; }
 
@@ -384,6 +384,58 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
           })}
         </View>
       )}
+
+      {tipo === 'marcha' && (() => {
+        let tempos: Record<string, number> = {};
+        try { tempos = registro.tempos_json ? JSON.parse(registro.tempos_json) : {}; } catch {}
+        const t = calcularParametrosTemporais(tempos);
+        if (t.cadencia === null) return null;
+        const linhas: [string, string, boolean][] = [
+          ['Cadência', `${t.cadencia} passos/min`, false],
+          ['Duração do ciclo', `${t.duracaoCiclo}s`, false],
+          ['Apoio direito', `${t.apoioDireito}s`, false],
+          ['Apoio esquerdo', `${t.apoioEsquerdo}s`, false],
+          ['Assimetria de apoio', `${t.simetria}%`, t.alertaSimetria],
+        ];
+        return (
+          <>
+            <Text style={styles.sectionTitle}>Parâmetros Temporais</Text>
+            {linhas.map(([rotulo, valor, alerta], i) => (
+              <View key={i} style={styles.card}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardLabel}>{rotulo}</Text>
+                </View>
+                <View style={[styles.badge, alerta ? styles.badgeAlerta : styles.badgeOk]}>
+                  <Text style={[styles.badgeText, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{valor}</Text>
+                </View>
+              </View>
+            ))}
+          </>
+        );
+      })()}
+
+      {tipo === 'marcha' && (() => {
+        let pis: Record<string, string> = {};
+        try { pis = registro.pisada_json ? JSON.parse(registro.pisada_json) : {}; } catch {}
+        const linhas = [
+          ['Pé direito', pis.pisada_direito, pis.arco_direito],
+          ['Pé esquerdo', pis.pisada_esquerdo, pis.arco_esquerdo],
+        ].filter(l => l[1] || l[2]);
+        if (linhas.length === 0) return null;
+        return (
+          <>
+            <Text style={styles.sectionTitle}>Características do Pé</Text>
+            {linhas.map((l, i) => (
+              <View key={i} style={styles.card}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.cardLabel}>{l[0]}</Text>
+                  <Text style={styles.cardRef}>{[l[1], l[2]].filter(Boolean).join(' · ')}</Text>
+                </View>
+              </View>
+            ))}
+          </>
+        );
+      })()}
 
       <Text style={styles.sectionTitle}>Medidas</Text>
       {renderMedidas(tipo, registro, desajustes)}

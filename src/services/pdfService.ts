@@ -9,6 +9,7 @@ import { MARCA_BASE64 } from './marcaImagem';
 import { fotoParaBase64, imagemPostural, imagemSimples } from './imagemAvaliacao';
 import { SEGMENTOS_RAPIDA, Vista } from '../constants/posturalPoints';
 import { calcularFase, calcularParametrosTemporais } from './marchaCalculations';
+import { FASES_MARCHA } from '../constants/fasesMarcha';
 import { calcularDesajustes } from './posturalCalculations';
 import * as FileSystem from 'expo-file-system';
 
@@ -393,11 +394,11 @@ async function montarImagensMarcha(av: any): Promise<string> {
   try {
     if (!av.frames_json) return '';
     const frames = JSON.parse(av.frames_json) as Record<string, string>;
-    const nomes: Record<string, string> = {
-      contato_inicial: 'Contato Inicial',
-      resposta_carga: 'Resposta a Carga',
-      apoio_medio: 'Apoio Medio',
-    };
+    // Nomes vindos da propria lista de fases: assim o relatorio acompanha
+    // qualquer mudanca na definicao dos eventos, sem mapa fixo paralelo.
+    const nomes: Record<string, string> = Object.fromEntries(
+      FASES_MARCHA.map(f => [f.id, f.nome])
+    );
 
     // As marcacoes sao gravadas em coordenadas normalizadas (0 a 1) sobre a
     // area do video. Desenhamos por cima do frame extraido do proprio arquivo.
@@ -542,11 +543,9 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
   if (av.marcacoes_json) {
     try {
       const marcacoes = JSON.parse(av.marcacoes_json);
-      const nomes: Record<string, string> = {
-        contato_inicial: 'Contato Inicial',
-        resposta_carga: 'Resposta a Carga',
-        apoio_medio: 'Apoio Medio',
-      };
+      const nomes: Record<string, string> = Object.fromEntries(
+        FASES_MARCHA.map(f => [f.id, f.nome])
+      );
       for (const faseId of Object.keys(marcacoes)) {
         const resultados = calcularFase(faseId, marcacoes[faseId] || {}, dimensoesDaAvaliacao(av));
         if (resultados.length === 0) continue;
