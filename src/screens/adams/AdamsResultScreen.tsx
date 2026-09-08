@@ -146,7 +146,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis),
           resultado ? resultado.angulo : null,
@@ -156,6 +156,8 @@ export default function AdamsResultScreen({ route, navigation }: any) {
           vista,
           resultadoLateral ? resultadoLateral.cm : null,
           resultadoLateral ? resultadoLateral.percentual : null,
+          semCor ? 1 : 0,
+          mostrarGrade ? 1 : 0,
         ]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };

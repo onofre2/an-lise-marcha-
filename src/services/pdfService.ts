@@ -51,6 +51,23 @@ const ESTILO = `
   </style>
 `;
 
+
+/** Cards do diagnostico clinico sugerido, no mesmo formato da tela. */
+function blocoAchados(achadosJson: string | null): string {
+  let achados: any[] = [];
+  try { achados = achadosJson ? JSON.parse(achadosJson) : []; } catch {}
+  if (achados.length === 0) return '';
+  let html = '<h2>Diagnostico Clinico Sugerido</h2>';
+  achados.forEach((a: any) => {
+    const cor = a.alerta ? '#F59E0B' : '#94A3B8';
+    const fundo = a.alerta ? '#FFFBEB' : '#F8FAFC';
+    html += `<div style="background:${fundo};border-left:4px solid ${cor};border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+      <div style="font-weight:bold;font-size:13px;color:#0F172A;">${a.titulo}</div>
+      <div style="font-size:13px;color:#475569;">${a.descricao}</div>
+    </div>`;
+  });
+  return html;
+}
 function cabecalho(p: Paciente, titulo: string): string {
   const hoje = new Date().toLocaleDateString('pt-BR');
   return `
@@ -352,21 +369,7 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Relatorio de Avaliacao Postural')}
-      ${(() => {
-        let achados: any[] = [];
-        try { achados = av.achados_json ? JSON.parse(av.achados_json) : []; } catch {}
-        if (achados.length === 0) return '';
-        let html = '<h2>Diagnostico Clinico Sugerido</h2>';
-        achados.forEach((a: any) => {
-          const cor = a.alerta ? '#F59E0B' : '#94A3B8';
-          const fundo = a.alerta ? '#FFFBEB' : '#F8FAFC';
-          html += `<div style="background:${fundo};border-left:4px solid ${cor};border-radius:8px;padding:10px 12px;margin-bottom:8px;">
-            <div style="font-weight:bold;font-size:13px;color:#0F172A;">${a.titulo}</div>
-            <div style="font-size:13px;color:#475569;">${a.descricao}</div>
-          </div>`;
-        });
-        return html;
-      })()}
+      ${blocoAchados(av.achados_json)}
       <h2>Avaliacao ${av.vista.replace('_', ' ')} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       ${tabelaMedidas(medidas)}
@@ -390,6 +393,7 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Relatorio de Avaliacao Cervical')}
+      ${blocoAchados(av.achados_json)}
       <h2>Angulo Craniovertebral - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       <table>
