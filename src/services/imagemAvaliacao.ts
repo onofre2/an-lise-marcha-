@@ -76,9 +76,9 @@ function observacao(o: { base: Ponto; ponta: Ponto }): string {
   const rotuloX = dx > 0 ? o.base.x - 8 : o.base.x + 8;
   const ancora = dx > 0 ? 'end' : 'start';
   return `
-    <line x1="${o.base.x}" y1="${o.base.y}" x2="${o.ponta.x}" y2="${o.ponta.y}" stroke="${VERMELHO}" stroke-width="2.5" />
-    <polygon points="0,-5 11,0 0,5" fill="${VERMELHO}" transform="translate(${o.ponta.x},${o.ponta.y}) rotate(${ang})" />
-    <text x="${rotuloX}" y="${o.base.y + 4}" fill="${VERMELHO}" font-size="11" font-weight="bold" text-anchor="${ancora}">desajuste</text>
+    <line x1="${o.base.x}" y1="${o.base.y}" x2="${o.ponta.x}" y2="${o.ponta.y}" stroke="${VERMELHO}" stroke-width="1.8" />
+    <polygon points="0,-3.5 8,0 0,3.5" fill="${VERMELHO}" transform="translate(${o.ponta.x},${o.ponta.y}) rotate(${ang})" />
+    <text x="${rotuloX}" y="${o.base.y + 4}" fill="${VERMELHO}" font-size="9" font-weight="bold" text-anchor="${ancora}">desajuste</text>
   `;
 }
 
