@@ -681,6 +681,21 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     }
   }
 
+  // Deixa explicito o que nao foi realizado: a ausencia de um teste e um dado
+  // clinico, nao um vazio no relatorio.
+  const pendentes: string[] = [];
+  if (adamses.length === 0) pendentes.push('Teste de Adams');
+  if (marchas.length === 0) pendentes.push('Analise de marcha');
+  if (adms.length === 0) pendentes.push('Amplitude de movimento');
+  if (cervicais.length === 0) pendentes.push('Avaliacao cervical');
+  if (pendentes.length > 0 && corpo !== '') {
+    corpo += '<h2>Avaliacoes Complementares</h2><table><tr><th>Avaliacao</th><th>Situacao</th></tr>';
+    pendentes.forEach(nome => {
+      corpo += `<tr><td>${nome}</td><td>Nao realizada</td></tr>`;
+    });
+    corpo += '</table>';
+  }
+
   if (corpo === '') {
     corpo = '<div class="info">Nenhuma avaliacao registrada para este paciente.</div>';
   }
@@ -695,6 +710,36 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     if (p.objetivos_terapeuticos) clinico += `<div class="bloco"><b>Objetivos:</b> ${p.objetivos_terapeuticos}</div>`;
   }
 
+  // Resumo final: reune os achados alterados de cada vista, os indices globais
+  // e o que ficou pendente, para leitura rapida ao fim do relatorio.
+  let resumo = '';
+  const alteradas: string[] = [];
+  for (const av of posturais) {
+    const medidas = medidasDaAvaliacao(av);
+    const fora = medidas.filter(m => m.alerta).map(m => m.label);
+    if (fora.length > 0) {
+      alteradas.push(`<b>${av.vista.replace('_', ' ')}</b>: ${fora.join(', ')}`);
+    }
+  }
+  if (alteradas.length > 0 || cervicais.length > 0 || pendentes.length > 0) {
+    resumo = '<h2>Resumo dos Achados</h2>';
+    if (alteradas.length > 0) {
+      resumo += '<div class="bloco"><b>Alteracoes identificadas</b></div>';
+      alteradas.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
+    } else if (posturais.length > 0) {
+      resumo += '<div class="bloco">Nenhum segmento fora dos parametros adotados.</div>';
+    }
+    if (cervicais.length > 0) {
+      const ultima = cervicais[0];
+      const alt = ultima.angulo < 48;
+      resumo += `<div class="bloco"><b>Angulo craniovertebral:</b> ${ultima.angulo} graus - ${alt ? 'cabeca anteriorizada' : 'dentro da referencia'}</div>`;
+    }
+    if (pendentes.length > 0) {
+      resumo += `<div class="bloco"><b>Nao realizadas:</b> ${pendentes.join(', ')}</div>`;
+    }
+    resumo += '<div class="bloco">Avaliacao fotogrametrica de triagem. Recomenda-se correlacao com avaliacao clinica presencial e demais testes funcionais.</div>';
+  }
+
   const rodapeHtml2 = await rodapeCompleto();
 
   const html = `
@@ -702,6 +747,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       ${cabecalho(p, 'Historico Completo do Paciente')}
       ${clinico}
       ${corpo}
+      ${resumo}
       ${rodapeHtml2}
     </body></html>
   `;
