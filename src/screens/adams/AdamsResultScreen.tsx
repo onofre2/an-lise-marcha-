@@ -142,13 +142,28 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   // Gibosidade em centimetros: na lateral vem do resultado; na posterior,
   // convertida a partir da assimetria entre os lados quando ha altura.
   const achadosAdams = useMemo(() => {
-    const cm = vista === 'lateral'
-      ? (resultadoLateral ? resultadoLateral.cm : null)
-      : null;
+    let cm: number | null = null;
+    if (vista === 'lateral') {
+      cm = resultadoLateral ? resultadoLateral.cm : null;
+    } else if (resultado && alturaCm && alturaCm > 0) {
+      // Desnivel vertical entre os dois lados do dorso, convertido para
+      // centimetros: a largura entre os pontos serve de regua, tomada como
+      // cerca de 20% da altura do paciente.
+      const d = pontosPx.dorso_d;
+      const e = pontosPx.dorso_e;
+      if (d && e) {
+        const largura = Math.abs(e.x - d.x);
+        const desnivel = Math.abs(e.y - d.y);
+        if (largura > 0) {
+          const cmPorUnidade = (alturaCm * 0.20) / largura;
+          cm = Number((desnivel * cmPorUnidade).toFixed(1));
+        }
+      }
+    }
     if (cm === null) return [];
     const lado = resultado ? resultado.ladoElevado : null;
-    return gerarAchadosAdams(cm, lado);
-  }, [vista, resultadoLateral, resultado]);
+    return gerarAchadosAdams(cm, lado, null, vista === 'lateral');
+  }, [vista, resultadoLateral, resultado, alturaCm, pontosPx]);
 
   const salvarAvaliacao = async () => {
     if (vista === 'lateral' ? !resultadoLateral : !resultado) {

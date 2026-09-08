@@ -116,6 +116,8 @@ export default function ConfiguracoesScreen() {
           2,5 cm) e acentuada e operacional deste aplicativo, nao normativa. O
           teste e de triagem: a confirmacao da escoliose e a medida do angulo de
           Cobb dependem de radiografia.
+          Na vista posterior o desnivel entre os lados e convertido para centimetros
+          a partir da altura do paciente; sem altura cadastrada, o achado nao e gerado.
         </Text>
 
         <Text style={styles.refTitulo}>Angulo Q</Text>

@@ -201,7 +201,9 @@ async function rodapeCompleto(): Promise<string> {
       que 7 graus (indice de massa corporal abaixo do percentil 85) ou 5 graus
       (percentil 85 ou acima); a graduacao em leve, moderada e acentuada e
       operacional deste aplicativo. O teste e de triagem: a confirmacao e a
-      medida do angulo de Cobb dependem de radiografia.
+      medida do angulo de Cobb dependem de radiografia. Na vista posterior o
+      desnivel entre os lados e convertido para centimetros a partir da altura do
+      paciente.
       Fases do ciclo da marcha segundo Perry, J., Gait Analysis: Normal and
       Pathological Function, avaliadas apenas no plano sagital.
       Limite de alerta para alinhamentos: 5 graus; desniveis lineares a partir de

@@ -197,6 +197,7 @@ export function gerarAchadosAdams(
   gibosidadeCm: number | null,
   ladoElevado: string | null,
   regiao: 'toracica' | 'lombar' | null = null,
+  vistaLateral = true,
 ): Achado[] {
   if (gibosidadeCm === null) return [];
 
@@ -213,13 +214,15 @@ export function gerarAchadosAdams(
   else if (gibosidadeCm < 2.5) grau = 'moderada';
   else grau = 'acentuada';
 
-  const lado = ladoElevado ? ` a ${ladoElevado}` : '';
-  const conv = ladoElevado ? ` com convexidade a ${ladoElevado}` : '';
+  const ladoTxt = ladoElevado ? ladoElevado.toLowerCase() : null;
+  const lado = ladoTxt ? ` a ${ladoTxt}` : '';
+  const conv = ladoTxt ? ` com convexidade a ${ladoTxt}` : '';
   const local = regiao ? ` ${regiao}` : '';
+  const termo = vistaLateral ? 'Gibosidade' : 'Desnivel entre os lados do dorso';
 
   return [{
     titulo: 'Teste de Adams',
-    descricao: `Gibosidade${local}${lado} de ${gibosidadeCm.toFixed(1)} cm, grau ${grau}. Sugestivo de curva${conv}. Triagem: a confirmacao depende de exame radiologico.`,
+    descricao: `${termo}${local}${lado} de ${gibosidadeCm.toFixed(1)} cm, grau ${grau}. Sugestivo de curva${conv}. Triagem: a confirmacao depende de exame radiologico.`,
     alerta: true,
   }];
 }
