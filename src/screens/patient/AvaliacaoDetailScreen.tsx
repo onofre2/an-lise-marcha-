@@ -184,6 +184,17 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
           />
           {registro.sem_cor === 1 && <View pointerEvents="none" style={styles.camadaSemCor} />}
 
+          {registro.com_grade === 1 && (
+            <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+              {Array.from({ length: 11 }).map((_, i) => (
+                <View key={`gv-${i}`} style={[styles.gradeLinhaV, { left: (IMAGE_WIDTH / 10) * i }]} />
+              ))}
+              {Array.from({ length: 13 }).map((_, i) => (
+                <View key={`gh-${i}`} style={[styles.gradeLinhaH, { top: (IMAGE_HEIGHT / 12) * i }]} />
+              ))}
+            </View>
+          )}
+
           {tipo === 'postural' && (() => {
             // Eixo ideal (vertical verde) e eixo real do tronco (vermelho),
             // os mesmos da tela de edicao e do relatorio.
@@ -458,6 +469,8 @@ const styles = StyleSheet.create({
   frameLinha: { position: 'absolute', height: 2, backgroundColor: '#22C55E', transformOrigin: 'left' },
   frameObs: { position: 'absolute', width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#EF4444' },
   framePonto: { position: 'absolute', width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: '#22C55E' },
+  gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
   imagemSemCor: { opacity: 0.55 },
   camadaSemCor: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.18 },
   cardAchado: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 12, marginBottom: 8, borderLeftWidth: 4, borderLeftColor: '#94A3B8' },

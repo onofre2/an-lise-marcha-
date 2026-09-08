@@ -216,7 +216,7 @@ async function montarImagemPostural(av: any): Promise<string> {
       : { largura: 343, altura: 400 };
 
     const segmentos = SEGMENTOS_RAPIDA[av.vista as Vista] || [];
-    return imagemPostural(fotoBase64, pontos, segmentos, medidas, dimensoes, observacoes, av.sem_cor === 1);
+    return imagemPostural(fotoBase64, pontos, segmentos, medidas, dimensoes, observacoes, av.sem_cor === 1, av.com_grade === 1);
   } catch (e) {
     console.error('Erro ao montar imagem da avaliacao:', e);
     return '';
@@ -237,7 +237,7 @@ async function montarImagemCervical(av: any): Promise<string> {
     const ligacoes: [string, string][] = [['c7', 'trago'], ['acromio', 'c7']];
     const valor = { texto: `${av.angulo}\u00b0`, alerta, ancora: 'trago' };
 
-    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes, av.sem_cor === 1);
+    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes, av.sem_cor === 1, av.com_grade === 1);
   } catch (e) {
     console.error('Erro ao montar imagem cervical:', e);
     return '';
@@ -262,7 +262,7 @@ async function montarImagemADM(av: any): Promise<string> {
     const ligacoes: [string, string][] = [[ids[1], ids[0]], [ids[1], ids[2]]];
     const valor = { texto: `${av.angulo}\u00b0`, alerta, ancora: ids[1] };
 
-    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes, av.sem_cor === 1);
+    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes, av.sem_cor === 1, av.com_grade === 1);
   } catch (e) {
     console.error('Erro ao montar imagem ADM:', e);
     return '';
@@ -512,7 +512,7 @@ async function montarImagemAdams(av: any): Promise<string> {
     const ligacoes: [string, string][] = [['dorso_d', 'dorso_e']];
     const valor = { texto: `${av.angulo}\u00b0`, alerta, ancora: 'dorso_d' };
 
-    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes, av.sem_cor === 1);
+    return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes, av.sem_cor === 1, av.com_grade === 1);
   } catch (e) {
     console.error('Erro ao montar imagem do teste de Adams:', e);
     return '';

@@ -113,6 +113,7 @@ export function imagemPostural(
   dimensoes: Dimensoes,
   observacoes: Record<string, Ponto>,
   semCor = false,
+  comGrade = false,
 ): string {
   const { largura, altura } = dimensoes;
   let camadas = '';
@@ -187,6 +188,11 @@ export function imagemPostural(
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura} ${altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
       ${semCor ? '<filter id="semCor"><feColorMatrix type="saturate" values="0"/></filter>' : ''}
       <image href="${fotoBase64}" x="0" y="0" width="${largura}" height="${altura}" preserveAspectRatio="xMidYMid meet" ${semCor ? 'filter="url(#semCor)"' : ''} />
+      ${comGrade ? Array.from({ length: 11 }).map((_, i) =>
+        `<line x1="${(largura / 10) * i}" y1="0" x2="${(largura / 10) * i}" y2="${altura}" stroke="rgba(0,0,0,0.35)" stroke-width="1" />`
+      ).join('') + Array.from({ length: 13 }).map((_, i) =>
+        `<line x1="0" y1="${(altura / 12) * i}" x2="${largura}" y2="${(altura / 12) * i}" stroke="rgba(0,0,0,0.35)" stroke-width="1" />`
+      ).join('') : ''}
       ${camadas}
     </svg>
   `;
@@ -204,6 +210,7 @@ export function imagemSimples(
   dimensoes: Dimensoes,
   observacoes: Record<string, Ponto>,
   semCor = false,
+  comGrade = false,
 ): string {
   const { largura, altura } = dimensoes;
   let camadas = '';
@@ -239,6 +246,11 @@ export function imagemSimples(
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura} ${altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
       ${semCor ? '<filter id="semCor"><feColorMatrix type="saturate" values="0"/></filter>' : ''}
       <image href="${fotoBase64}" x="0" y="0" width="${largura}" height="${altura}" preserveAspectRatio="xMidYMid meet" ${semCor ? 'filter="url(#semCor)"' : ''} />
+      ${comGrade ? Array.from({ length: 11 }).map((_, i) =>
+        `<line x1="${(largura / 10) * i}" y1="0" x2="${(largura / 10) * i}" y2="${altura}" stroke="rgba(0,0,0,0.35)" stroke-width="1" />`
+      ).join('') + Array.from({ length: 13 }).map((_, i) =>
+        `<line x1="0" y1="${(altura / 12) * i}" x2="${largura}" y2="${(altura / 12) * i}" stroke="rgba(0,0,0,0.35)" stroke-width="1" />`
+      ).join('') : ''}
       ${camadas}
     </svg>
   `;
