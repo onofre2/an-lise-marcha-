@@ -254,7 +254,13 @@ async function rodapeCompleto(): Promise<string> {
       desnivel entre os lados e convertido para centimetros a partir da altura do
       paciente.
       Fases do ciclo da marcha segundo Perry, J., Gait Analysis: Normal and
-      Pathological Function, avaliadas apenas no plano sagital.
+      Pathological Function, avaliadas apenas no plano sagital. Estudos que
+      compararam a analise bidimensional por video de celular com sistemas
+      tridimensionais encontraram diferencas medias de cerca de 5 graus no joelho
+      e 3 graus no tornozelo; as medidas de quadril excederam o controle em cerca
+      de 40 graus, com vies sistematico, e por isso devem ser lidas com reserva,
+      servindo para acompanhar a evolucao do proprio paciente e nao como valor
+      absoluto.
       Limite de alerta para alinhamentos: 5 graus; desniveis lineares a partir de
       1 cm tambem sao sinalizados quando ha altura do paciente registrada.
       As medidas obtidas por fotogrametria em ortostatismo servem como triagem e

@@ -145,9 +145,27 @@ export default function ConfiguracoesScreen() {
         <Text style={styles.refTexto}>
           A analise da marcha deste aplicativo usa apenas o plano sagital (vista lateral),
           onde os angulos de flexao e extensao de quadril, joelho e tornozelo sao mensuraveis.
-          Sao avaliadas tres fases de apoio: contato inicial, resposta a carga e apoio medio.
           Achados do plano frontal, como assimetrias e desvios laterais, sao cobertos pelo
           modulo de avaliacao postural.
+        </Text>
+
+        <Text style={styles.refTitulo}>Confiabilidade da analise bidimensional</Text>
+        <Text style={styles.refTexto}>
+          Estudos que compararam a analise bidimensional por video de celular com
+          sistemas tridimensionais encontraram diferencas medias de cerca de 5 graus
+          no joelho e 3 graus no tornozelo. As medidas de quadril excederam o
+          controle em cerca de 40 graus, com vies sistematico. Por isso o angulo de
+          quadril deve ser lido com reserva e serve para acompanhar a evolucao do
+          proprio paciente, nao como valor absoluto.
+        </Text>
+
+        <Text style={styles.refTitulo}>Protocolo de filmagem</Text>
+        <Text style={styles.refTexto}>
+          Parametros usados nos estudos de validacao: gravacao a 60 quadros por
+          segundo em alta definicao, celular fixo em tripe a cerca de 3 metros da
+          passarela e na altura do quadril, percurso plano de aproximadamente 6
+          metros, iluminacao constante, paciente descalco em velocidade confortavel
+          e olhar em ponto fixo a altura dos olhos.
         </Text>
       </View>
     </ScrollView>

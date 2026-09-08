@@ -55,8 +55,11 @@ export function calcularFase(
   // Quadril: angulo entre tronco e coxa. 180 = neutro; menor que 180 = flexao
   const anguloQuadrilBruto = anguloEntre(p.tronco, p.quadril, p.joelho);
   const quadril = Number((180 - anguloQuadrilBruto).toFixed(1));
+  // Em analise bidimensional o quadril e a medida menos confiavel: estudos
+  // comparativos encontraram diferencas de cerca de 40 graus com vies
+  // sistematico. Marcado no rotulo para o terapeuta ler com reserva.
   resultado.push({
-    nome: 'Quadril',
+    nome: 'Quadril (medida com reserva)',
     valor: quadril,
     referencia: fase.referencias.quadril.texto,
     dentroFaixa: quadril >= fase.referencias.quadril.min && quadril <= fase.referencias.quadril.max,
