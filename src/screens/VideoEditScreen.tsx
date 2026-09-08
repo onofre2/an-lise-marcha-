@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Alert, ScrollView, Image } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
@@ -36,6 +36,23 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const [faseIndice, setFaseIndice] = useState(0);
   const [pontosFaseAtual, setPontosFaseAtual] = useState<PontosFase>({});
   const [marcacoes, setMarcacoes] = useState<Record<string, PontosFase>>({});
+
+  // Ressincroniza quando a tela e reaproveitada para outro video, para nao
+  // herdar marcacoes, frames, tempos e observacoes da avaliacao anterior.
+  const chaveVideo = String(videoUri);
+  const chaveAnterior = React.useRef(chaveVideo);
+  useEffect(() => {
+    if (chaveAnterior.current !== chaveVideo) {
+      chaveAnterior.current = chaveVideo;
+      setMarcacoes({});
+      setPontosFaseAtual({});
+      setFramesFases({});
+      setTemposFases({});
+      setObservacoesPorFase({});
+      setPisada({});
+      setFaseIndice(0);
+    }
+  }, [chaveVideo]);
 
   // Frame congelado do momento pausado. A marcacao acontece sobre esta imagem,
   // nao sobre o player: so assim a lupa consegue ampliar a anatomia do paciente.
