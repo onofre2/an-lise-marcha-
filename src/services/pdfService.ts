@@ -79,6 +79,28 @@ function medidasDaAvaliacao(av: any): Medida[] {
   }
 }
 
+/**
+ * Registro do exame clinico de Adams feito pelo terapeuta. Aparece ao lado da
+ * medida fotogrametrica, sem substitui-la nem gerar diagnostico.
+ */
+function blocoExameAdams(json: string | null): string {
+  let e: any = {};
+  try { e = json ? JSON.parse(json) : {}; } catch { return ''; }
+  const linhas: [string, string][] = [];
+  if (e.resultado) linhas.push(['Resultado', e.resultado]);
+  if (e.localizacao) linhas.push(['Localizacao', e.localizacao]);
+  if (e.lado) linhas.push(['Lado da gibosidade', e.lado]);
+  if (e.escoliometro) linhas.push(['Escoliometro', `${e.escoliometro} graus`]);
+  if (linhas.length === 0 && !e.observacao) return '';
+  let html = '<h2>Registro do Exame Clinico</h2><table>';
+  linhas.forEach(([k, v]) => {
+    html += `<tr><td><b>${k}</b></td><td>${v}</td></tr>`;
+  });
+  html += '</table>';
+  if (e.observacao) html += `<div class="bloco"><b>Observacao:</b> ${e.observacao}</div>`;
+  return html;
+}
+
 /** Cards do diagnostico clinico sugerido, no mesmo formato da tela. */
 function blocoAchados(achadosJson: string | null): string {
   let achados: any[] = [];
@@ -573,6 +595,7 @@ export async function gerarRelatorioAdams(idAvaliacao: number) {
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Teste de Inclinacao de Adams')}
       ${blocoAchados(av.achados_json)}
+      ${blocoExameAdams(av.exame_clinico_json)}
       <h2>Triagem de assimetria - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       <table>
@@ -667,6 +690,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     corpo += '</table>';
     for (const av of adamses) {
       corpo += await montarImagemAdams(av);
+      corpo += blocoExameAdams(av.exame_clinico_json);
     }
   }
 

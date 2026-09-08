@@ -218,6 +218,15 @@ export const initDatabase = () => {
       }
     });
 
+    // Registro do exame clinico de Adams feito pelo terapeuta: resultado,
+    // localizacao, lado, escoliometro e observacao. Fica ao lado da medida
+    // fotogrametrica, sem substitui-la.
+    try {
+      db.execSync('ALTER TABLE avaliacoes_adams ADD COLUMN exame_clinico_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     // Circulos de desajuste marcados pelo terapeuta sobre o frame da marcha.
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN observacoes_json TEXT');

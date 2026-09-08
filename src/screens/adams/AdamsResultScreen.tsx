@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, TextInput } from 'react-native';
 import db from '../../services/database';
 import { gerarAchadosAdams } from '../../services/interpretacaoClinica';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
@@ -47,6 +47,12 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   const [modoObservacao, setModoObservacao] = useState(false);
   const [mostrarGrade, setMostrarGrade] = useState(false);
   const [semCor, setSemCor] = useState(false);
+
+  // Registro do exame clinico feito pelo terapeuta, ao lado da medida
+  // fotogrametrica. Nao altera o achado calculado pela foto.
+  const [exame, setExame] = useState<Record<string, string>>({ resultado: 'Nao realizado' });
+  const definir = (chave: string, valor: string) =>
+    setExame(prev => ({ ...prev, [chave]: prev[chave] === valor ? '' : valor }));
 
   const moverPonto = (id: string, x: number, y: number) => {
     const nx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
@@ -174,7 +180,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade, achados_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade, achados_json, exame_clinico_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis),
           resultado ? resultado.angulo : null,
@@ -187,6 +193,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
           semCor ? 1 : 0,
           mostrarGrade ? 1 : 0,
           JSON.stringify(achadosAdams),
+          JSON.stringify(exame),
         ]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
@@ -360,6 +367,71 @@ export default function AdamsResultScreen({ route, navigation }: any) {
         </>
       )}
 
+      <Text style={styles.sectionTitle}>Registro do Exame Clínico</Text>
+      <View style={styles.blocoExame}>
+        <Text style={styles.exameRotulo}>Resultado do teste</Text>
+        <View style={styles.linhaOpcoes}>
+          {['Nao realizado', 'Negativo', 'Positivo'].map(op => (
+            <TouchableOpacity
+              key={op}
+              style={[styles.opcaoExame, exame.resultado === op && styles.opcaoExameAtiva]}
+              onPress={() => definir('resultado', op)}
+            >
+              <Text style={[styles.opcaoExameTexto, exame.resultado === op && styles.opcaoExameTextoAtivo]}>{op}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.exameRotulo}>Localização da assimetria</Text>
+        <View style={styles.linhaOpcoes}>
+          {['Torácica', 'Toracolombar', 'Lombar'].map(op => (
+            <TouchableOpacity
+              key={op}
+              style={[styles.opcaoExame, exame.localizacao === op && styles.opcaoExameAtiva]}
+              onPress={() => definir('localizacao', op)}
+            >
+              <Text style={[styles.opcaoExameTexto, exame.localizacao === op && styles.opcaoExameTextoAtivo]}>{op}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.exameRotulo}>Lado da gibosidade</Text>
+        <View style={styles.linhaOpcoes}>
+          {['Direita', 'Esquerda'].map(op => (
+            <TouchableOpacity
+              key={op}
+              style={[styles.opcaoExame, exame.lado === op && styles.opcaoExameAtiva]}
+              onPress={() => definir('lado', op)}
+            >
+              <Text style={[styles.opcaoExameTexto, exame.lado === op && styles.opcaoExameTextoAtivo]}>{op}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.exameRotulo}>Escoliômetro (graus)</Text>
+        <TextInput
+          style={styles.campoExame}
+          value={exame.escoliometro || ''}
+          onChangeText={t => setExame(prev => ({ ...prev, escoliometro: t }))}
+          keyboardType="numeric"
+          placeholder="Ex: 7"
+          placeholderTextColor="#94A3B8"
+        />
+        <Text style={styles.exameNota}>
+          Referência: positivo a partir de 7 graus, ou 5 graus quando o índice de
+          massa corporal está no percentil 85 ou acima.
+        </Text>
+
+        <Text style={styles.exameRotulo}>Observação clínica</Text>
+        <TextInput
+          style={[styles.campoExame, styles.campoExameAlto]}
+          value={exame.observacao || ''}
+          onChangeText={t => setExame(prev => ({ ...prev, observacao: t }))}
+          multiline
+          placeholderTextColor="#94A3B8"
+        />
+      </View>
+
       <Text style={styles.sectionTitle}>Resultado</Text>
       {vista === 'lateral' ? (
         !resultadoLateral ? (
@@ -478,6 +550,16 @@ function BadgeNaLinha({ a, b, valor, alerta }: { a: Ponto; b: Ponto; valor: numb
 }
 
 const styles = StyleSheet.create({
+  blocoExame: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginBottom: 18, borderWidth: 1, borderColor: '#E2E8F0' },
+  exameRotulo: { fontSize: 12, color: '#64748B', fontWeight: '600', marginBottom: 6, marginTop: 6 },
+  linhaOpcoes: { flexDirection: 'row', gap: 6, marginBottom: 6, flexWrap: 'wrap' },
+  opcaoExame: { flex: 1, minWidth: 90, paddingVertical: 8, paddingHorizontal: 6, borderRadius: 10, backgroundColor: '#F1F5F9', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  opcaoExameAtiva: { backgroundColor: '#0EA5E9', borderColor: '#0EA5E9' },
+  opcaoExameTexto: { fontSize: 12, color: '#475569', fontWeight: '600' },
+  opcaoExameTextoAtivo: { color: '#FFFFFF' },
+  campoExame: { backgroundColor: '#F8FAFC', borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: '#0F172A' },
+  campoExameAlto: { minHeight: 70, textAlignVertical: 'top' },
+  exameNota: { fontSize: 11, color: '#94A3B8', marginTop: 6, lineHeight: 15 },
   cardAchado: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 12, marginBottom: 8, borderLeftWidth: 4, borderLeftColor: '#94A3B8' },
   cardAchadoAlerta: { backgroundColor: '#FFFBEB', borderLeftColor: '#F59E0B' },
   cardAchadoTitulo: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 2 },
