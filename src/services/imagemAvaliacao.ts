@@ -226,6 +226,28 @@ export function imagemSimples(
   const pontosPx = px(pontos);
   const observacoesPx = observacoesEmPixel(normalizarObservacoes(observacoes), largura, altura);
 
+  // Eixo ideal (vertical verde) e eixo real (vermelho), os mesmos da tela.
+  const eixoVertical = (x: number) =>
+    `<line x1="${x}" y1="0" x2="${x}" y2="${altura}" stroke="#22C55E" stroke-width="2" />`;
+  const eixoInclinado = (a: Ponto, b: Ponto) => {
+    const alto = a.y <= b.y ? a : b;
+    const baixo = a.y <= b.y ? b : a;
+    const dy = baixo.y - alto.y;
+    if (dy === 0) return '';
+    const inc = (baixo.x - alto.x) / dy;
+    const xTopo = alto.x + (0 - alto.y) * inc;
+    const xBase = alto.x + (altura - alto.y) * inc;
+    return `<line x1="${xTopo}" y1="0" x2="${xBase}" y2="${altura}" stroke="${VERMELHO}" stroke-width="2" />`;
+  };
+
+  if (pontosPx.acromio && pontosPx.trago) {
+    camadas += eixoVertical(pontosPx.acromio.x);
+    camadas += eixoInclinado(pontosPx.acromio, pontosPx.trago);
+  } else if (pontosPx.dorso_d && pontosPx.dorso_e) {
+    camadas += eixoVertical((pontosPx.dorso_d.x + pontosPx.dorso_e.x) / 2);
+    camadas += eixoInclinado(pontosPx.dorso_d, pontosPx.dorso_e);
+  }
+
 
   ligacoes.forEach(([idA, idB]) => {
     const a = pontosPx[idA];
