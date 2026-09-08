@@ -8,7 +8,7 @@ import { REFERENCIA_BASE64 } from './referenciaImagem';
 import { MARCA_BASE64 } from './marcaImagem';
 import { fotoParaBase64, imagemPostural, imagemSimples } from './imagemAvaliacao';
 import { SEGMENTOS_RAPIDA, Vista } from '../constants/posturalPoints';
-import { calcularFase } from './marchaCalculations';
+import { calcularFase, calcularParametrosTemporais } from './marchaCalculations';
 import { calcularDesajustes } from './posturalCalculations';
 import * as FileSystem from 'expo-file-system';
 
@@ -99,6 +99,29 @@ function blocoExameAdams(json: string | null): string {
   html += '</table>';
   if (e.observacao) html += `<div class="bloco"><b>Observacao:</b> ${e.observacao}</div>`;
   return html;
+}
+
+/**
+ * Parametros temporais da marcha. Nao dependem de escala espacial, por isso
+ * sao mensuraveis com video de celular, ao contrario de comprimento do passo
+ * e velocidade.
+ */
+function blocoTemporalMarcha(json: string | null): string {
+  let tempos: Record<string, number> = {};
+  try { tempos = json ? JSON.parse(json) : {}; } catch { return ''; }
+  const t = calcularParametrosTemporais(tempos);
+  if (t.cadencia === null) return '';
+  const classe = t.alertaSimetria ? 'alerta' : 'ok';
+  return `<h2>Parametros Temporais</h2>
+    <table>
+      <tr><th>Parametro</th><th>Valor</th></tr>
+      <tr><td>Cadencia</td><td>${t.cadencia} passos/min</td></tr>
+      <tr><td>Duracao do ciclo</td><td>${t.duracaoCiclo} s</td></tr>
+      <tr><td>Tempo de apoio direito</td><td>${t.apoioDireito} s</td></tr>
+      <tr><td>Tempo de apoio esquerdo</td><td>${t.apoioEsquerdo} s</td></tr>
+      <tr><td>Assimetria de apoio</td><td class="${classe}">${t.simetria}%</td></tr>
+    </table>
+    <div class="info">Assimetria acima de 10% e habitualmente descrita como relevante.</div>`;
 }
 
 /** Cards do diagnostico clinico sugerido, no mesmo formato da tela. */
@@ -545,6 +568,7 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
       <h2>Captura ${av.angulo} - ${av.data_avaliacao}</h2>
       ${imagensHtml}
       ${tabelaFases || '<div class="info">Sem marcacoes por fase registradas nesta avaliacao.</div>'}
+      ${blocoTemporalMarcha(av.tempos_json)}
       ${(() => {
         try {
           const pis = av.pisada_json ? JSON.parse(av.pisada_json) : {};
@@ -708,6 +732,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     corpo += '</table>';
     for (const av of marchas) {
       corpo += await montarImagensMarcha(av);
+      corpo += blocoTemporalMarcha(av.tempos_json);
     }
   }
 
