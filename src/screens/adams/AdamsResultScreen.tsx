@@ -44,6 +44,8 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   }, [pontosEditaveis]);
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
+  const [mostrarGrade, setMostrarGrade] = useState(false);
+  const [semCor, setSemCor] = useState(false);
 
   const moverPonto = (id: string, x: number, y: number) => {
     const nx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
@@ -206,7 +208,24 @@ export default function AdamsResultScreen({ route, navigation }: any) {
         }}
         onResponderRelease={adicionarObservacao}
       >
-        <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
+        <Image
+          source={{ uri: fotoUri }}
+          style={[styles.image, semCor && styles.imagemSemCor]}
+          resizeMode="contain"
+        />
+        {semCor && <View pointerEvents="none" style={styles.camadaSemCor} />}
+
+        {mostrarGrade && (
+          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+            {Array.from({ length: 11 }).map((_, i) => (
+              <View key={`gv-${i}`} style={[styles.gradeLinhaV, { left: (IMAGE_WIDTH / 10) * i }]} />
+            ))}
+            {Array.from({ length: 13 }).map((_, i) => (
+              <View key={`gh-${i}`} style={[styles.gradeLinhaH, { top: (IMAGE_HEIGHT / 12) * i }]} />
+            ))}
+          </View>
+        )}
+
 
         {vista === 'lateral' && pontosPx.c7 && pontosPx.l5 && (
           <LinhaDorso a={pontosPx.c7} b={pontosPx.l5} alerta={false} />
@@ -309,6 +328,22 @@ export default function AdamsResultScreen({ route, navigation }: any) {
         </>
       )}
 
+
+      <View style={styles.barraVisual}>
+        <TouchableOpacity
+          style={[styles.btnVisual, mostrarGrade && styles.btnVisualAtivo]}
+          onPress={() => setMostrarGrade(!mostrarGrade)}
+        >
+          <Text style={[styles.btnVisualText, mostrarGrade && styles.btnVisualTextAtivo]}>Grade</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btnVisual, semCor && styles.btnVisualAtivo]}
+          onPress={() => setSemCor(!semCor)}
+        >
+          <Text style={[styles.btnVisualText, semCor && styles.btnVisualTextAtivo]}>P e B</Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity
         style={[styles.btnObservacao, modoObservacao && styles.btnObservacaoAtivo]}
         onPress={() => setModoObservacao(!modoObservacao)}
@@ -368,6 +403,15 @@ function BadgeNaLinha({ a, b, valor, alerta }: { a: Ponto; b: Ponto; valor: numb
 }
 
 const styles = StyleSheet.create({
+  barraVisual: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  btnVisual: { flex: 1, backgroundColor: '#E0F2FE', paddingVertical: 11, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#7DD3FC' },
+  btnVisualAtivo: { backgroundColor: '#0EA5E9', borderColor: '#0EA5E9' },
+  btnVisualText: { color: '#0369A1', fontWeight: '700', fontSize: 13 },
+  btnVisualTextAtivo: { color: '#FFFFFF' },
+  imagemSemCor: { opacity: 0.55 },
+  camadaSemCor: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.18 },
+  gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 16, paddingBottom: 40 },
   resumoCard: { padding: 14, borderRadius: 14, marginBottom: 16, borderWidth: 1 },

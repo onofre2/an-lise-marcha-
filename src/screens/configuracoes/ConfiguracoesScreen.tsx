@@ -65,8 +65,8 @@ export default function ConfiguracoesScreen() {
       <View style={styles.card}>
         <Text style={styles.label}>Nome Completo</Text>
         <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Seu nome" placeholderTextColor="#94A3B8" />
-        <Text style={styles.label}>Numero de Registro (CREFITO)</Text>
-        <TextInput style={styles.input} value={registro} onChangeText={setRegistro} placeholder="Ex: CREFITO-4 123456" placeholderTextColor="#94A3B8" />
+        <Text style={styles.label}>Numero de Registro</Text>
+        <TextInput style={styles.input} value={registro} onChangeText={setRegistro} placeholderTextColor="#94A3B8" />
       </View>
 
       <Text style={styles.sectionTitle}>Logo da Clinica</Text>
