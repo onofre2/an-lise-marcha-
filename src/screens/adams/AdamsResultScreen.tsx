@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, TextInput } from 'react-native';
 import db from '../../services/database';
 import { gerarAchadosAdams } from '../../services/interpretacaoClinica';
@@ -33,6 +33,19 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   }, [pacienteId]);
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
+
+  // useState so aplica o valor inicial na primeira montagem. Quando a tela e
+  // reaproveitada para outra avaliacao, os pontos da anterior permaneceriam.
+  // A chave ressincroniza o estado sem forcar remontagem.
+  const chaveAvaliacao = String(fotoUri);
+  const chaveAnterior = React.useRef(chaveAvaliacao);
+  useEffect(() => {
+    if (chaveAnterior.current !== chaveAvaliacao) {
+      chaveAnterior.current = chaveAvaliacao;
+      setPontosEditaveis(pontos);
+      setObservacoes({});
+    }
+  }, [chaveAvaliacao, pontos]);
 
   // Os pontos sao gravados normalizados (0 a 1). O angulo so e correto em
   // pixel: a area nao e quadrada, entao o espaco normalizado distorce.

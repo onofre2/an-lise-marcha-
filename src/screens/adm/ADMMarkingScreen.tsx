@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
 import CardReferencia from '../../components/CardReferencia';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
@@ -18,6 +18,18 @@ export default function ADMMarkingScreen({ route, navigation }: any) {
   const sequencia = movimento ? movimento.pontos : [];
 
   const [indiceAtual, setIndiceAtual] = useState(0);
+
+  // Ressincroniza quando a tela e reaproveitada para outra foto, para nao
+  // herdar o indice e os pontos da marcacao anterior.
+  const chaveMarcacao = String(fotoUri);
+  const chaveAnterior = React.useRef(chaveMarcacao);
+  useEffect(() => {
+    if (chaveAnterior.current !== chaveMarcacao) {
+      chaveAnterior.current = chaveMarcacao;
+      setIndiceAtual(0);
+      setPontosMarcados({});
+    }
+  }, [chaveMarcacao]);
   const [pontosMarcados, setPontosMarcados] = useState<Record<string, Ponto>>({});
 
   const pontoAtual = indiceAtual < sequencia.length ? sequencia[indiceAtual] : null;

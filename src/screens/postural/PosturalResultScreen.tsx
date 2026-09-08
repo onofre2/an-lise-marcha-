@@ -85,6 +85,22 @@ export default function PosturalResultScreen({ route, navigation }: any) {
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
 
+  // useState so aplica o valor inicial na primeira montagem. Quando a tela e
+  // reaproveitada para outra avaliacao, os pontos da anterior permaneceriam —
+  // por isso a lateral chegava a aparecer com as marcacoes da posterior.
+  // A chave abaixo identifica a avaliacao aberta e ressincroniza o estado
+  // sempre que ela muda, sem forcar remontagem.
+  const chaveAvaliacao = `${avaliacaoId ?? 'nova'}|${vista}|${fotoUri}`;
+  const chaveAnterior = React.useRef(chaveAvaliacao);
+  useEffect(() => {
+    if (chaveAnterior.current !== chaveAvaliacao) {
+      chaveAnterior.current = chaveAvaliacao;
+      setPontosEditaveis(pontos);
+      setObservacoes({});
+      setDiagnosticoEditado(false);
+    }
+  }, [chaveAvaliacao, pontos]);
+
   const moverPonto = (id: string, x: number, y: number) => {
     const cx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
     const cy = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
 import { PONTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import CardReferencia, { CardId } from '../../components/CardReferencia';
@@ -16,6 +16,19 @@ export default function PosturalMarkingScreen({ route, navigation }: any) {
 
   const pontosSequencia = PONTOS_RAPIDA[vista];
   const [indiceAtual, setIndiceAtual] = useState(0);
+
+  // Quando a tela e reaproveitada para outra foto ou vista, o indice e os
+  // pontos da marcacao anterior permaneceriam. A chave ressincroniza o estado
+  // sem forcar remontagem.
+  const chaveMarcacao = `${vista}|${fotoUri}`;
+  const chaveAnterior = React.useRef(chaveMarcacao);
+  useEffect(() => {
+    if (chaveAnterior.current !== chaveMarcacao) {
+      chaveAnterior.current = chaveMarcacao;
+      setIndiceAtual(0);
+      setPontosMarcados({});
+    }
+  }, [chaveMarcacao]);
   const [pontosMarcados, setPontosMarcados] = useState<Record<string, Ponto>>({});
 
   const pontoAtual = indiceAtual < pontosSequencia.length ? pontosSequencia[indiceAtual] : null;

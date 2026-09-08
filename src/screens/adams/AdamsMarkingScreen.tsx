@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
 
@@ -28,6 +28,18 @@ export default function AdamsMarkingScreen({ route, navigation }: any) {
   const PONTOS_SEQUENCIA = SEQUENCIAS[vista];
 
   const [indiceAtual, setIndiceAtual] = useState(0);
+
+  // Ressincroniza quando a tela e reaproveitada para outra foto, para nao
+  // herdar o indice e os pontos da marcacao anterior.
+  const chaveMarcacao = String(fotoUri);
+  const chaveAnterior = React.useRef(chaveMarcacao);
+  useEffect(() => {
+    if (chaveAnterior.current !== chaveMarcacao) {
+      chaveAnterior.current = chaveMarcacao;
+      setIndiceAtual(0);
+      setPontosMarcados({});
+    }
+  }, [chaveMarcacao]);
   const [pontosMarcados, setPontosMarcados] = useState<Record<string, Ponto>>({});
 
   const pontoAtual = indiceAtual < PONTOS_SEQUENCIA.length ? PONTOS_SEQUENCIA[indiceAtual] : null;
