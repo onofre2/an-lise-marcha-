@@ -11,7 +11,7 @@ import { Observacao } from '../services/observacoes';
 import MarcadorComLupa from '../components/MarcadorComLupa';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { FASES_MARCHA, PONTOS_FASE } from '../constants/fasesMarcha';
-import { calcularFase, PontosFase } from '../services/marchaCalculations';
+import { calcularFase, calcularParametrosTemporais, PontosFase } from '../services/marchaCalculations';
 
 const VIDEO_HEIGHT = Dimensions.get('window').height * 0.38;
 const VIDEO_WIDTH = Dimensions.get('window').width - 32;
@@ -197,6 +197,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
   // Referencia da area do video, usada para capturar o frame com as marcacoes
   const areaVideoRef = React.useRef<any>(null);
   const [framesFases, setFramesFases] = useState<Record<string, string>>({});
+  const [temposFases, setTemposFases] = useState<Record<string, number>>({});
 
   const confirmarFase = async () => {
     // Captura o frame atual do video com os pontos e linhas ja desenhados,
@@ -215,6 +216,9 @@ export default function VideoEditScreen({ route, navigation }: any) {
       console.error('Erro ao capturar frame da fase:', e);
     }
 
+    // Guarda o instante do evento: e a partir dos tempos que saem a cadencia
+    // e a simetria entre os lados, sem depender de escala espacial.
+    setTemposFases(prev => ({ ...prev, [fase.id]: player.currentTime || 0 }));
     setMarcacoes({ ...marcacoes, [fase.id]: pontosFaseAtual });
     setPontosFaseAtual({});
     if (faseIndice < FASES_MARCHA.length - 1) setFaseIndice(faseIndice + 1);
@@ -225,8 +229,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const videoPermanente = await salvarMidiaPermanente(videoUri);
       db.runSync(
-        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json, pisada_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura }), JSON.stringify(observacoesPorFase), JSON.stringify(pisada)]
+        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json, pisada_json, tempos_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura }), JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -382,6 +386,41 @@ export default function VideoEditScreen({ route, navigation }: any) {
         </View>
       ) : (
         <View>
+          {(() => {
+            const t = calcularParametrosTemporais(temposFases);
+            if (t.cadencia === null) return null;
+            return (
+              <View style={styles.blocoTemporal}>
+                <Text style={styles.blocoTemporalTitulo}>Parâmetros Temporais</Text>
+                <View style={styles.linhaTemporal}>
+                  <Text style={styles.temporalRotulo}>Cadência</Text>
+                  <Text style={styles.temporalValor}>{t.cadencia} passos/min</Text>
+                </View>
+                <View style={styles.linhaTemporal}>
+                  <Text style={styles.temporalRotulo}>Duração do ciclo</Text>
+                  <Text style={styles.temporalValor}>{t.duracaoCiclo}s</Text>
+                </View>
+                <View style={styles.linhaTemporal}>
+                  <Text style={styles.temporalRotulo}>Apoio direito</Text>
+                  <Text style={styles.temporalValor}>{t.apoioDireito}s</Text>
+                </View>
+                <View style={styles.linhaTemporal}>
+                  <Text style={styles.temporalRotulo}>Apoio esquerdo</Text>
+                  <Text style={styles.temporalValor}>{t.apoioEsquerdo}s</Text>
+                </View>
+                <View style={styles.linhaTemporal}>
+                  <Text style={styles.temporalRotulo}>Assimetria de apoio</Text>
+                  <Text style={[styles.temporalValor, t.alertaSimetria && styles.temporalAlerta]}>
+                    {t.simetria}%
+                  </Text>
+                </View>
+                <Text style={styles.temporalNota}>
+                  Assimetria acima de 10% é habitualmente descrita como relevante.
+                </Text>
+              </View>
+            );
+          })()}
+
           <ResumoMarcha marcacoes={marcacoes} area={areaVideo} />
           <Text style={styles.tituloResultado}>Resultado por Fase</Text>
           {FASES_MARCHA.map(f => (
@@ -452,6 +491,13 @@ function Segmentos({ pontos }: { pontos: PontosFase }) {
 }
 
 const styles = StyleSheet.create({
+  blocoTemporal: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E2E8F0' },
+  blocoTemporalTitulo: { fontSize: 14, fontWeight: '700', color: '#0F172A', marginBottom: 10 },
+  linhaTemporal: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
+  temporalRotulo: { fontSize: 13, color: '#64748B' },
+  temporalValor: { fontSize: 13, fontWeight: '700', color: '#0F172A' },
+  temporalAlerta: { color: '#F59E0B' },
+  temporalNota: { fontSize: 11, color: '#94A3B8', marginTop: 8, lineHeight: 15 },
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   resumoCard: { padding: 14, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
   resumoOk: { backgroundColor: '#F0FDF4', borderColor: '#BBF7D0' },

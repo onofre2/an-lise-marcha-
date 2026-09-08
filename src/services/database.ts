@@ -227,6 +227,13 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    // Instantes de cada evento da marcha, para cadencia e simetria temporal.
+    try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN tempos_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     // Circulos de desajuste marcados pelo terapeuta sobre o frame da marcha.
     try {
       db.execSync('ALTER TABLE avaliacoes ADD COLUMN observacoes_json TEXT');

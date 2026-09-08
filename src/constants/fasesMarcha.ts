@@ -15,9 +15,9 @@ export interface FaseMarcha {
 
 export const FASES_MARCHA: FaseMarcha[] = [
   {
-    id: 'contato_inicial',
-    nome: 'Contato Inicial',
-    descricao: 'Momento em que o pe toca o solo pela primeira vez',
+    id: 'contato_direito',
+    nome: 'Contato do Pe Direito',
+    descricao: 'Calcanhar direito toca o solo. Inicio do ciclo.',
     referencias: {
       quadril: { min: 15, max: 25, texto: '20 graus de flexao' },
       joelho: { min: 0, max: 5, texto: 'extensao completa' },
@@ -25,23 +25,33 @@ export const FASES_MARCHA: FaseMarcha[] = [
     },
   },
   {
-    id: 'resposta_carga',
-    nome: 'Resposta a Carga',
-    descricao: 'Absorcao do impacto, logo apos o contato inicial',
+    id: 'saida_esquerdo',
+    nome: 'Saida do Pe Esquerdo',
+    descricao: 'Ponta do pe esquerdo deixa o solo. Fim do apoio duplo.',
     referencias: {
-      quadril: { min: 15, max: 25, texto: '20 graus de flexao' },
-      joelho: { min: 10, max: 20, texto: '15 graus de flexao' },
-      tornozelo: { min: -10, max: 0, texto: 'leve flexao plantar' },
+      quadril: { min: -20, max: -5, texto: 'extensao' },
+      joelho: { min: 30, max: 45, texto: '35 a 40 graus de flexao' },
+      tornozelo: { min: -25, max: -10, texto: 'flexao plantar' },
     },
   },
   {
-    id: 'apoio_medio',
-    nome: 'Apoio Medio',
-    descricao: 'Corpo passa sobre o pe de apoio',
+    id: 'contato_esquerdo',
+    nome: 'Contato do Pe Esquerdo',
+    descricao: 'Calcanhar esquerdo toca o solo. Metade do ciclo.',
     referencias: {
-      quadril: { min: -5, max: 10, texto: 'proximo do neutro' },
-      joelho: { min: 0, max: 10, texto: 'proximo da extensao' },
-      tornozelo: { min: 3, max: 10, texto: '5 graus de dorsiflexao' },
+      quadril: { min: 15, max: 25, texto: '20 graus de flexao' },
+      joelho: { min: 0, max: 5, texto: 'extensao completa' },
+      tornozelo: { min: -5, max: 5, texto: 'neutro' },
+    },
+  },
+  {
+    id: 'saida_direito',
+    nome: 'Saida do Pe Direito',
+    descricao: 'Ponta do pe direito deixa o solo.',
+    referencias: {
+      quadril: { min: -20, max: -5, texto: 'extensao' },
+      joelho: { min: 30, max: 45, texto: '35 a 40 graus de flexao' },
+      tornozelo: { min: -25, max: -10, texto: 'flexao plantar' },
     },
   },
 ];

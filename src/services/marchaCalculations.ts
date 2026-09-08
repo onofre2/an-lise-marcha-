@@ -87,3 +87,62 @@ export function calcularFase(
 
   return resultado;
 }
+
+export interface ParametrosTemporais {
+  cadencia: number | null;
+  duracaoCiclo: number | null;
+  apoioDireito: number | null;
+  apoioEsquerdo: number | null;
+  simetria: number | null;
+  alertaSimetria: boolean;
+}
+
+/**
+ * Parametros temporais da marcha, obtidos apenas dos instantes marcados no
+ * video. Nao dependem de escala espacial, ao contrario de comprimento do passo
+ * e velocidade, e por isso sao mensuraveis com video de celular.
+ *
+ * Assimetria de tempo de apoio acima de 10 por cento e habitualmente descrita
+ * como relevante na literatura de marcha patologica.
+ */
+export function calcularParametrosTemporais(
+  tempos: Record<string, number>,
+): ParametrosTemporais {
+  const cd = tempos['contato_direito'];
+  const se = tempos['saida_esquerdo'];
+  const ce = tempos['contato_esquerdo'];
+  const sd = tempos['saida_direito'];
+
+  const vazio: ParametrosTemporais = {
+    cadencia: null, duracaoCiclo: null, apoioDireito: null,
+    apoioEsquerdo: null, simetria: null, alertaSimetria: false,
+  };
+  if ([cd, se, ce, sd].some(t => typeof t !== 'number')) return vazio;
+
+  // Do contato direito ate a saida direita: tempo de apoio do pe direito.
+  const apoioDireito = Number((sd - cd).toFixed(2));
+  // Do contato esquerdo ate a saida esquerda. Quando a saida esquerda vem
+  // antes do contato esquerdo, ela pertence ao passo anterior.
+  const apoioEsquerdo = Number((se > ce ? se - ce : (ce - se)).toFixed(2));
+
+  // Meio ciclo: contato de um pe ate o contato do outro.
+  const meioCiclo = Math.abs(ce - cd);
+  const duracaoCiclo = meioCiclo > 0 ? Number((meioCiclo * 2).toFixed(2)) : null;
+  const cadencia = duracaoCiclo && duracaoCiclo > 0
+    ? Number((120 / duracaoCiclo).toFixed(0))
+    : null;
+
+  const soma = apoioDireito + apoioEsquerdo;
+  const simetria = soma > 0
+    ? Number(((Math.abs(apoioDireito - apoioEsquerdo) / soma) * 100).toFixed(1))
+    : null;
+
+  return {
+    cadencia,
+    duracaoCiclo,
+    apoioDireito,
+    apoioEsquerdo,
+    simetria,
+    alertaSimetria: simetria !== null && simetria > 10,
+  };
+}
