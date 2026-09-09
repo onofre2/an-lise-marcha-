@@ -304,6 +304,11 @@ async function rodapeCompleto(): Promise<string> {
       de 40 graus, com vies sistematico, e por isso devem ser lidas com reserva,
       servindo para acompanhar a evolucao do proprio paciente e nao como valor
       absoluto.
+      Os limites usados nos desvios da linha de prumo (4 por cento da altura) e
+      no desvio lateral da coluna (5 por cento da largura dos ombros) sao
+      criterios operacionais deste aplicativo, sem respaldo normativo: o teste do
+      fio de prumo e descrito na literatura de forma qualitativa. Servem para
+      acompanhar a evolucao do proprio paciente, nao como valor diagnostico.
       Criterio de classificacao adotado neste aplicativo: desvios angulares
       inferiores a 1,5 grau sao considerados alinhamento preservado; de 1,5 a
       menos de 3 graus, desajuste discreto; iguais ou superiores a 3 graus,

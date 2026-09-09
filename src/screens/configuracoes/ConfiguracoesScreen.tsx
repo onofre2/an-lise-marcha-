@@ -120,6 +120,18 @@ export default function ConfiguracoesScreen() {
           a partir da altura do paciente; sem altura cadastrada, o achado nao e gerado.
         </Text>
 
+        <Text style={styles.refTitulo}>Linha de prumo e desvio lateral</Text>
+        <Text style={styles.refTexto}>
+          O teste do fio de prumo e descrito na literatura classica (Kendall) de
+          forma qualitativa: o segmento e registrado como estando a frente, atras
+          ou sobre a linha. Nao ha valor publicado de deslocamento em percentual
+          da altura. Os limites usados aqui, 4 por cento da altura para os desvios
+          na linha de prumo e 5 por cento da largura dos ombros para o desvio
+          lateral da coluna, sao criterios operacionais deste aplicativo, sem
+          respaldo normativo. Servem para acompanhar a evolucao do proprio
+          paciente entre avaliacoes, nao como valor diagnostico.
+        </Text>
+
         <Text style={styles.refTitulo}>Criterio de classificacao</Text>
         <Text style={styles.refTexto}>
           Desvios angulares inferiores a 1,5 grau sao considerados alinhamento
