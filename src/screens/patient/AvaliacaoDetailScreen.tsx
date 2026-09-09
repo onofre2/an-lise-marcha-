@@ -32,6 +32,11 @@ function dimensoesDaAvaliacao(registro: any): { largura: number; altura: number 
   return { largura: 343, altura: 320 };
 }
 
+// Mesma classificacao usada na tela de avaliacao e no relatorio.
+function faixaDe(d: any): 'preservado' | 'discreto' | 'alterado' {
+  return d.classificacao || (d.alerta ? 'alterado' : 'preservado');
+}
+
 export default function AvaliacaoDetailScreen({ route, navigation }: any) {
   const { tipo, id } = route.params as { tipo: 'postural' | 'cervical' | 'adm' | 'marcha' | 'adams'; id: number };
 
@@ -494,8 +499,8 @@ function renderMedidas(tipo: string, registro: any, desajustes: Desajuste[]) {
         {desajustes.map((d, i) => (
           <View key={i} style={styles.card}>
             <Text style={styles.cardLabel}>{d.label}</Text>
-            <View style={[styles.badge, d.alerta ? styles.badgeAlerta : styles.badgeOk]}>
-              <Text style={[styles.badgeText, d.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+            <View style={[styles.badge, faixaDe(d) === 'alterado' ? styles.badgeAlerta : faixaDe(d) === 'discreto' ? styles.badgeDiscreto : styles.badgeOk]}>
+              <Text style={[styles.badgeText, faixaDe(d) === 'alterado' ? styles.badgeTextAlerta : faixaDe(d) === 'discreto' ? styles.badgeTextDiscreto : styles.badgeTextOk]}>
                 {d.valor}{d.unidade}
               </Text>
             </View>
@@ -632,10 +637,12 @@ const styles = StyleSheet.create({
   cardRef: { color: '#94A3B8', fontSize: 11, marginTop: 2 },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, minWidth: 60, alignItems: 'center' },
   badgeOk: { backgroundColor: '#DCFCE7' },
-  badgeAlerta: { backgroundColor: '#FEF3C7' },
+  badgeDiscreto: { backgroundColor: '#FEF3C7' },
+  badgeAlerta: { backgroundColor: '#FEE2E2' },
   badgeNeutro: { backgroundColor: '#F1F5F9' },
   badgeText: { fontWeight: 'bold', fontSize: 13 },
   badgeTextOk: { color: '#16A34A' },
-  badgeTextAlerta: { color: '#D97706' },
+  badgeTextDiscreto: { color: '#D97706' },
+  badgeTextAlerta: { color: '#DC2626' },
   badgeTextNeutro: { color: '#64748B' },
 });
