@@ -161,6 +161,28 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
         );
       })()}
 
+      {tipo === 'marcha' && registro.video_uri ? (
+        <TouchableOpacity
+          style={styles.btnReeditar}
+          onPress={() => navigation.navigate('NovaAvaliacaoTab', {
+            screen: 'VideoEdit',
+            params: {
+              videoUri: registro.video_uri,
+              pacienteId: registro.id_paciente,
+              angulo: registro.angulo,
+              avaliacaoId: registro.id,
+              marcacoesSalvas: registro.marcacoes_json,
+              framesSalvos: registro.frames_json,
+              temposSalvos: registro.tempos_json,
+              observacoesSalvas: registro.observacoes_json,
+              pisadaSalva: registro.pisada_json,
+            },
+          })}
+        >
+          <Text style={styles.btnReeditarText}>Reabrir para editar pontos</Text>
+        </TouchableOpacity>
+      ) : null}
+
       {tipo === 'postural' && registro.foto_uri ? (
         <TouchableOpacity
           style={styles.btnReeditar}

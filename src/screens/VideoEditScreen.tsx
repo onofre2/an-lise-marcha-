@@ -19,8 +19,19 @@ const VIDEO_WIDTH = Dimensions.get('window').width - 32;
 const IMG_FASES = require('../../assets/referencias/fases-marcha.jpg');
 
 export default function VideoEditScreen({ route, navigation }: any) {
-  const { videoUri, pacienteId, angulo } = route.params as {
+  const {
+    videoUri, pacienteId, angulo, avaliacaoId,
+    marcacoesSalvas, framesSalvos, temposSalvos, observacoesSalvas, pisadaSalva,
+  } = route.params as {
     videoUri: string; pacienteId: number; angulo: string;
+    avaliacaoId?: number;
+    marcacoesSalvas?: string; framesSalvos?: string; temposSalvos?: string;
+    observacoesSalvas?: string; pisadaSalva?: string;
+  };
+
+  // Ao reabrir uma avaliacao salva, as marcacoes voltam como estavam.
+  const lerSalvo = (json?: string) => {
+    try { return json ? JSON.parse(json) : {}; } catch { return {}; }
   };
 
   const player = useVideoPlayer(videoUri, p => {
@@ -35,7 +46,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const [rate, setRate] = useState(1.0);
   const [faseIndice, setFaseIndice] = useState(0);
   const [pontosFaseAtual, setPontosFaseAtual] = useState<PontosFase>({});
-  const [marcacoes, setMarcacoes] = useState<Record<string, PontosFase>>({});
+  const [marcacoes, setMarcacoes] = useState<Record<string, PontosFase>>(lerSalvo(marcacoesSalvas));
 
   // Ressincroniza quando a tela e reaproveitada para outro video, para nao
   // herdar marcacoes, frames, tempos e observacoes da avaliacao anterior.
@@ -127,6 +138,14 @@ export default function VideoEditScreen({ route, navigation }: any) {
   };
 
   const marcarPonto = (evt: any) => {
+    // Só aceita marcação com o frame já congelado: antes disso a lupa não tem
+    // imagem para ampliar e o toque seria feito às cegas, sobre o vídeo em
+    // movimento.
+    if (!frameCongelado) {
+      Alert.alert('Pause o video', 'Pause o video no momento desejado para marcar os pontos com a lupa.');
+      return;
+    }
+
     // No modo observacao o toque cria um circulo de desajuste, nao um ponto.
     if (modoObservacao) {
       const { locationX, locationY } = evt.nativeEvent;
@@ -159,12 +178,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const [modoObservacao, setModoObservacao] = useState(false);
 
   // Caracteristicas do pe: observadas pelo terapeuta, nao calculadas pelo app.
-  const [pisada, setPisada] = useState<Record<string, string>>({});
+  const [pisada, setPisada] = useState<Record<string, string>>(lerSalvo(pisadaSalva));
   const alternar = (chave: string, valor: string) =>
     setPisada(prev => ({ ...prev, [chave]: prev[chave] === valor ? '' : valor }));
   // Observacoes por fase: o desajuste marcado no Contato Inicial nao deve
   // aparecer sobre o frame do Apoio Medio.
-  const [observacoesPorFase, setObservacoesPorFase] = useState<Record<string, Record<string, Observacao>>>({});
+  const [observacoesPorFase, setObservacoesPorFase] = useState<Record<string, Record<string, Observacao>>>(lerSalvo(observacoesSalvas));
   const observacoes = observacoesPorFase[fase.id] || {};
 
   const moverPontaObservacao = (id: string, x: number, y: number) => {
@@ -213,8 +232,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
 
   // Referencia da area do video, usada para capturar o frame com as marcacoes
   const areaVideoRef = React.useRef<any>(null);
-  const [framesFases, setFramesFases] = useState<Record<string, string>>({});
-  const [temposFases, setTemposFases] = useState<Record<string, number>>({});
+  const [framesFases, setFramesFases] = useState<Record<string, string>>(lerSalvo(framesSalvos));
+  const [temposFases, setTemposFases] = useState<Record<string, number>>(lerSalvo(temposSalvos));
 
   const confirmarFase = async () => {
     // Captura o frame atual do video com os pontos e linhas ja desenhados,
@@ -245,11 +264,29 @@ export default function VideoEditScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const videoPermanente = await salvarMidiaPermanente(videoUri);
-      db.runSync(
-        'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json, pisada_json, tempos_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura }), JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases)]
-      );
-      const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+      const dimensoes = JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura });
+
+      // Reaberta do historico: atualiza o registro em vez de criar outro.
+      let idAvaliacao: number;
+      if (avaliacaoId) {
+        db.runSync(
+          `UPDATE avaliacoes
+           SET video_uri = ?, marcacoes_json = ?, frames_json = ?, dimensoes_json = ?,
+               observacoes_json = ?, pisada_json = ?, tempos_json = ?
+           WHERE id = ?`,
+          [videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), dimensoes,
+           JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases), avaliacaoId]
+        );
+        idAvaliacao = avaliacaoId;
+      } else {
+        db.runSync(
+          'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json, pisada_json, tempos_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), dimensoes, JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases)]
+        );
+        const criada = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+        idAvaliacao = criada.id;
+      }
+      const nova = { id: idAvaliacao };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
         { text: 'Agora nao', onPress: () => navigation.navigate('EvaluationHome') },
         {
@@ -286,8 +323,8 @@ export default function VideoEditScreen({ route, navigation }: any) {
               ponto={p}
               onMove={moverPontoFase}
               fotoUri={frameCongelado || ''}
-              larguraImagem={VIDEO_WIDTH}
-              alturaImagem={VIDEO_HEIGHT}
+              larguraImagem={areaVideo.largura}
+              alturaImagem={areaVideo.altura}
             />
           ))}
           {Object.entries(observacoes).map(([id, o]) => (
