@@ -120,6 +120,20 @@ export default function ConfiguracoesScreen() {
           a partir da altura do paciente; sem altura cadastrada, o achado nao e gerado.
         </Text>
 
+        <Text style={styles.refTitulo}>Criterio de classificacao</Text>
+        <Text style={styles.refTexto}>
+          Desvios angulares inferiores a 1,5 grau sao considerados alinhamento
+          preservado; de 1,5 a menos de 3 graus, desajuste discreto; iguais ou
+          superiores a 3 graus, alteracao postural. A literatura de fotogrametria
+          demonstra boa confiabilidade do metodo, mas nao estabelece um limiar
+          universal de desvio. Os cortes adotados aqui sao criterios operacionais
+          de triagem, escolhidos para oferecer a maior precisao possivel sem que
+          a variacao natural da marcacao seja interpretada como achado clinico, e
+          nao constituem valores diagnosticos universais. Medidas com referencia
+          propria na literatura, como POTSI, ATSI, angulo craniovertebral e
+          angulo Q, mantem seus proprios pontos de corte.
+        </Text>
+
         <Text style={styles.refTitulo}>Angulo Q</Text>
         <Text style={styles.refTexto}>
           Angulo formado no centro da patela entre a linha vinda da espinha iliaca

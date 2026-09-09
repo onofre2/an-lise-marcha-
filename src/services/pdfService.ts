@@ -44,7 +44,10 @@ const ESTILO = `
     th { background: #F1F5F9; text-align: left; padding: 8px; color: #475569; font-size: 11px; }
     td { padding: 8px; border-bottom: 1px solid #E2E8F0; }
     .ok { color: #16A34A; font-weight: bold; }
-    .alerta { color: #D97706; font-weight: bold; }
+    .alerta { color: #DC2626; font-weight: bold; }
+    .preservado { color: #16A34A; font-weight: bold; }
+    .discreto { color: #D97706; font-weight: bold; }
+    .alterado { color: #DC2626; font-weight: bold; }
     .bloco { background: #F8FAFC; border-left: 3px solid #22C55E; padding: 10px 14px; margin: 10px 0; font-size: 12px; }
     .diagramas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
     .diagrama { border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px; background: #FFFFFF; }
@@ -125,6 +128,21 @@ function blocoTemporalMarcha(json: string | null): string {
     <div class="info">Assimetria acima de 10% e habitualmente descrita como relevante.</div>`;
 }
 
+/**
+ * Faixa de classificacao de uma medida. Fonte unica para tabela e resumo:
+ * usa o campo gravado pelo calculo, com retorno ao criterio binario apenas
+ * para avaliacoes antigas que nao tenham a classificacao.
+ */
+function faixaDaMedida(m: any): 'preservado' | 'discreto' | 'alterado' {
+  return m.classificacao || (m.alerta ? 'alterado' : 'preservado');
+}
+
+const ROTULO_FAIXA: Record<string, string> = {
+  preservado: 'Preservado',
+  discreto: 'Desajuste discreto',
+  alterado: 'Alterado',
+};
+
 /** Cards do diagnostico clinico sugerido, no mesmo formato da tela. */
 function blocoAchados(achadosJson: string | null): string {
   let achados: any[] = [];
@@ -165,8 +183,8 @@ function tabelaMedidas(medidas: Medida[]): string {
   const linhas = medidas.map(m => `
     <tr>
       <td>${m.label}</td>
-      <td class="${m.alerta ? 'alerta' : 'ok'}">${m.valor} ${m.unidade}</td>
-      <td class="${m.alerta ? 'alerta' : 'ok'}">${m.alerta ? 'Alterado' : 'Normal'}</td>
+      <td class="${faixaDaMedida(m)}">${m.valor} ${m.unidade}</td>
+      <td class="${faixaDaMedida(m)}">${ROTULO_FAIXA[faixaDaMedida(m)]}</td>
     </tr>
   `).join('');
   return `<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>${linhas}</table>`;
@@ -285,8 +303,15 @@ async function rodapeCompleto(): Promise<string> {
       de 40 graus, com vies sistematico, e por isso devem ser lidas com reserva,
       servindo para acompanhar a evolucao do proprio paciente e nao como valor
       absoluto.
-      Limite de alerta para alinhamentos: 5 graus; desniveis lineares a partir de
-      1 cm tambem sao sinalizados quando ha altura do paciente registrada.
+      Criterio de classificacao adotado neste aplicativo: desvios angulares
+      inferiores a 1,5 grau sao considerados alinhamento preservado; de 1,5 a
+      menos de 3 graus, desajuste discreto; iguais ou superiores a 3 graus,
+      alteracao postural. A literatura de fotogrametria demonstra boa
+      confiabilidade do metodo, mas nao estabelece um limiar universal de
+      desvio: os cortes acima sao criterios operacionais de triagem, escolhidos
+      para oferecer a maior precisao possivel sem que a variacao natural da
+      marcacao seja interpretada como achado clinico. Nao constituem valores
+      diagnosticos universais.
       As medidas obtidas por fotogrametria em ortostatismo servem como triagem e
       nao substituem exame de imagem nem medida instrumental.
     </div>
@@ -768,20 +793,29 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   // e o que ficou pendente, para leitura rapida ao fim do relatorio.
   let resumo = '';
   const alteradas: string[] = [];
+  const discretasResumo: string[] = [];
   for (const av of posturais) {
     const medidas = medidasDaAvaliacao(av);
-    const fora = medidas.filter(m => m.alerta).map(m => m.label);
+    const fora = medidas.filter(m => faixaDaMedida(m) === 'alterado').map(m => m.label);
+    const discretas = medidas.filter(m => faixaDaMedida(m) === 'discreto').map(m => m.label);
     if (fora.length > 0) {
       alteradas.push(`<b>${av.vista.replace('_', ' ')}</b>: ${fora.join(', ')}`);
     }
+    if (discretas.length > 0) {
+      discretasResumo.push(`<b>${av.vista.replace('_', ' ')}</b>: ${discretas.join(', ')}`);
+    }
   }
-  if (alteradas.length > 0 || cervicais.length > 0 || pendentes.length > 0) {
+  if (alteradas.length > 0 || discretasResumo.length > 0 || cervicais.length > 0 || pendentes.length > 0) {
     resumo = '<h2>Resumo dos Achados</h2>';
     if (alteradas.length > 0) {
-      resumo += '<div class="bloco"><b>Alteracoes identificadas</b></div>';
+      resumo += '<div class="bloco"><b>Alteracoes identificadas (3 graus ou mais)</b></div>';
       alteradas.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
     } else if (posturais.length > 0) {
       resumo += '<div class="bloco">Nenhum segmento fora dos parametros adotados.</div>';
+    }
+    if (discretasResumo.length > 0) {
+      resumo += '<div class="bloco"><b>Desajustes discretos (1,5 a 3 graus)</b></div>';
+      discretasResumo.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
     }
     if (cervicais.length > 0) {
       const ultima = cervicais[0];
