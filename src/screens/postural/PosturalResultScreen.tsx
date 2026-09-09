@@ -119,10 +119,12 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   interface Observacao { base: Ponto; ponta: Ponto; }
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
-  const [mostrarGrade, setMostrarGrade] = useState(false);
+  // Recebe as opcoes gravadas ao reabrir uma avaliacao: sem isso, salvar de
+  // novo apagaria a grade e o preto e branco escolhidos antes.
+  const [mostrarGrade, setMostrarGrade] = useState(route.params?.comGrade === true);
 
   // Preto e branco: sem a cor da pele, os pontos e linhas ficam mais legiveis.
-  const [semCor, setSemCor] = useState(false);
+  const [semCor, setSemCor] = useState(route.params?.semCor === true);
   const [painelEdicao, setPainelEdicao] = useState(false);
 
   // Cada observacao e uma seta: a base fica onde o terapeuta tocou e a ponta,

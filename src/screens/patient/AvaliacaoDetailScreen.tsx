@@ -173,6 +173,8 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
               vista: registro.vista,
               modo: registro.modo,
               pontos,
+              semCor: registro.sem_cor === 1,
+              comGrade: registro.com_grade === 1,
             },
           })}
         >

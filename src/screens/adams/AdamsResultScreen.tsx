@@ -58,8 +58,10 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   }, [pontosEditaveis]);
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
-  const [mostrarGrade, setMostrarGrade] = useState(false);
-  const [semCor, setSemCor] = useState(false);
+  // Recebe as opcoes gravadas ao reabrir uma avaliacao: sem isso, salvar de
+  // novo apagaria a grade e o preto e branco escolhidos antes.
+  const [mostrarGrade, setMostrarGrade] = useState(route.params?.comGrade === true);
+  const [semCor, setSemCor] = useState(route.params?.semCor === true);
 
   // Registro do exame clinico feito pelo terapeuta, ao lado da medida
   // fotogrametrica. Nao altera o achado calculado pela foto.

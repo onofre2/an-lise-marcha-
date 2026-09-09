@@ -61,8 +61,10 @@ export default function CervicalResultScreen({ route, navigation }: any) {
 
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
-  const [mostrarGrade, setMostrarGrade] = useState(false);
-  const [semCor, setSemCor] = useState(false);
+  // Recebe as opcoes gravadas ao reabrir uma avaliacao: sem isso, salvar de
+  // novo apagaria a grade e o preto e branco escolhidos antes.
+  const [mostrarGrade, setMostrarGrade] = useState(route.params?.comGrade === true);
+  const [semCor, setSemCor] = useState(route.params?.semCor === true);
 
   const adicionarObservacao = (evt: any) => {
     if (!modoObservacao) return;
