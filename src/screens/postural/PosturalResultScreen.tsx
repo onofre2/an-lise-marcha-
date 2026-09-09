@@ -590,8 +590,8 @@ function BadgeNaLinha({ a, b, desajuste }: { a: Ponto; b: Ponto; desajuste: Desa
 function BadgeNoPonto({ p, desajuste }: { p: Ponto; desajuste: Desajuste }) {
   const texto = desajuste.unidade === '°' ? `${desajuste.valor}°` : `${desajuste.valor}%`;
   return (
-    <View style={[styles.badgeFlutuante, desajuste.alerta ? styles.badgeAlerta : styles.badgeOk, { left: p.x + 10, top: p.y - 14 }]}>
-      <Text style={[styles.badgeFlutuanteTexto, desajuste.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{texto}</Text>
+    <View style={[styles.badgeFlutuante, faixaDe(desajuste) === 'alterado' ? styles.badgeAlerta : faixaDe(desajuste) === 'discreto' ? styles.badgeDiscreto : styles.badgeOk, { left: p.x + 10, top: p.y - 14 }]}>
+      <Text style={[styles.badgeFlutuanteTexto, faixaDe(desajuste) === 'alterado' ? styles.badgeTextAlerta : faixaDe(desajuste) === 'discreto' ? styles.badgeTextDiscreto : styles.badgeTextOk]}>{texto}</Text>
     </View>
   );
 }
