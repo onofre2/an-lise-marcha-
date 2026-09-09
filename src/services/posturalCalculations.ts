@@ -4,6 +4,28 @@
 // Limiar de alerta para alinhamentos (graus).
 // Base: obliquidade de ombro em postura normal 1,9 +/- 1,4 graus (2 desvios-padrao = ~4,7)
 // e limite de 5 graus adotado na medicao com escoliometro.
+// Faixas de classificacao do aplicativo. Sao criterios operacionais de
+// triagem: a literatura de fotogrametria demonstra confiabilidade do metodo,
+// mas nao fixa um limiar universal de desvio. Os cortes abaixo foram
+// escolhidos para dar sensibilidade sem transformar a variacao natural da
+// marcacao em achado clinico.
+export type Classificacao = 'preservado' | 'discreto' | 'alterado';
+const LIMIAR_DISCRETO = 1.5;
+const LIMIAR_ALTERADO = 3;
+const LIMIAR_DESNIVEL_ALTERADO_CM = 3;
+
+/** Fonte unica de classificacao: tabela, cards e resumo usam esta funcao. */
+export function classificarDesvio(
+  graus: number,
+  desnivelCm: number | null = null,
+): Classificacao {
+  const d = Math.abs(graus);
+  if (d >= LIMIAR_ALTERADO) return 'alterado';
+  if (desnivelCm !== null && Math.abs(desnivelCm) >= LIMIAR_DESNIVEL_ALTERADO_CM) return 'alterado';
+  if (d >= LIMIAR_DISCRETO) return 'discreto';
+  return 'preservado';
+}
+
 const LIMIAR_ALINHAMENTO = 5;
 
 // Limiar de alerta por desnivel linear entre dois pontos homologos (cm).
@@ -23,6 +45,9 @@ export interface Desajuste {
   valor: number;
   unidade: string;
   alerta: boolean;
+  // Faixa de classificacao. 'alerta' e mantido por compatibilidade com
+  // avaliacoes ja gravadas e equivale a classificacao 'alterado'.
+  classificacao?: Classificacao;
 }
 
 // Distância entre dois pontos
@@ -88,7 +113,7 @@ function calcularPOTSI(p: Pontos): Desajuste | null {
 
   const potsi = faiC7 + faiAxila + faiCintura + hdiOmbro + hdiAxila + hdiCintura;
 
-  return { label: 'POTSI (Simetria Posterior do Tronco)', valor: Number(potsi.toFixed(1)), unidade: '%', alerta: potsi >= 27 };
+  return { label: 'POTSI (Simetria Posterior do Tronco)', valor: Number(potsi.toFixed(1)), unidade: '%', alerta: potsi >= 27, classificacao: potsi >= 27 ? 'alterado' : 'preservado' };
 }
 
 // ATSI (Anterior Trunk Symmetry Index) - adaptação de Suzuki et al. (1999)
@@ -111,7 +136,7 @@ function calcularATSI(p: Pontos): Desajuste | null {
 
   const atsi = faiMamilos + faiUmbigo + hdiOmbro + hdiMamilos;
 
-  return { label: 'ATSI (Simetria Anterior do Tronco)', valor: Number(atsi.toFixed(1)), unidade: '%', alerta: false };
+  return { label: 'ATSI (Simetria Anterior do Tronco)', valor: Number(atsi.toFixed(1)), unidade: '%', alerta: false, classificacao: 'preservado' };
 }
 
 function calcularAnterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
@@ -121,39 +146,39 @@ function calcularAnterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
   if (p.trago_d && p.trago_e) {
     const ang = anguloComHorizontal(p.trago_d, p.trago_e);
     const dn = desnivelCm(p.trago_d, p.trago_e, escala);
-    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.acromio_d && p.acromio_e) {
     const ang = anguloComHorizontal(p.acromio_d, p.acromio_e);
     const dn = desnivelCm(p.acromio_d, p.acromio_e, escala);
-    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.eias_d && p.eias_e) {
     const ang = anguloComHorizontal(p.eias_d, p.eias_e);
     const dn = desnivelCm(p.eias_d, p.eias_e, escala);
-    resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento da Pelve (EIAS)', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
 
   if (p.trocanter_d && p.trocanter_e) {
     const ang = anguloComHorizontal(p.trocanter_d, p.trocanter_e);
     const dn = desnivelCm(p.trocanter_d, p.trocanter_e, escala);
-    resultado.push({ label: 'Alinhamento dos Trocânteres', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Trocânteres', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.joelho_d && p.joelho_e) {
     const ang = anguloComHorizontal(p.joelho_d, p.joelho_e);
     const dn = desnivelCm(p.joelho_d, p.joelho_e, escala);
-    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.tornozelo_d && p.tornozelo_e) {
     const ang = anguloComHorizontal(p.tornozelo_d, p.tornozelo_e);
     const dn = desnivelCm(p.tornozelo_d, p.tornozelo_e, escala);
-    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
 
   if (p.halux_d && p.halux_e) {
     const ang = anguloComHorizontal(p.halux_d, p.halux_e);
     const dn = desnivelCm(p.halux_d, p.halux_e, escala);
-    resultado.push({ label: 'Alinhamento dos Pés', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Pés', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
 
   const atsi = calcularATSI(p);
@@ -169,51 +194,51 @@ function calcularPosterior(p: Pontos, alturaCm?: number | null): Desajuste[] {
   if (p.trago_d && p.trago_e) {
     const ang = anguloComHorizontal(p.trago_d, p.trago_e);
     const dn = desnivelCm(p.trago_d, p.trago_e, escala);
-    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento da Cabeça', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.acromio_d && p.acromio_e) {
     const ang = anguloComHorizontal(p.acromio_d, p.acromio_e);
     const dn = desnivelCm(p.acromio_d, p.acromio_e, escala);
-    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Ombros', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.escapula_d && p.escapula_e) {
     const ang = anguloComHorizontal(p.escapula_d, p.escapula_e);
     const dn = desnivelCm(p.escapula_d, p.escapula_e, escala);
-    resultado.push({ label: 'Alinhamento das Escápulas', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento das Escápulas', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.eips_d && p.eips_e) {
     const ang = anguloComHorizontal(p.eips_d, p.eips_e);
     const dn = desnivelCm(p.eips_d, p.eips_e, escala);
-    resultado.push({ label: 'Alinhamento da Pelve (EIPS)', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento da Pelve (EIPS)', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.c7 && p.acromio_d && p.acromio_e) {
     const centroOmbros = { x: (p.acromio_d.x + p.acromio_e.x) / 2, y: (p.acromio_d.y + p.acromio_e.y) / 2 };
     const desvio = Math.abs(p.c7.x - centroOmbros.x);
     const larguraOmbros = distancia(p.acromio_d, p.acromio_e);
     const desvioRel = larguraOmbros > 0 ? (desvio / larguraOmbros) * 100 : 0;
-    resultado.push({ label: 'Desvio Lateral da Coluna (C7)', valor: Number(desvioRel.toFixed(1)), unidade: '% da largura dos ombros', alerta: desvioRel >= 5 });
+    resultado.push({ label: 'Desvio Lateral da Coluna (C7)', valor: Number(desvioRel.toFixed(1)), unidade: '% da largura dos ombros', alerta: desvioRel >= 5, classificacao: desvioRel >= 5 ? 'alterado' : 'preservado' });
   }
 
   if (p.trocanter_d && p.trocanter_e) {
     const ang = anguloComHorizontal(p.trocanter_d, p.trocanter_e);
     const dn = desnivelCm(p.trocanter_d, p.trocanter_e, escala);
-    resultado.push({ label: 'Alinhamento dos Trocânteres', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Trocânteres', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.joelho_d && p.joelho_e) {
     const ang = anguloComHorizontal(p.joelho_d, p.joelho_e);
     const dn = desnivelCm(p.joelho_d, p.joelho_e, escala);
-    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Joelhos', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
   if (p.tornozelo_d && p.tornozelo_e) {
     const ang = anguloComHorizontal(p.tornozelo_d, p.tornozelo_e);
     const dn = desnivelCm(p.tornozelo_d, p.tornozelo_e, escala);
-    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Tornozelos', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
 
   if (p.halux_d && p.halux_e) {
     const ang = anguloComHorizontal(p.halux_d, p.halux_e);
     const dn = desnivelCm(p.halux_d, p.halux_e, escala);
-    resultado.push({ label: 'Alinhamento dos Pés', valor: Number(ang.toFixed(1)), unidade: '°', alerta: ang >= LIMIAR_ALINHAMENTO || (dn !== null && dn >= LIMIAR_DESNIVEL_CM) });
+    resultado.push({ label: 'Alinhamento dos Pés', valor: Number(ang.toFixed(1)), unidade: '°', classificacao: classificarDesvio(ang, dn), alerta: classificarDesvio(ang, dn) === 'alterado' });
   }
 
   const potsi = calcularPOTSI(p);
@@ -238,6 +263,7 @@ function calcularLateral(p: Pontos): Desajuste[] {
       valor,
       unidade: '°',
       alerta: anteversao ? valor > 15 : valor > 5,
+      classificacao: (anteversao ? valor > 15 : valor > 5) ? 'alterado' : 'preservado',
     });
   }
 
@@ -254,14 +280,14 @@ function calcularLateral(p: Pontos): Desajuste[] {
     const relAcromio = rel(dxAcromio);
     const relTrocanter = rel(dxTrocanter);
 
-    resultado.push({ label: 'Desvio da Cabeça (linha de prumo)', valor: relTrago, unidade: '% da altura', alerta: Math.abs(relTrago) >= 4 });
-    resultado.push({ label: 'Desvio do Ombro (linha de prumo)', valor: relAcromio, unidade: '% da altura', alerta: Math.abs(relAcromio) >= 4 });
-    resultado.push({ label: 'Desvio do Quadril (linha de prumo)', valor: relTrocanter, unidade: '% da altura', alerta: Math.abs(relTrocanter) >= 4 });
+    resultado.push({ label: 'Desvio da Cabeça (linha de prumo)', valor: relTrago, unidade: '% da altura', alerta: Math.abs(relTrago) >= 4, classificacao: Math.abs(relTrago) >= 4 ? 'alterado' : 'preservado' });
+    resultado.push({ label: 'Desvio do Ombro (linha de prumo)', valor: relAcromio, unidade: '% da altura', alerta: Math.abs(relAcromio) >= 4, classificacao: Math.abs(relAcromio) >= 4 ? 'alterado' : 'preservado' });
+    resultado.push({ label: 'Desvio do Quadril (linha de prumo)', valor: relTrocanter, unidade: '% da altura', alerta: Math.abs(relTrocanter) >= 4, classificacao: Math.abs(relTrocanter) >= 4 ? 'alterado' : 'preservado' });
 
     if (p.joelho) {
       const dxJoelho = p.joelho.x - p.maleolo.x;
       const relJoelho = rel(dxJoelho);
-      resultado.push({ label: 'Desvio do Joelho (linha de prumo)', valor: relJoelho, unidade: '% da altura', alerta: Math.abs(relJoelho) >= 4 });
+      resultado.push({ label: 'Desvio do Joelho (linha de prumo)', valor: relJoelho, unidade: '% da altura', alerta: Math.abs(relJoelho) >= 4, classificacao: Math.abs(relJoelho) >= 4 ? 'alterado' : 'preservado' });
     }
   }
 

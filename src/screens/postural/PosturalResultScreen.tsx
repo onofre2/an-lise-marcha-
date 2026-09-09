@@ -77,6 +77,12 @@ function LinhaEixoReal({ a, b }: { a: Ponto; b: Ponto }) {
   );
 }
 
+// Cores por faixa de classificacao: verde preservado, amarelo desajuste
+// discreto, vermelho alterado.
+function faixaDe(d: any): 'preservado' | 'discreto' | 'alterado' {
+  return d.classificacao || (d.alerta ? 'alterado' : 'preservado');
+}
+
 export default function PosturalResultScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, vista, modo, pontos, avaliacaoId } = route.params as {
     fotoUri: string; pacienteId: number; vista: Vista; modo: 'rapida' | 'completa'; pontos: Record<string, Ponto>;
@@ -227,7 +233,7 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   }, [achados, vista, diagnosticoEditado]);
   const segmentos = SEGMENTOS_RAPIDA[vista];
   const ehLateral = vista.startsWith('lateral');
-  const alterados = desajustes.filter(d => d.alerta);
+  const alterados = desajustes.filter(d => faixaDe(d) === 'alterado');
   const resumo = useMemo(() => gerarResumoClinico(alterados), [alterados]);
 
   const buscarDesajusteSegmento = (idA: string, idB: string): Desajuste | undefined => {
@@ -497,8 +503,8 @@ export default function PosturalResultScreen({ route, navigation }: any) {
               <Text style={styles.cardLabel}>{d.label}</Text>
               <Text style={styles.cardDescricao}>{descreverAchado(d)}</Text>
             </View>
-            <View style={[styles.badge, d.alerta ? styles.badgeAlerta : styles.badgeOk]}>
-              <Text style={[styles.badgeText, d.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+            <View style={[styles.badge, faixaDe(d) === 'alterado' ? styles.badgeAlerta : faixaDe(d) === 'discreto' ? styles.badgeDiscreto : styles.badgeOk]}>
+              <Text style={[styles.badgeText, faixaDe(d) === 'alterado' ? styles.badgeTextAlerta : faixaDe(d) === 'discreto' ? styles.badgeTextDiscreto : styles.badgeTextOk]}>
                 {d.valor}{d.unidade}
               </Text>
             </View>
@@ -519,8 +525,12 @@ function gerarResumoClinico(alterados: Desajuste[]): string {
 }
 
 function descreverAchado(d: Desajuste): string {
-  if (!d.alerta) return 'Dentro dos parâmetros esperados.';
-  return `Desvio acima da referência (${d.valor}${d.unidade}).`;
+  const faixa = faixaDe(d);
+  if (faixa === 'preservado') return 'Alinhamento preservado.';
+  if (faixa === 'discreto') {
+    return `Desajuste discreto (${d.valor}${d.unidade}).`;
+  }
+  return `Alteração postural (${d.valor}${d.unidade}).`;
 }
 
 function LinhaSegmento({ a, b, alerta }: { a: Ponto; b: Ponto; alerta?: boolean }) {
@@ -570,8 +580,8 @@ function BadgeNaLinha({ a, b, desajuste }: { a: Ponto; b: Ponto; desajuste: Desa
         pointerEvents="none"
         style={[styles.linhaChamada, { left: xDireita, top: y, width: larguraChamada }]}
       />
-      <View style={[styles.badgeFlutuante, desajuste.alerta ? styles.badgeAlerta : styles.badgeOk, { left: IMAGE_WIDTH - MARGEM_VALOR, top: y - 12 }]}>
-        <Text style={[styles.badgeFlutuanteTexto, desajuste.alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{texto}</Text>
+      <View style={[styles.badgeFlutuante, faixaDe(desajuste) === 'alterado' ? styles.badgeAlerta : faixaDe(desajuste) === 'discreto' ? styles.badgeDiscreto : styles.badgeOk, { left: IMAGE_WIDTH - MARGEM_VALOR, top: y - 12 }]}>
+        <Text style={[styles.badgeFlutuanteTexto, faixaDe(desajuste) === 'alterado' ? styles.badgeTextAlerta : faixaDe(desajuste) === 'discreto' ? styles.badgeTextDiscreto : styles.badgeTextOk]}>{texto}</Text>
       </View>
     </>
   );
@@ -632,10 +642,12 @@ const styles = StyleSheet.create({
   cardDescricao: { color: '#94A3B8', fontSize: 11, marginTop: 2 },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, minWidth: 56, alignItems: 'center' },
   badgeOk: { backgroundColor: '#DCFCE7' },
-  badgeAlerta: { backgroundColor: '#FEF3C7' },
+  badgeDiscreto: { backgroundColor: '#FEF3C7' },
+  badgeAlerta: { backgroundColor: '#FEE2E2' },
   badgeText: { fontWeight: 'bold', fontSize: 13 },
   badgeTextOk: { color: '#16A34A' },
-  badgeTextAlerta: { color: '#D97706' },
+  badgeTextDiscreto: { color: '#D97706' },
+  badgeTextAlerta: { color: '#DC2626' },
   btnObservacao: { backgroundColor: '#FFFFFF', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#FCA5A5' },
   btnObservacaoAtivo: { backgroundColor: '#FEE2E2', borderColor: '#EF4444' },
   btnObservacaoText: { color: '#EF4444', fontWeight: 'bold', fontSize: 13 },
