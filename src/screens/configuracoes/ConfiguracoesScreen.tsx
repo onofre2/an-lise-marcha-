@@ -147,8 +147,12 @@ export default function ConfiguracoesScreen() {
         <Text style={styles.refTitulo}>Inclinacao Pelvica</Text>
         <Text style={styles.refTexto}>
           Angulo da linha entre a espinha iliaca antero-superior e a postero-superior
-          em relacao a horizontal. Faixa usualmente descrita entre 10 e 15 graus de
-          anteversao, com variacao entre estudos.
+          em relacao a horizontal. A faixa de neutralidade descrita em tratados de
+          avaliacao postural (Kendall; Magee) e na literatura sobre postura de
+          adultos assintomaticos (Herrington; Nguyen e Shultz) situa-se entre 7 e 13
+          graus de inclinacao anterior em ortostatismo, sendo a anteversao natural na
+          maioria da populacao saudavel. Valores abaixo dessa faixa entram
+          estatisticamente na faixa de retroversao.
         </Text>
 
         <Text style={styles.refTitulo}>Goniometria Clinica</Text>

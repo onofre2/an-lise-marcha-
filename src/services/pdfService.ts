@@ -282,9 +282,10 @@ async function rodapeCompleto(): Promise<string> {
       Angulo Q, formado no centro da patela entre a linha vinda da espinha iliaca
       antero-superior e a linha vinda da tuberosidade da tibia, com referencia usual
       de cerca de 13 graus em homens e 18 em mulheres; acima de 20 graus ha maior
-      incidencia de alteracoes femoropatelares. Inclinacao pelvica medida pelo angulo
-      entre as espinhas iliacas antero e postero-superior em relacao a horizontal,
-      com faixa usualmente descrita entre 10 e 15 graus de anteversao. Goniometria
+      incidencia de alteracoes femoropatelares. Inclinacao pelvica medida pelo angulo entre as espinhas
+      iliacas antero e postero-superior em relacao a horizontal, com faixa de
+      neutralidade entre 7 e 13 graus de anteversao em ortostatismo (Kendall;
+      Magee; Herrington; Nguyen e Shultz). Goniometria
       clinica com valores normativos de amplitude de movimento (AAOS e Kendall).
       Teste de Adams: a gibosidade e a proeminencia rotacional do lado convexo da
       curva; estudos de rastreamento escolar indicam exame radiologico acima de

@@ -258,12 +258,17 @@ function calcularLateral(p: Pontos): Desajuste[] {
     // A espinha antero-superior abaixo da postero-superior indica anteversao.
     const anteversao = p.eias.y > p.eips.y;
     const valor = Number(ang.toFixed(1));
+    // Faixa de neutralidade descrita na literatura de avaliacao postural
+    // (Kendall, Magee; Herrington; Nguyen e Shultz): 7 a 13 graus de
+    // inclinacao anterior em ortostatismo. Valores abaixo disso entram
+    // estatisticamente na faixa de retroversao.
+    const foraDaFaixa = anteversao ? (valor < 7 || valor > 13) : true;
     resultado.push({
       label: anteversao ? 'Inclinação Pélvica (anteversão)' : 'Inclinação Pélvica (retroversão)',
       valor,
       unidade: '°',
-      alerta: anteversao ? valor > 15 : valor > 5,
-      classificacao: (anteversao ? valor > 15 : valor > 5) ? 'alterado' : 'preservado',
+      alerta: foraDaFaixa,
+      classificacao: foraDaFaixa ? 'alterado' : 'preservado',
     });
   }
 
