@@ -43,8 +43,15 @@ export default function MarcadorComLupa({
     })
   ).current;
 
-  const lupaLeft = Math.min(Math.max(ponto.x - LUPA_DIAMETRO / 2, 4), larguraImagem - LUPA_DIAMETRO - 4);
-  const lupaTop = Math.max(ponto.y - LUPA_DIAMETRO - 30, 4);
+  // A lupa fica ao lado do ponto, nunca sob o dedo. Se o ponto estiver na
+  // metade direita da imagem, ela espelha para a esquerda para nao sair da tela.
+  const AFASTAMENTO = 40;
+  const aDireita = ponto.x < larguraImagem / 2;
+  const lupaLeftBruto = aDireita
+    ? ponto.x + AFASTAMENTO
+    : ponto.x - AFASTAMENTO - LUPA_DIAMETRO;
+  const lupaLeft = Math.min(Math.max(lupaLeftBruto, 4), larguraImagem - LUPA_DIAMETRO - 4);
+  const lupaTop = Math.min(Math.max(ponto.y - LUPA_DIAMETRO / 2, 4), alturaImagem - LUPA_DIAMETRO - 4);
 
   return (
     <>
