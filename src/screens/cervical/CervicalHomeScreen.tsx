@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import CardReferencia from '../../components/CardReferencia';
 import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
 
@@ -30,6 +30,21 @@ export default function CervicalHomeScreen({ navigation }: any) {
         </View>
       )}
 
+      <Text style={styles.sectionTitle}>Como realizar a avaliacao</Text>
+      <View style={styles.cardProtocolo}>
+        <Image
+          source={require('../../../assets/referencias/card-cervical.jpg')}
+          style={styles.imagemReferencia}
+          resizeMode="contain"
+        />
+        <Text style={styles.protocoloTexto}>
+          1. Paciente sentado ou em pe, olhar no horizonte.{'\n'}
+          2. Fotografe de perfil, camera na altura do ombro.{'\n'}
+          3. Marque C7, o trago da orelha e o acromio.{'\n'}
+          4. O app calcula o angulo craniovertebral.
+        </Text>
+      </View>
+
       <CardReferencia card="cervical" />
 
       <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
@@ -48,6 +63,9 @@ const styles = StyleSheet.create({
   trocarLink: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
   avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
   avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
+  cardProtocolo: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', marginTop: 8 },
+  imagemReferencia: { width: '100%', height: 200, borderRadius: 10, backgroundColor: '#F8FAFC' },
+  protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19, marginTop: 10 },
   btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 24, alignItems: 'center', shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });

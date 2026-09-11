@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { MOVIMENTOS } from '../../constants/movimentos';
 import CardReferencia from '../../components/CardReferencia';
 import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
@@ -45,6 +45,21 @@ export default function ADMHomeScreen({ navigation }: any) {
         ))}
       </View>
 
+      <Text style={styles.sectionTitle}>Como realizar a medicao</Text>
+      <View style={styles.cardProtocolo}>
+        <Image
+          source={require('../../../assets/referencias/card-adm.jpg')}
+          style={styles.imagemReferencia}
+          resizeMode="contain"
+        />
+        <Text style={styles.protocoloTexto}>
+          1. Posicione o paciente conforme o movimento escolhido.{'\n'}
+          2. Fotografe de perfil a articulacao avaliada.{'\n'}
+          3. Marque os tres pontos: extremidade, eixo articular e extremidade.{'\n'}
+          4. O app calcula a amplitude e compara com a referencia.
+        </Text>
+      </View>
+
       <CardReferencia card="adm" />
 
       {movimentoSelecionado && (
@@ -70,6 +85,9 @@ const styles = StyleSheet.create({
   itemAtivo: { backgroundColor: '#22C55E' },
   itemText: { color: '#475569', fontWeight: '600', fontSize: 14 },
   itemTextAtivo: { color: '#FFFFFF' },
+  cardProtocolo: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', marginTop: 8 },
+  imagemReferencia: { width: '100%', height: 200, borderRadius: 10, backgroundColor: '#F8FAFC' },
+  protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19, marginTop: 10 },
   btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 24, alignItems: 'center' },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });

@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { Vista } from '../../constants/posturalPoints';
 import CardReferencia, { CardId } from '../../components/CardReferencia';
 import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
+
+// Imagem de referencia exibida na propria tela, conforme a vista escolhida.
+const IMAGENS_VISTA: Record<string, any> = {
+  anterior: require('../../../assets/referencias/card-anterior.jpg'),
+  posterior: require('../../../assets/referencias/card-posterior.jpg'),
+  lateral_direita: require('../../../assets/referencias/card-lateral.jpg'),
+  lateral_esquerda: require('../../../assets/referencias/card-lateral.jpg'),
+};
 
 export default function PosturalHomeScreen({ navigation }: any) {
   const { pacienteAtivo } = usePacienteAtivo();
@@ -53,7 +61,24 @@ export default function PosturalHomeScreen({ navigation }: any) {
       </View>
 
       {vistaSelecionada && (
-        <CardReferencia card={(vistaSelecionada === 'anterior' ? 'anterior' : vistaSelecionada === 'posterior' ? 'posterior' : 'lateral') as CardId} />
+        <>
+          <Text style={styles.sectionTitle}>Como realizar a avaliacao</Text>
+          <View style={styles.cardProtocolo}>
+            <Image
+              source={IMAGENS_VISTA[vistaSelecionada]}
+              style={styles.imagemReferencia}
+              resizeMode="contain"
+            />
+            <Text style={styles.protocoloTexto}>
+              1. Paciente descalco, pes alinhados, bracos ao lado do corpo.{'\n'}
+              2. Fotografe a corpo inteiro, camera na altura do quadril.{'\n'}
+              3. Marque os pontos anatomicos indicados na imagem.{'\n'}
+              4. O app calcula os desvios e classifica cada medida.
+            </Text>
+          </View>
+
+          <CardReferencia card={(vistaSelecionada === 'anterior' ? 'anterior' : vistaSelecionada === 'posterior' ? 'posterior' : 'lateral') as CardId} />
+        </>
       )}
 
       {vistaSelecionada && (
@@ -83,6 +108,9 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
   botaoGrid: { width: '48%', backgroundColor: '#FFFFFF', padding: 18, borderRadius: 16, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   botaoGridAtivo: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
+  cardProtocolo: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', marginTop: 8 },
+  imagemReferencia: { width: '100%', height: 240, borderRadius: 10, backgroundColor: '#F8FAFC' },
+  protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19, marginTop: 10 },
   btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 24, alignItems: 'center', shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });
