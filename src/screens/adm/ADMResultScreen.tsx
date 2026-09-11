@@ -276,6 +276,27 @@ export default function ADMResultScreen({ route, navigation }: any) {
         <Text style={styles.semDados}>Nao foi possivel calcular. Marque os tres pontos.</Text>
       ) : (
         <>
+          <View style={styles.barraBloco}>
+            <View style={styles.barraFundo}>
+              <View
+                style={[
+                  styles.barraAtingida,
+                  { width: `${Math.min(100, Math.max(0, (angulo / referencia) * 100))}%` },
+                  alerta ? styles.barraAtingidaAlerta : null,
+                ]}
+              />
+            </View>
+            <View style={styles.barraLegenda}>
+              <Text style={styles.barraTextoAtingido}>{angulo} graus atingidos</Text>
+              <Text style={styles.barraTextoRef}>de {referencia} graus</Text>
+            </View>
+            {deficit !== null && deficit > 0 && (
+              <Text style={[styles.barraDeficit, alerta ? styles.barraDeficitAlerta : null]}>
+                Deficit de {deficit} graus
+              </Text>
+            )}
+          </View>
+
           <View style={styles.card}>
             <Text style={styles.cardLabel}>Amplitude Medida</Text>
             <View style={[styles.badge, styles.badgeOk]}>
@@ -380,6 +401,15 @@ const styles = StyleSheet.create({
   badgeFlutuanteTexto: { fontSize: 11, fontWeight: 'bold' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
+  barraBloco: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 10 },
+  barraFundo: { height: 18, borderRadius: 9, backgroundColor: '#E2E8F0', overflow: 'hidden' },
+  barraAtingida: { height: '100%', borderRadius: 9, backgroundColor: '#22C55E' },
+  barraAtingidaAlerta: { backgroundColor: '#F59E0B' },
+  barraLegenda: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
+  barraTextoAtingido: { fontSize: 12, fontWeight: '700', color: '#0F172A' },
+  barraTextoRef: { fontSize: 12, color: '#64748B' },
+  barraDeficit: { fontSize: 12, fontWeight: '700', color: '#16A34A', marginTop: 6 },
+  barraDeficitAlerta: { color: '#DC2626' },
   card: { backgroundColor: '#FFFFFF', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLabel: { color: '#334155', fontSize: 14, flex: 1, fontWeight: '500' },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, minWidth: 70, alignItems: 'center' },
