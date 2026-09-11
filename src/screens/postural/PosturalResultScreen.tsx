@@ -116,9 +116,10 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   const restaurarPontos = () => setPontosEditaveis(pontos);
 
   // Cada observacao tem base e ponta: a seta aponta sem cobrir a regiao.
-  interface Observacao { base: Ponto; ponta: Ponto; }
+  interface Observacao { base: Ponto; ponta: Ponto; curva?: boolean; }
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
+  const [setaCurva, setSetaCurva] = useState(false);
   // Recebe as opcoes gravadas ao reabrir uma avaliacao: sem isso, salvar de
   // novo apagaria a grade e o preto e branco escolhidos antes.
   const [mostrarGrade, setMostrarGrade] = useState(route.params?.comGrade === true);
@@ -140,6 +141,7 @@ export default function PosturalResultScreen({ route, navigation }: any) {
       [novoId]: {
         base: { x: bx, y: by },
         ponta: { x: Math.min(bx + 0.16, 1), y: by },
+        curva: setaCurva,
       },
     }));
   };
@@ -437,6 +439,7 @@ export default function PosturalResultScreen({ route, navigation }: any) {
             ponta={{ x: o.ponta.x * IMAGE_WIDTH, y: o.ponta.y * IMAGE_HEIGHT }}
             onMoverPonta={moverPontaObservacao}
             onMoverBase={moverBaseObservacao}
+            curva={o.curva === true}
             onLongPress={removerObservacao}
           />
         ))}
@@ -483,6 +486,16 @@ export default function PosturalResultScreen({ route, navigation }: any) {
               {modoObservacao ? 'Marcando - toque na foto' : 'Marcacao importante'}
             </Text>
           </TouchableOpacity>
+          {modoObservacao && (
+            <TouchableOpacity
+              style={[styles.btnPainel, setaCurva && styles.btnEdicaoAtivo]}
+              onPress={() => setSetaCurva(!setaCurva)}
+            >
+              <Text style={[styles.btnEdicaoText, setaCurva && styles.btnEdicaoTextAtivo]}>
+                {setaCurva ? 'Seta curva' : 'Seta reta'}
+              </Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[styles.btnPainel, !modoObservacao && styles.btnEdicaoAtivo]}
             onPress={() => setModoObservacao(false)}

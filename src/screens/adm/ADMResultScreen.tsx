@@ -56,6 +56,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
+  const [setaCurva, setSetaCurva] = useState(false);
 
   const adicionarObservacao = (evt: any) => {
     if (!modoObservacao) return;
@@ -65,7 +66,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
     const by = locationY / IMAGE_HEIGHT;
     setObservacoes(prev => ({
       ...prev,
-      [novoId]: { base: { x: bx, y: by }, ponta: { x: Math.min(bx + 0.16, 1), y: by } },
+      [novoId]: { base: { x: bx, y: by }, ponta: { x: Math.min(bx + 0.16, 1), y: by }, curva: setaCurva },
     }));
   };
 
@@ -264,6 +265,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
             ponta={{ x: o.ponta.x * IMAGE_WIDTH, y: o.ponta.y * IMAGE_HEIGHT }}
             onMoverPonta={moverPontaObservacao}
             onMoverBase={moverBaseObservacao}
+            curva={o.curva === true}
             onLongPress={removerObservacao}
           />
         ))}
@@ -303,6 +305,17 @@ export default function ADMResultScreen({ route, navigation }: any) {
           {modoObservacao ? 'Modo observacao ativo - toque na foto' : 'Marcar observacao'}
         </Text>
       </TouchableOpacity>
+
+      {modoObservacao && (
+        <TouchableOpacity
+          style={[styles.btnObservacao, setaCurva && styles.btnObservacaoAtivo]}
+          onPress={() => setSetaCurva(!setaCurva)}
+        >
+          <Text style={[styles.btnObservacaoText, setaCurva && styles.btnObservacaoTextAtivo]}>
+            {setaCurva ? 'Seta curva' : 'Seta reta'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {Object.keys(observacoes).length > 0 && (
         <Text style={styles.dicaArrastar}>Toque longo em um circulo vermelho para remove-lo.</Text>

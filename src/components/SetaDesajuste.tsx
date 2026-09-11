@@ -1,14 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, PanResponder } from 'react-native';
+import { View, StyleSheet, PanResponder } from 'react-native';
 
 interface Ponto { x: number; y: number; }
+
+/** Comprimento fixo da seta em pixels. Ela gira, mas nao estica. */
+const COMPRIMENTO = 52;
 
 /**
  * Seta de indicacao de desajuste. A base fica onde o terapeuta tocou e a ponta
  * pode ser arrastada para apontar a estrutura, sem cobrir a regiao observada.
  */
 export default function SetaDesajuste({
-  id, base, ponta, onMoverPonta, onMoverBase, onLongPress, rotulo = 'desajuste',
+  id, base, ponta, onMoverPonta, onMoverBase, onLongPress, curva = false,
 }: {
   id: string;
   base: Ponto;
@@ -16,8 +19,11 @@ export default function SetaDesajuste({
   onMoverPonta: (id: string, x: number, y: number) => void;
   onMoverBase?: (id: string, x: number, y: number) => void;
   onLongPress?: (id: string) => void;
-  rotulo?: string;
+  curva?: boolean;
 }) {
+  const baseRef = React.useRef(base);
+  baseRef.current = base;
+
   const inicio = React.useRef({ x: 0, y: 0 });
   const tempoToque = React.useRef<number | null>(null);
   const pontaRef = React.useRef(ponta);
@@ -32,14 +38,23 @@ export default function SetaDesajuste({
       },
       onPanResponderMove: (evt, g) => {
         if (Math.abs(g.dx) <= 1 && Math.abs(g.dy) <= 1) return;
-        onMoverPonta(id, inicio.current.x + g.dx, inicio.current.y + g.dy);
+        // A seta nao estica: o arrasto define apenas a direcao, e o comprimento
+        // e normalizado de volta ao tamanho padrao.
+        const alvoX = inicio.current.x + g.dx;
+        const alvoY = inicio.current.y + g.dy;
+        const vx = alvoX - baseRef.current.x;
+        const vy = alvoY - baseRef.current.y;
+        const dist = Math.sqrt(vx * vx + vy * vy) || 1;
+        onMoverPonta(
+          id,
+          baseRef.current.x + (vx / dist) * COMPRIMENTO,
+          baseRef.current.y + (vy / dist) * COMPRIMENTO,
+        );
       },
     })
   ).current;
 
   const inicioBase = React.useRef({ x: 0, y: 0 });
-  const baseRef = React.useRef(base);
-  baseRef.current = base;
 
   const panBase = React.useRef(
     PanResponder.create({
@@ -58,14 +73,30 @@ export default function SetaDesajuste({
   const dy = ponta.y - base.y;
   const comprimento = Math.sqrt(dx * dx + dy * dy);
   const angulo = Math.atan2(dy, dx) * (180 / Math.PI);
-  const rotuloAEsquerda = dx > 0;
 
   return (
     <>
-      <View
-        pointerEvents="none"
-        style={[styles.haste, { left: base.x, top: base.y, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
-      />
+      {curva ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.hasteCurva,
+            {
+              left: base.x,
+              top: base.y - comprimento,
+              width: comprimento,
+              height: comprimento,
+              borderTopRightRadius: comprimento,
+              transform: [{ rotate: `${angulo}deg` }],
+            },
+          ]}
+        />
+      ) : (
+        <View
+          pointerEvents="none"
+          style={[styles.haste, { left: base.x, top: base.y, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
+        />
+      )}
       <View
         {...pan.panHandlers}
         onTouchEnd={() => {
@@ -77,22 +108,19 @@ export default function SetaDesajuste({
         <View style={[styles.triangulo, { transform: [{ rotate: `${angulo}deg` }] }]} />
       </View>
       <View {...panBase.panHandlers} style={[styles.areaBase, { left: base.x - 24, top: base.y - 24 }]} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} />
-      <Text
-        pointerEvents="none"
-        style={[
-          styles.rotulo,
-          rotuloAEsquerda ? { left: base.x - 42 } : { left: base.x + 5 },
-          { top: base.y - 7 },
-        ]}
-      >
-        {rotulo}
-      </Text>
     </>
   );
 }
 
 const styles = StyleSheet.create({
   haste: { position: 'absolute', height: 1.5, backgroundColor: '#EF4444', transformOrigin: 'left' },
+  hasteCurva: {
+    position: 'absolute',
+    borderColor: '#EF4444',
+    borderTopWidth: 1.5,
+    borderRightWidth: 1.5,
+    transformOrigin: 'left bottom',
+  },
   areaPonta: { position: 'absolute', width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   areaBase: { position: 'absolute', width: 48, height: 48 },
   triangulo: {
@@ -100,5 +128,4 @@ const styles = StyleSheet.create({
     borderTopWidth: 3, borderBottomWidth: 3, borderLeftWidth: 6,
     borderTopColor: 'transparent', borderBottomColor: 'transparent', borderLeftColor: '#EF4444',
   },
-  rotulo: { position: 'absolute', fontSize: 7, fontWeight: '700', color: '#EF4444', width: 38, textAlign: 'center' },
 });

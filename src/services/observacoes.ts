@@ -1,5 +1,5 @@
 export interface Ponto { x: number; y: number; }
-export interface Observacao { base: Ponto; ponta: Ponto; }
+export interface Observacao { base: Ponto; ponta: Ponto; curva?: boolean; }
 
 /**
  * As observacoes de desajuste eram gravadas como um ponto unico (circulo) e
@@ -16,7 +16,7 @@ export function normalizarObservacoes(bruto: any): Record<string, Observacao> {
   for (const [id, valor] of Object.entries(bruto as Record<string, any>)) {
     if (!valor) continue;
     if (valor.base && valor.ponta) {
-      saida[id] = { base: valor.base, ponta: valor.ponta };
+      saida[id] = { base: valor.base, ponta: valor.ponta, curva: valor.curva === true };
     } else if (typeof valor.x === 'number' && typeof valor.y === 'number') {
       saida[id] = {
         base: { x: Math.max(valor.x - 0.16, 0), y: valor.y },
@@ -38,6 +38,7 @@ export function observacoesEmPixel(
     saida[id] = {
       base: { x: o.base.x * largura, y: o.base.y * altura },
       ponta: { x: o.ponta.x * largura, y: o.ponta.y * altura },
+      curva: o.curva,
     };
   }
   return saida;

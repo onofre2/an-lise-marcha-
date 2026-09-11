@@ -156,7 +156,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
         ...prev,
         [fase.id]: {
           ...(prev[fase.id] || {}),
-          [novoId]: { base: { x: bx, y: by }, ponta: { x: Math.min(bx + 0.16, 1), y: by } },
+          [novoId]: { base: { x: bx, y: by }, ponta: { x: Math.min(bx + 0.16, 1), y: by }, curva: setaCurva },
         },
       }));
       return;
@@ -176,6 +176,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const limparFase = () => setPontosFaseAtual({});
 
   const [modoObservacao, setModoObservacao] = useState(false);
+  const [setaCurva, setSetaCurva] = useState(false);
 
   // Caracteristicas do pe: observadas pelo terapeuta, nao calculadas pelo app.
   const [pisada, setPisada] = useState<Record<string, string>>(lerSalvo(pisadaSalva));
@@ -361,6 +362,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
               ponta={{ x: o.ponta.x * areaVideo.largura + areaVideo.offsetX, y: o.ponta.y * areaVideo.altura + areaVideo.offsetY }}
               onMoverPonta={moverPontaObservacao}
               onMoverBase={moverBaseObservacao}
+            curva={o.curva === true}
               onLongPress={removerObservacao}
             />
           ))}
@@ -419,6 +421,16 @@ export default function VideoEditScreen({ route, navigation }: any) {
                 {modoObservacao ? 'Marcando' : 'Marcar desajuste'}
               </Text>
             </TouchableOpacity>
+            {modoObservacao && (
+              <TouchableOpacity
+                style={[styles.btnSec, setaCurva && styles.btnSecAtivo]}
+                onPress={() => setSetaCurva(!setaCurva)}
+              >
+                <Text style={[styles.btnSecText, setaCurva && styles.btnSecTextAtivo]}>
+                  {setaCurva ? 'Curva' : 'Reta'}
+                </Text>
+              </TouchableOpacity>
+            )}
             {faseCompleta && (
               <TouchableOpacity style={styles.btnPri} onPress={confirmarFase}>
                 <Text style={styles.btnPriText}>Confirmar Fase</Text>
