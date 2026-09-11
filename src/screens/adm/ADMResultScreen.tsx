@@ -69,6 +69,28 @@ export default function ADMResultScreen({ route, navigation }: any) {
     }));
   };
 
+  const moverBaseObservacao = (id: string, x: number, y: number) => {
+    setObservacoes(prev => {
+      const atual = prev[id];
+      if (!atual) return prev;
+      const novaBaseX = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
+      const novaBaseY = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);
+      const deslocX = novaBaseX - atual.base.x;
+      const deslocY = novaBaseY - atual.base.y;
+      return {
+        ...prev,
+        [id]: {
+          ...atual,
+          base: { x: novaBaseX, y: novaBaseY },
+          ponta: {
+            x: Math.min(Math.max(atual.ponta.x + deslocX, 0), 1),
+            y: Math.min(Math.max(atual.ponta.y + deslocY, 0), 1),
+          },
+        },
+      };
+    });
+  };
+
   const moverPontaObservacao = (id: string, x: number, y: number) => {
     setObservacoes(prev => {
       const atual = prev[id];
@@ -241,6 +263,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
             base={{ x: o.base.x * IMAGE_WIDTH, y: o.base.y * IMAGE_HEIGHT }}
             ponta={{ x: o.ponta.x * IMAGE_WIDTH, y: o.ponta.y * IMAGE_HEIGHT }}
             onMoverPonta={moverPontaObservacao}
+            onMoverBase={moverBaseObservacao}
             onLongPress={removerObservacao}
           />
         ))}

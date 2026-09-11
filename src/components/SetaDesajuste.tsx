@@ -8,12 +8,13 @@ interface Ponto { x: number; y: number; }
  * pode ser arrastada para apontar a estrutura, sem cobrir a regiao observada.
  */
 export default function SetaDesajuste({
-  id, base, ponta, onMoverPonta, onLongPress, rotulo = 'desajuste',
+  id, base, ponta, onMoverPonta, onMoverBase, onLongPress, rotulo = 'desajuste',
 }: {
   id: string;
   base: Ponto;
   ponta: Ponto;
   onMoverPonta: (id: string, x: number, y: number) => void;
+  onMoverBase?: (id: string, x: number, y: number) => void;
   onLongPress?: (id: string) => void;
   rotulo?: string;
 }) {
@@ -30,8 +31,25 @@ export default function SetaDesajuste({
         tempoToque.current = Date.now();
       },
       onPanResponderMove: (evt, g) => {
-        if (Math.abs(g.dx) <= 3 && Math.abs(g.dy) <= 3) return;
+        if (Math.abs(g.dx) <= 1 && Math.abs(g.dy) <= 1) return;
         onMoverPonta(id, inicio.current.x + g.dx, inicio.current.y + g.dy);
+      },
+    })
+  ).current;
+
+  const inicioBase = React.useRef({ x: 0, y: 0 });
+  const baseRef = React.useRef(base);
+  baseRef.current = base;
+
+  const panBase = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => {
+        inicioBase.current = { x: baseRef.current.x, y: baseRef.current.y };
+      },
+      onPanResponderMove: (evt, g) => {
+        if (Math.abs(g.dx) <= 1 && Math.abs(g.dy) <= 1) return;
+        if (onMoverBase) onMoverBase(id, inicioBase.current.x + g.dx, inicioBase.current.y + g.dy);
       },
     })
   ).current;
@@ -53,10 +71,12 @@ export default function SetaDesajuste({
         onTouchEnd={() => {
           if (tempoToque.current && Date.now() - tempoToque.current > 600 && onLongPress) onLongPress(id);
         }}
-        style={[styles.areaPonta, { left: ponta.x - 14, top: ponta.y - 14 }]}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        style={[styles.areaPonta, { left: ponta.x - 24, top: ponta.y - 24 }]}
       >
         <View style={[styles.triangulo, { transform: [{ rotate: `${angulo}deg` }] }]} />
       </View>
+      <View {...panBase.panHandlers} style={[styles.areaBase, { left: base.x - 24, top: base.y - 24 }]} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} />
       <Text
         pointerEvents="none"
         style={[
@@ -73,7 +93,8 @@ export default function SetaDesajuste({
 
 const styles = StyleSheet.create({
   haste: { position: 'absolute', height: 1.5, backgroundColor: '#EF4444', transformOrigin: 'left' },
-  areaPonta: { position: 'absolute', width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+  areaPonta: { position: 'absolute', width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  areaBase: { position: 'absolute', width: 48, height: 48 },
   triangulo: {
     width: 0, height: 0, backgroundColor: 'transparent',
     borderTopWidth: 3, borderBottomWidth: 3, borderLeftWidth: 6,

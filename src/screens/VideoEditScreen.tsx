@@ -186,6 +186,32 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const [observacoesPorFase, setObservacoesPorFase] = useState<Record<string, Record<string, Observacao>>>(lerSalvo(observacoesSalvas));
   const observacoes = observacoesPorFase[fase.id] || {};
 
+  const moverBaseObservacao = (id: string, x: number, y: number) => {
+    setObservacoesPorFase(prev => {
+      const daFase = prev[fase.id] || {};
+      const atual = daFase[id];
+      if (!atual) return prev;
+      const novaBaseX = Math.min(Math.max((x - areaVideo.offsetX) / areaVideo.largura, 0), 1);
+      const novaBaseY = Math.min(Math.max((y - areaVideo.offsetY) / areaVideo.altura, 0), 1);
+      const deslocX = novaBaseX - atual.base.x;
+      const deslocY = novaBaseY - atual.base.y;
+      return {
+        ...prev,
+        [fase.id]: {
+          ...daFase,
+          [id]: {
+            ...atual,
+            base: { x: novaBaseX, y: novaBaseY },
+            ponta: {
+              x: Math.min(Math.max(atual.ponta.x + deslocX, 0), 1),
+              y: Math.min(Math.max(atual.ponta.y + deslocY, 0), 1),
+            },
+          },
+        },
+      };
+    });
+  };
+
   const moverPontaObservacao = (id: string, x: number, y: number) => {
     setObservacoesPorFase(prev => {
       const daFase = prev[fase.id] || {};
@@ -334,6 +360,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
               base={{ x: o.base.x * areaVideo.largura + areaVideo.offsetX, y: o.base.y * areaVideo.altura + areaVideo.offsetY }}
               ponta={{ x: o.ponta.x * areaVideo.largura + areaVideo.offsetX, y: o.ponta.y * areaVideo.altura + areaVideo.offsetY }}
               onMoverPonta={moverPontaObservacao}
+              onMoverBase={moverBaseObservacao}
               onLongPress={removerObservacao}
             />
           ))}
