@@ -12,7 +12,7 @@
 export type Classificacao = 'preservado' | 'discreto' | 'alterado';
 const LIMIAR_DISCRETO = 1.5;
 const LIMIAR_ALTERADO = 3;
-const LIMIAR_DESNIVEL_ALTERADO_CM = 3;
+const LIMIAR_DESNIVEL_DISCRETO_CM = 3;
 
 /** Fonte unica de classificacao: tabela, cards e resumo usam esta funcao. */
 export function classificarDesvio(
@@ -21,8 +21,10 @@ export function classificarDesvio(
 ): Classificacao {
   const d = Math.abs(graus);
   if (d >= LIMIAR_ALTERADO) return 'alterado';
-  if (desnivelCm !== null && Math.abs(desnivelCm) >= LIMIAR_DESNIVEL_ALTERADO_CM) return 'alterado';
   if (d >= LIMIAR_DISCRETO) return 'discreto';
+  // Desnivel linear relevante com angulo baixo sinaliza como discreto: o achado
+  // existe, mas nao tem a mesma expressao angular de um desvio alterado.
+  if (desnivelCm !== null && Math.abs(desnivelCm) >= LIMIAR_DESNIVEL_DISCRETO_CM) return 'discreto';
   return 'preservado';
 }
 
