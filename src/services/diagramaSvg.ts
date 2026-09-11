@@ -55,13 +55,23 @@ export function diagramaAmplitude(titulo: string, medido: number, referencia: nu
 }
 
 // Diagrama de alinhamento: linha horizontal de referencia e linha inclinada do paciente
-export function diagramaAlinhamento(titulo: string, graus: number, limiar: number): string {
+export type FaixaMedida = 'preservado' | 'discreto' | 'alterado';
+
+const VERMELHO = '#DC2626';
+
+const ROTULO: Record<FaixaMedida, string> = {
+  preservado: 'Preservado',
+  discreto: 'Desajuste discreto',
+  alterado: 'Alterado',
+};
+
+export function diagramaAlinhamento(titulo: string, graus: number, faixa: FaixaMedida): string {
   const w = 260;
   const h = 120;
   const cx = 90;
   const cy = 62;
   const meia = 62;
-  const alterado = Math.abs(graus) > limiar;
+  const cor = faixa === 'alterado' ? VERMELHO : faixa === 'discreto' ? AMBAR : VERDE;
   const rad = (graus * Math.PI) / 180;
   const dx = meia * Math.cos(rad);
   const dy = meia * Math.sin(rad);
@@ -70,11 +80,10 @@ export function diagramaAlinhamento(titulo: string, graus: number, limiar: numbe
   <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
     <text x="0" y="14" font-family="Helvetica" font-size="11" font-weight="bold" fill="${TEXTO}">${titulo}</text>
     <line x1="${cx - meia}" y1="${cy}" x2="${cx + meia}" y2="${cy}" stroke="${CINZA}" stroke-width="2" stroke-dasharray="4,4"/>
-    <line x1="${(cx - dx).toFixed(1)}" y1="${(cy + dy).toFixed(1)}" x2="${(cx + dx).toFixed(1)}" y2="${(cy - dy).toFixed(1)}" stroke="${alterado ? AMBAR : VERDE}" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="${(cx - dx).toFixed(1)}" cy="${(cy + dy).toFixed(1)}" r="5" fill="${alterado ? AMBAR : VERDE}"/>
-    <circle cx="${(cx + dx).toFixed(1)}" cy="${(cy - dy).toFixed(1)}" r="5" fill="${alterado ? AMBAR : VERDE}"/>
-    <text x="176" y="56" font-family="Helvetica" font-size="18" font-weight="bold" fill="${alterado ? AMBAR : VERDE}">${graus}&#176;</text>
-    <text x="176" y="74" font-family="Helvetica" font-size="9" fill="${TEXTO}">Limite: ${limiar}&#176;</text>
-    <text x="176" y="90" font-family="Helvetica" font-size="10" font-weight="bold" fill="${alterado ? AMBAR : VERDE}">${alterado ? 'Alterado' : 'Normal'}</text>
+    <line x1="${(cx - dx).toFixed(1)}" y1="${(cy + dy).toFixed(1)}" x2="${(cx + dx).toFixed(1)}" y2="${(cy - dy).toFixed(1)}" stroke="${cor}" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="${(cx - dx).toFixed(1)}" cy="${(cy + dy).toFixed(1)}" r="5" fill="${cor}"/>
+    <circle cx="${(cx + dx).toFixed(1)}" cy="${(cy - dy).toFixed(1)}" r="5" fill="${cor}"/>
+    <text x="176" y="56" font-family="Helvetica" font-size="18" font-weight="bold" fill="${cor}">${graus}&#176;</text>
+    <text x="176" y="90" font-family="Helvetica" font-size="10" font-weight="bold" fill="${cor}">${ROTULO[faixa]}</text>
   </svg>`;
 }

@@ -195,7 +195,7 @@ function diagramasMedidas(medidas: Medida[]): string {
   if (!medidas || medidas.length === 0) return '';
   const svgs = medidas
     .filter(m => m.unidade === '\u00b0')
-    .map(m => '<div class="diagrama">' + diagramaAlinhamento(m.label, m.valor, 5) + '</div>')
+    .map(m => '<div class="diagrama">' + diagramaAlinhamento(m.label, m.valor, faixaDaMedida(m)) + '</div>')
     .join('');
   return svgs ? '<div class="diagramas">' + svgs + '</div>' : '';
 }
