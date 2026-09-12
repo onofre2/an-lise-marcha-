@@ -6,7 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 export default function CervicalCaptureScreen({ route, navigation }: any) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
-  const { pacienteId } = route.params as { pacienteId: number };
+  const { pacienteId, vista } = route.params as { pacienteId: number; vista: string };
 
   if (!permission) {
     return <View style={styles.container}><Text style={styles.text}>Carregando permissões...</Text></View>;
@@ -32,7 +32,7 @@ export default function CervicalCaptureScreen({ route, navigation }: any) {
       quality: 0.8,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {
-      navigation.navigate('CervicalMarking', { fotoUri: resultado.assets[0].uri, pacienteId });
+      navigation.navigate('CervicalMarking', { fotoUri: resultado.assets[0].uri, pacienteId, vista });
     }
   }
 
@@ -40,7 +40,7 @@ export default function CervicalCaptureScreen({ route, navigation }: any) {
     if (cameraRef.current) {
       try {
         const foto = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-        navigation.navigate('CervicalMarking', { fotoUri: foto.uri, pacienteId });
+        navigation.navigate('CervicalMarking', { fotoUri: foto.uri, pacienteId, vista });
       } catch (error) {
         console.error('Erro ao tirar foto:', error);
       }

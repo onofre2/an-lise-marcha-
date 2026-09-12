@@ -7,14 +7,38 @@ interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.62;
 const IMAGE_WIDTH = Dimensions.get('window').width;
-const PONTOS_SEQUENCIA = [
-  { id: 'c7', nome: 'Processo Espinhoso de C7' },
-  { id: 'trago', nome: 'Trago (orelha)' },
-  { id: 'acromio', nome: 'Acrômio (ombro)' },
-];
+// Pontos marcados em cada vista. A anterior e foto de registro, sem medicao.
+const PONTOS_POR_VISTA: Record<string, { id: string; nome: string }[]> = {
+  anterior: [],
+  posterior: [
+    { id: 'c7', nome: 'Processo Espinhoso de C7' },
+    { id: 'acromioclavicular_d', nome: 'Articulacao Acromioclavicular Direita' },
+    { id: 'acromioclavicular_e', nome: 'Articulacao Acromioclavicular Esquerda' },
+    { id: 'lobo_d', nome: 'Lobo da Orelha Direita' },
+    { id: 'lobo_e', nome: 'Lobo da Orelha Esquerda' },
+    { id: 'tragus_d', nome: 'Tragus Direito' },
+    { id: 'tragus_e', nome: 'Tragus Esquerdo' },
+  ],
+  lateral_direita: [
+    { id: 'tragus', nome: 'Tragus (orelha)' },
+    { id: 'acromio', nome: 'Acromio (vertice da lordose)' },
+    { id: 'c7', nome: 'Processo Espinhoso de C7' },
+  ],
+  lateral_esquerda: [
+    { id: 'tragus', nome: 'Tragus (orelha)' },
+    { id: 'acromio', nome: 'Acromio (vertice da lordose)' },
+    { id: 'c7', nome: 'Processo Espinhoso de C7' },
+  ],
+  superior: [
+    { id: 'manubrio', nome: 'Manubrio do Esterno' },
+    { id: 'topo_cabeca', nome: 'Topo da Cabeca' },
+    { id: 'apice_nariz', nome: 'Apice do Nariz' },
+  ],
+};
 
 export default function CervicalMarkingScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId } = route.params as { fotoUri: string; pacienteId: number };
+  const { fotoUri, pacienteId, vista } = route.params as { fotoUri: string; pacienteId: number; vista: string };
+  const PONTOS_SEQUENCIA = PONTOS_POR_VISTA[vista] || [];
 
   const [indiceAtual, setIndiceAtual] = useState(0);
 
@@ -69,7 +93,7 @@ export default function CervicalMarkingScreen({ route, navigation }: any) {
   };
 
   const confirmar = () => {
-    navigation.navigate('CervicalResult', { fotoUri, pacienteId, pontos: pontosMarcados });
+    navigation.navigate('CervicalResult', { fotoUri, pacienteId, vista, pontos: pontosMarcados });
   };
 
   return (
