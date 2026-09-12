@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, ScrollView, Dim
 const CARD_ANTERIOR = require('../../assets/referencias/card-anterior.jpg');
 const CARD_POSTERIOR = require('../../assets/referencias/card-posterior.jpg');
 const CARD_LATERAL = require('../../assets/referencias/card-lateral.jpg');
-const CARD_CERVICAL = require('../../assets/referencias/card-cervical.jpg');
+const CARD_CERVICAL = require('../../assets/referencias/card-cervical-vistas.jpg');
 const CARD_ADM = require('../../assets/referencias/card-adm.jpg');
 const CARD_MARCHA = require('../../assets/referencias/card-marcha.jpg');
 const CARD_ADAMS = require('../../assets/referencias/teste-adams.jpg');
@@ -19,7 +19,7 @@ const CARDS: Record<CardId, Config> = {
   anterior:  { fonte: CARD_ANTERIOR, proporcao: 896 / 1200, titulo: 'Vista Anterior' },
   posterior: { fonte: CARD_POSTERIOR, proporcao: 896 / 1200, titulo: 'Vista Posterior' },
   lateral:   { fonte: CARD_LATERAL, proporcao: 896 / 1200, titulo: 'Vista Lateral' },
-  cervical:  { fonte: CARD_CERVICAL, proporcao: 896 / 1200, titulo: 'Cervical' },
+  cervical:  { fonte: CARD_CERVICAL, proporcao: 1312 / 1199, titulo: 'Cervical' },
   adm:       { fonte: CARD_ADM, proporcao: 1376 / 768, titulo: 'Amplitude de Movimento' },
   marcha:    { fonte: CARD_MARCHA, proporcao: 1376 / 768, titulo: 'Marcha' },
   adams:     { fonte: CARD_ADAMS, proporcao: 700 / 450, titulo: 'Teste de Adams' },
