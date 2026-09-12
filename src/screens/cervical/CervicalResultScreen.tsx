@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, PanResponder } from 'react-native';
 import db from '../../services/database';
 import { gerarAchadosCervical } from '../../services/interpretacaoClinica';
+import { calcularCervical } from '../../services/cervicalCalculations';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { gerarRelatorioCervical } from '../../services/pdfService';
 import { Observacao } from '../../services/observacoes';
@@ -22,8 +23,8 @@ function anguloComHorizontal(origem: Ponto, alvo: Ponto): number {
 }
 
 export default function CervicalResultScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId, pontos } = route.params as {
-    fotoUri: string; pacienteId: number; pontos: Record<string, Ponto>;
+  const { fotoUri, pacienteId, vista, pontos } = route.params as {
+    fotoUri: string; pacienteId: number; vista: string; pontos: Record<string, Ponto>;
   };
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
@@ -126,6 +127,12 @@ export default function CervicalResultScreen({ route, navigation }: any) {
     });
   };
 
+  // Medidas da vista atual, calculadas pelo servico unico da aba.
+  const medidas = useMemo(
+    () => calcularCervical(vista, pontosPx),
+    [vista, pontosEditaveis]
+  );
+
   const cva = useMemo(() => {
     if (!pontosPx.c7 || !pontosPx.trago) return null;
     return anguloComHorizontal(pontosPx.c7, pontosPx.trago);
@@ -164,8 +171,8 @@ export default function CervicalResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json, achados_json, sem_cor, com_grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), JSON.stringify(achados), semCor ? 1 : 0, mostrarGrade ? 1 : 0]
+        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json, achados_json, sem_cor, com_grade, vista, medidas_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), JSON.stringify(achados), semCor ? 1 : 0, mostrarGrade ? 1 : 0, vista, JSON.stringify(medidas)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -311,30 +318,30 @@ export default function CervicalResultScreen({ route, navigation }: any) {
 
       <Text style={styles.sectionTitle}>Resultado</Text>
 
-      {cva === null ? (
-        <Text style={styles.semDados}>Marque C7 e o trago para calcular.</Text>
+      {medidas.length === 0 ? (
+        <Text style={styles.semDados}>
+          {vista === 'anterior'
+            ? 'Vista anterior e foto de registro, sem medicao angular.'
+            : 'Marque os pontos da vista para calcular.'}
+        </Text>
       ) : (
-        <View style={styles.card}>
-          <View style={styles.cardTexto}>
-            <Text style={styles.cardLabel}>Angulo Craniovertebral</Text>
-            <Text style={styles.cardRef}>Normal: 48 graus ou mais</Text>
-          </View>
-          <View style={[styles.badge, alertaCva ? styles.badgeAlerta : styles.badgeOk]}>
-            <Text style={[styles.badgeText, alertaCva ? styles.badgeTextAlerta : styles.badgeTextOk]}>{cva} graus</Text>
-          </View>
-        </View>
-      )}
-
-      {anguloOmbro !== null && (
-        <View style={styles.card}>
-          <View style={styles.cardTexto}>
-            <Text style={styles.cardLabel}>Angulo do Ombro</Text>
-            <Text style={styles.cardRef}>Normal: acima de 52 graus</Text>
-          </View>
-          <View style={[styles.badge, alertaOmbro ? styles.badgeAlerta : styles.badgeOk]}>
-            <Text style={[styles.badgeText, alertaOmbro ? styles.badgeTextAlerta : styles.badgeTextOk]}>{anguloOmbro} graus</Text>
-          </View>
-        </View>
+        medidas.map(m => {
+          const ehCva = m.label === 'Angulo Craniovertebral';
+          const alerta = ehCva && m.valor < 48;
+          return (
+            <View key={m.label} style={styles.card}>
+              <View style={styles.cardTexto}>
+                <Text style={styles.cardLabel}>{m.label}</Text>
+                {ehCva && <Text style={styles.cardRef}>Normal: 48 graus ou mais</Text>}
+              </View>
+              <View style={[styles.badge, alerta ? styles.badgeAlerta : styles.badgeOk]}>
+                <Text style={[styles.badgeText, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+                  {m.valor}{m.unidade}
+                </Text>
+              </View>
+            </View>
+          );
+        })
       )}
 
 

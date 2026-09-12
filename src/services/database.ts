@@ -156,6 +156,19 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    // Vista da avaliacao cervical e as medidas calculadas nela. Avaliacoes
+    // anteriores as cinco vistas usavam apenas a lateral.
+    try {
+      db.execSync("ALTER TABLE avaliacoes_cervicais ADD COLUMN vista TEXT DEFAULT 'lateral_direita'");
+    } catch {
+      // coluna ja existe - ignora
+    }
+    try {
+      db.execSync('ALTER TABLE avaliacoes_cervicais ADD COLUMN medidas_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+
     // Vista do teste de Adams (posterior ou lateral) e, na lateral, a altura
     // da gibosidade medida em relacao a linha C7-L5.
     try {
