@@ -41,10 +41,15 @@ const PROTOCOLOS: Record<VistaCervical, string> = {
     "3. Camera na altura do ombro.\n" +
     "4. Marque o tragus e C7.",
   superior:
-    "1. Paciente sentado, olhar a frente.\n" +
-    "2. Camera acima da cabeca, apontada para baixo.\n" +
-    "3. O manubrio do esterno precisa aparecer no enquadramento.\n" +
-    "4. Marque manubrio, topo da cabeca e apice do nariz.",
+    "1. Paciente sentado em banqueta sem encosto, tronco ereto, sem apoio.\n" +
+    "2. Pes no chao, joelhos a 90 graus, pes paralelos na largura do quadril.\n" +
+    "3. Bracos soltos ao lado do corpo, nao cruzados nem apoiados nas coxas.\n" +
+    "4. Cabeca em posicao habitual, olhar num ponto fixo na altura dos olhos.\n" +
+    "5. Cabelo preso e manubrio do esterno descoberto.\n" +
+    "6. Camera 60 a 70 cm acima do topo da cabeca, perpendicular ao chao.\n" +
+    "7. Use tripe: foto na mao inclina a camera e distorce o angulo.\n" +
+    "8. Enquadre topo da cabeca centralizado, com manubrio e ombros visiveis.\n" +
+    "9. Marque manubrio, topo da cabeca e apice do nariz.",
 };
 
 export default function CervicalHomeScreen({ navigation }: any) {

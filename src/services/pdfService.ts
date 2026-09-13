@@ -507,23 +507,66 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
 
   const rodapeHtml = await rodapeCompleto();
   const imagemHtml = await montarImagemCervical(av);
-  const alterado = av.angulo < 48;
+
+  const NOME_VISTA: Record<string, string> = {
+    anterior: 'Vista Anterior',
+    posterior: 'Vista Posterior',
+    lateral_direita: 'Vista Lateral Direita',
+    lateral_esquerda: 'Vista Lateral Esquerda',
+    superior: 'Vista Superior',
+  };
+  const vista = av.vista || 'lateral_direita';
+
+  let medidas: { label: string; valor: number; unidade: string }[] = [];
+  if (av.medidas_json) {
+    try { medidas = JSON.parse(av.medidas_json); } catch { medidas = []; }
+  }
+  // Avaliacoes anteriores as cinco vistas gravavam apenas o craniovertebral.
+  if (medidas.length === 0 && typeof av.angulo === 'number') {
+    medidas = [{ label: 'Angulo Craniovertebral', valor: av.angulo, unidade: ' graus' }];
+  }
+
+  const linhas = medidas.map(m => {
+    const ehCva = m.label === 'Angulo Craniovertebral';
+    const fora = ehCva && m.valor < 48;
+    const situacao = ehCva
+      ? (fora ? 'Cabeca anteriorizada' : 'Dentro da referencia')
+      : 'Valor medido';
+    return `
+      <tr>
+        <td>${m.label}</td>
+        <td class="${fora ? 'alerta' : 'ok'}">${m.valor}${m.unidade}</td>
+        <td class="${fora ? 'alerta' : 'ok'}">${situacao}</td>
+      </tr>`;
+  }).join('');
+
+  // Ressalvas obrigatorias, conforme a medida presente na vista.
+  const temLordose = medidas.some(m => m.label === 'Lordose Cervical');
+  const temIndice = medidas.some(m => m.label === 'Indice de Rotacao Cervical');
+  const ehSuperior = vista === 'superior';
+
+  const ressalvas =
+    '<div class="bloco">Referencia: angulo craniovertebral normal a partir de 48 graus. Valores menores indicam anteriorizacao da cabeca.</div>' +
+    (temLordose
+      ? '<div class="bloco">A lordose cervical e uma curvatura ossea e a fotogrametria mede a superficie corporal. O valor apresentado e uma aproximacao de superficie, validada contra goniometria, nao contra radiografia.</div>'
+      : '') +
+    (temIndice
+      ? '<div class="bloco">O indice de rotacao cervical e criterio operacional deste aplicativo, sem respaldo normativo publicado. Serve para acompanhar a evolucao do proprio paciente, nunca como valor diagnostico.</div>'
+      : '') +
+    (ehSuperior
+      ? '<div class="bloco">O protocolo de captura da vista superior e criterio operacional deste aplicativo, definido para garantir reprodutibilidade entre avaliacoes do mesmo paciente. Variacao na altura ou na inclinacao da camera altera o angulo medido.</div>'
+      : '');
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Relatorio de Avaliacao Cervical')}
       ${blocoAchados(av.achados_json)}
-      <h2>Angulo Craniovertebral - ${av.data_avaliacao}</h2>
+      <h2>${NOME_VISTA[vista] || 'Avaliacao Cervical'} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
-      <table>
-        <tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>
-        <tr>
-          <td>Angulo Craniovertebral</td>
-          <td class="${alterado ? 'alerta' : 'ok'}">${av.angulo} graus</td>
-          <td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Cabeca anteriorizada' : 'Normal'}</td>
-        </tr>
-      </table>
-      <div class="bloco">Referencia: angulo craniovertebral normal a partir de 48 graus. Valores menores indicam anteriorizacao da cabeca.</div>
+      ${medidas.length > 0
+        ? `<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>${linhas}</table>`
+        : '<div class="bloco">Vista de registro fotografico, sem medicao angular.</div>'}
+      ${ressalvas}
       ${rodapeHtml}
     </body></html>
   `;
