@@ -540,6 +540,22 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
       </tr>`;
   }).join('');
 
+  // Achados clinicos marcados pelo terapeuta nos cards da vista.
+  let cardsHtml = '';
+  if (av.cards_json) {
+    try {
+      const cards = JSON.parse(av.cards_json) as string[];
+      if (cards.length > 0) {
+        cardsHtml =
+          '<div class="bloco"><b>Achados clinicos observados</b></div><ul>' +
+          cards.map(c => `<li>${c}</li>`).join('') +
+          '</ul>';
+      }
+    } catch {
+      cardsHtml = '';
+    }
+  }
+
   // Ressalvas obrigatorias, conforme a medida presente na vista.
   const temLordose = medidas.some(m => m.label === 'Lordose Cervical');
   const temIndice = medidas.some(m => m.label === 'Indice de Rotacao Cervical');
@@ -566,6 +582,7 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
       ${medidas.length > 0
         ? `<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>${linhas}</table>`
         : '<div class="bloco">Vista de registro fotografico, sem medicao angular.</div>'}
+      ${cardsHtml}
       ${ressalvas}
       ${rodapeHtml}
     </body></html>

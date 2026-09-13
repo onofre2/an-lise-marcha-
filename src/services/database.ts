@@ -168,6 +168,11 @@ export const initDatabase = () => {
     } catch {
       // coluna ja existe - ignora
     }
+    try {
+      db.execSync('ALTER TABLE avaliacoes_cervicais ADD COLUMN cards_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
 
     // Vista do teste de Adams (posterior ou lateral) e, na lateral, a altura
     // da gibosidade medida em relacao a linha C7-L5.

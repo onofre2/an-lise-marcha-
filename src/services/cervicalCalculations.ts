@@ -1,8 +1,8 @@
 // Calculos da avaliacao cervical por fotogrametria.
 //
 // Fontes:
-// - Angulo craniovertebral: protocolo classico, tragus e C7 contra a horizontal.
-// - Lordose cervical: protocolo SAPO, tragus e C7 com vertice no acromio.
+// - Angulo craniovertebral: protocolo classico, trago e C7 contra a horizontal.
+// - Lordose cervical: protocolo SAPO, trago e C7 com vertice no acromio.
 // - Inclinacao e rotacao cervical: ConScientiae Saude (2012).
 //
 // Ressalva obrigatoria no relatorio: a curvatura cervical e ossea e a
@@ -56,18 +56,18 @@ function distanciaAteReta(ponto: Ponto, a: Ponto, b: Ponto): number {
 function calcularLateral(p: PontosCervicais): MedidaCervical[] {
   const saida: MedidaCervical[] = [];
 
-  if (p.tragus && p.c7) {
+  if (p.trago && p.c7) {
     saida.push({
       label: 'Angulo Craniovertebral',
-      valor: anguloComHorizontal(p.c7, p.tragus),
+      valor: anguloComHorizontal(p.c7, p.trago),
       unidade: '\u00b0',
     });
   }
 
-  if (p.tragus && p.acromio && p.c7) {
+  if (p.trago && p.acromio && p.c7) {
     saida.push({
       label: 'Lordose Cervical',
-      valor: anguloNoVertice(p.tragus, p.acromio, p.c7),
+      valor: anguloNoVertice(p.trago, p.acromio, p.c7),
       unidade: '\u00b0',
     });
   }
@@ -97,13 +97,13 @@ function calcularPosterior(p: PontosCervicais): MedidaCervical[] {
 
   // Indice de rotacao: criterio operacional do aplicativo, sem respaldo
   // normativo. Serve para acompanhar a evolucao do proprio paciente.
-  if (p.c7 && p.acromioclavicular_d && p.acromioclavicular_e && p.tragus_d && p.tragus_e) {
+  if (p.c7 && p.acromioclavicular_d && p.acromioclavicular_e && p.trago_d && p.trago_e) {
     const medioAcromios: Ponto = {
       x: (p.acromioclavicular_d.x + p.acromioclavicular_e.x) / 2,
       y: (p.acromioclavicular_d.y + p.acromioclavicular_e.y) / 2,
     };
-    const dD = distanciaAteReta(p.tragus_d, p.c7, medioAcromios);
-    const dE = distanciaAteReta(p.tragus_e, p.c7, medioAcromios);
+    const dD = distanciaAteReta(p.trago_d, p.c7, medioAcromios);
+    const dE = distanciaAteReta(p.trago_e, p.c7, medioAcromios);
     const soma = dD + dE;
     if (soma > 0) {
       saida.push({

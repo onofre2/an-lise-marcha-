@@ -22,6 +22,34 @@ function anguloComHorizontal(origem: Ponto, alvo: Ponto): number {
   return Number((Math.atan2(dy, dx) * (180 / Math.PI)).toFixed(1));
 }
 
+// Cards clinicos de cada vista. Cada card aparece em uma unica vista.
+// A lateralidade e resolvida por cards separados, nao por pergunta apos o toque.
+const CARDS_POR_VISTA: Record<string, string[]> = {
+  lateral_direita: [
+    'Anteriorizacao da cabeca ou protracao cervical',
+    'Retificacao cervical',
+    'Hiperlordose cervical',
+    'Flexao/Extensao cervical',
+  ],
+  lateral_esquerda: [
+    'Anteriorizacao da cabeca ou protracao cervical',
+    'Retificacao cervical',
+    'Hiperlordose cervical',
+    'Flexao/Extensao cervical',
+  ],
+  anterior: [
+    'Inclinacao lateral da cabeca - direita',
+    'Inclinacao lateral da cabeca - esquerda',
+    'Rotacao cervical - direita',
+    'Rotacao cervical - esquerda',
+  ],
+  posterior: [
+    'Desvio lateroflexor cervical - direita',
+    'Desvio lateroflexor cervical - esquerda',
+  ],
+  superior: [],
+};
+
 export default function CervicalResultScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, vista, pontos } = route.params as {
     fotoUri: string; pacienteId: number; vista: string; pontos: Record<string, Ponto>;
@@ -62,6 +90,13 @@ export default function CervicalResultScreen({ route, navigation }: any) {
 
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
+  const [cardsMarcados, setCardsMarcados] = useState<string[]>([]);
+
+  const alternarCard = (card: string) => {
+    setCardsMarcados(prev =>
+      prev.includes(card) ? prev.filter(c => c !== card) : [...prev, card]
+    );
+  };
   const [setaCurva, setSetaCurva] = useState(false);
   // Recebe as opcoes gravadas ao reabrir uma avaliacao: sem isso, salvar de
   // novo apagaria a grade e o preto e branco escolhidos antes.
@@ -171,8 +206,8 @@ export default function CervicalResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json, achados_json, sem_cor, com_grade, vista, medidas_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), JSON.stringify(achados), semCor ? 1 : 0, mostrarGrade ? 1 : 0, vista, JSON.stringify(medidas)]
+        'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json, achados_json, sem_cor, com_grade, vista, medidas_json, cards_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), JSON.stringify(achados), semCor ? 1 : 0, mostrarGrade ? 1 : 0, vista, JSON.stringify(medidas), JSON.stringify(cardsMarcados)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -360,6 +395,28 @@ export default function CervicalResultScreen({ route, navigation }: any) {
         </TouchableOpacity>
       </View>
 
+      {(CARDS_POR_VISTA[vista] || []).length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Achados Clinicos</Text>
+          <View style={styles.cardsClinicos}>
+            {(CARDS_POR_VISTA[vista] || []).map(card => {
+              const marcado = cardsMarcados.includes(card);
+              return (
+                <TouchableOpacity
+                  key={card}
+                  style={[styles.cardClinico, marcado && styles.cardClinicoAtivo]}
+                  onPress={() => alternarCard(card)}
+                >
+                  <Text style={[styles.cardClinicoTexto, marcado && styles.cardClinicoTextoAtivo]}>
+                    {card}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </>
+      )}
+
       <TouchableOpacity
         style={[styles.btnObservacao, modoObservacao && styles.btnObservacaoAtivo]}
         onPress={() => setModoObservacao(!modoObservacao)}
@@ -480,6 +537,11 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: 'bold', fontSize: 13 },
   badgeTextOk: { color: '#16A34A' },
   badgeTextAlerta: { color: '#D97706' },
+  cardsClinicos: { gap: 8, marginBottom: 12 },
+  cardClinico: { backgroundColor: '#FFFFFF', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: '#E2E8F0' },
+  cardClinicoAtivo: { backgroundColor: '#FEE2E2', borderColor: '#DC2626' },
+  cardClinicoTexto: { fontSize: 13, color: '#334155' },
+  cardClinicoTextoAtivo: { color: '#B91C1C', fontWeight: '700' },
   btnObservacao: { backgroundColor: '#FFFFFF', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#FCA5A5' },
   btnObservacaoAtivo: { backgroundColor: '#FEE2E2', borderColor: '#EF4444' },
   btnObservacaoText: { color: '#EF4444', fontWeight: 'bold', fontSize: 13 },
