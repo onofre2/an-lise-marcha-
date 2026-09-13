@@ -535,17 +535,51 @@ function renderMedidas(tipo: string, registro: any, desajustes: Desajuste[]) {
   }
 
   if (tipo === 'cervical') {
-    const alerta = registro.angulo < 48;
+    let medidas: { label: string; valor: number; unidade: string }[] = [];
+    if (registro.medidas_json) {
+      try { medidas = JSON.parse(registro.medidas_json); } catch { medidas = []; }
+    }
+    // Avaliacoes anteriores as cinco vistas gravavam apenas o craniovertebral.
+    if (medidas.length === 0 && typeof registro.angulo === 'number') {
+      medidas = [{ label: 'Angulo Craniovertebral', valor: registro.angulo, unidade: '\u00b0' }];
+    }
+
+    let cards: string[] = [];
+    if (registro.cards_json) {
+      try { cards = JSON.parse(registro.cards_json); } catch { cards = []; }
+    }
+
     return (
-      <View style={styles.card}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.cardLabel}>Angulo Craniovertebral</Text>
-          <Text style={styles.cardRef}>Normal: 48 graus ou mais</Text>
-        </View>
-        <View style={[styles.badge, alerta ? styles.badgeAlerta : styles.badgeOk]}>
-          <Text style={[styles.badgeText, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>{registro.angulo}°</Text>
-        </View>
-      </View>
+      <>
+        {medidas.map(m => {
+          const ehCva = m.label === 'Angulo Craniovertebral';
+          const alerta = ehCva && m.valor < 48;
+          return (
+            <View key={m.label} style={styles.card}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardLabel}>{m.label}</Text>
+                {ehCva && <Text style={styles.cardRef}>Normal: 48 graus ou mais</Text>}
+              </View>
+              <View style={[styles.badge, alerta ? styles.badgeAlerta : styles.badgeOk]}>
+                <Text style={[styles.badgeText, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+                  {m.valor}{m.unidade}
+                </Text>
+              </View>
+            </View>
+          );
+        })}
+
+        {cards.length > 0 && (
+          <View style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>Achados clinicos</Text>
+              {cards.map(c => (
+                <Text key={c} style={styles.cardRef}>{'\u2022'} {c}</Text>
+              ))}
+            </View>
+          </View>
+        )}
+      </>
     );
   }
 
