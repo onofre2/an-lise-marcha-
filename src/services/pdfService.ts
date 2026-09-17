@@ -684,6 +684,29 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
 }
 
 // Monta a imagem do teste de inclinacao de Adams
+async function montarRadiografias(av: any): Promise<string> {
+  if (av.radiografias_json == null) return '';
+  try {
+    const lista = JSON.parse(av.radiografias_json) as { uri: string; x: number }[];
+    let html = '';
+    for (const r of lista) {
+      const b64 = await fotoParaBase64(r.uri);
+      if (b64 == null) continue;
+      const pct = Math.round(r.x * 100);
+      html += '<div style="position:relative;margin-top:10px;">'
+        + '<img src="' + b64 + '" style="width:100%;border-radius:8px;" />'
+        + '<div style="position:absolute;top:0;bottom:0;left:' + pct + '%;width:2px;background:#22C55E;"></div>'
+        + '</div>';
+    }
+    if (html === '') return '';
+    return '<h2>Analise de Exame Radiografico</h2>' + html
+      + '<div class="bloco">Imagem radiografica anexada pelo terapeuta, com linha de prumo '
+      + 'posicionada manualmente. Recurso de documentacao visual; nao substitui laudo radiologico.</div>';
+  } catch {
+    return '';
+  }
+}
+
 async function montarImagemAdams(av: any): Promise<string> {
   try {
     const fotoBase64 = await fotoParaBase64(av.foto_uri);
@@ -712,6 +735,7 @@ export async function gerarRelatorioAdams(idAvaliacao: number) {
 
   const rodapeHtml = await rodapeCompleto();
   const imagemHtml = await montarImagemAdams(av);
+  const radiografiasHtml = await montarRadiografias(av);
   const alerta = av.angulo >= 5;
 
   const html = `
@@ -735,6 +759,7 @@ export async function gerarRelatorioAdams(idAvaliacao: number) {
         Nao substitui a medicao com escoliometro nem exame de imagem. Valores a partir de 5 graus
         sugerem avaliacao clinica complementar.
       </div>
+      ${radiografiasHtml}
       ${rodapeHtml}
     </body></html>
   `;

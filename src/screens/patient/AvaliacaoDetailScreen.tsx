@@ -415,6 +415,23 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       )}
 
       {tipo === 'adams' && (() => {
+        let lista: { uri: string; x: number }[] = [];
+        try { lista = registro.radiografias_json ? JSON.parse(registro.radiografias_json) : []; } catch {}
+        if (lista.length === 0) return null;
+        return (
+          <>
+            <Text style={styles.sectionTitle}>Analise de Exame Radiografico</Text>
+            {lista.map((r, i) => (
+              <View key={i} style={styles.raioxArea}>
+                <Image source={{ uri: r.uri }} style={styles.raioxImagem} resizeMode="contain" />
+                <View style={[styles.raioxPrumo, { left: r.x * (IMAGE_WIDTH - 24) }]} />
+              </View>
+            ))}
+          </>
+        );
+      })()}
+
+      {tipo === 'adams' && (() => {
         let e: any = {};
         try { e = registro.exame_clinico_json ? JSON.parse(registro.exame_clinico_json) : {}; } catch {}
         const linhas = [
@@ -692,6 +709,9 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12 },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
   card: { backgroundColor: '#FFFFFF', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  raioxArea: { width: '100%', height: 320, backgroundColor: '#000', borderRadius: 12, overflow: 'hidden', marginBottom: 10 },
+  raioxImagem: { width: '100%', height: '100%' },
+  raioxPrumo: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
   cardLabel: { color: '#334155', fontSize: 14, flex: 1, fontWeight: '500' },
   cardRef: { color: '#94A3B8', fontSize: 11, marginTop: 2 },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, minWidth: 60, alignItems: 'center' },

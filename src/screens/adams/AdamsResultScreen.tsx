@@ -244,7 +244,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade, achados_json, exame_clinico_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade, achados_json, exame_clinico_json, radiografias_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis),
           resultado ? resultado.angulo : null,
@@ -258,6 +258,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
           mostrarGrade ? 1 : 0,
           JSON.stringify(achadosAdams),
           JSON.stringify(exame),
+          JSON.stringify(radiografias),
         ]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
@@ -432,6 +433,17 @@ export default function AdamsResultScreen({ route, navigation }: any) {
           ))}
         </>
       )}
+
+      <Text style={styles.sectionTitle}>Analise de Exame Radiografico</Text>
+      <View style={styles.blocoExame}>
+        <Text style={styles.exameAjuda}>Anexe a radiografia e posicione a linha de prumo para visualizar o desvio do tronco. Apoio visual, sem medicao automatica: a interpretacao e do terapeuta.</Text>
+        {radiografias.map((r, i) => (
+          <RadiografiaComPrumo key={r.uri} uri={r.uri} x={r.x} largura={IMAGE_WIDTH - 24} altura={RAIOX_ALTURA} onMover={(x) => moverPrumo(i, x)} onRemover={() => removerRadiografia(i)} />
+        ))}
+        <TouchableOpacity style={styles.btnAnexar} onPress={anexarRadiografia}>
+          <Text style={styles.btnAnexarTexto}>Anexar radiografia</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.sectionTitle}>Registro do Exame Clínico</Text>
       <View style={styles.blocoExame}>
