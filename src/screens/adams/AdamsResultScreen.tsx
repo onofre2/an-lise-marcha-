@@ -7,11 +7,18 @@ import { gerarRelatorioAdams } from '../../services/pdfService';
 import { Observacao } from '../../services/observacoes';
 import SetaDesajuste from '../../components/SetaDesajuste';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
+import RadiografiaComPrumo from '../../components/RadiografiaComPrumo';
+import * as ImagePicker from 'expo-image-picker';
 
 interface Ponto { x: number; y: number; }
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 const IMAGE_WIDTH = Dimensions.get('window').width - 32;
+
+// Altura da area de exibicao de cada radiografia anexada.
+const RAIOX_ALTURA = Dimensions.get('window').height * 0.45;
+
+interface Radiografia { uri: string; x: number; }
 
 // Limiar de alerta em graus. Mesmo criterio dos demais alinhamentos do app.
 const LIMIAR = 5;
@@ -67,6 +74,25 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   // Registro do exame clinico feito pelo terapeuta, ao lado da medida
   // fotogrametrica. Nao altera o achado calculado pela foto.
   const [exame, setExame] = useState<Record<string, string>>({ resultado: 'Nao realizado' });
+
+  // Radiografias anexadas, cada uma com a posicao da linha de prumo.
+  const [radiografias, setRadiografias] = useState<Radiografia[]>([]);
+
+  const anexarRadiografia = async () => {
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.9 });
+    if (!r.canceled && r.assets && r.assets[0]) {
+      const permanente = await salvarMidiaPermanente(r.assets[0].uri);
+      setRadiografias(prev => [...prev, { uri: permanente, x: 0.5 }]);
+    }
+  };
+
+  const moverPrumo = (indice: number, x: number) => {
+    setRadiografias(prev => prev.map((r, i) => (i === indice ? { ...r, x } : r)));
+  };
+
+  const removerRadiografia = (indice: number) => {
+    setRadiografias(prev => prev.filter((_, i) => i !== indice));
+  };
   const definir = (chave: string, valor: string) =>
     setExame(prev => ({ ...prev, [chave]: prev[chave] === valor ? '' : valor }));
 
@@ -601,6 +627,9 @@ function BadgeNaLinha({ a, b, valor, alerta }: { a: Ponto; b: Ponto; valor: numb
 }
 
 const styles = StyleSheet.create({
+  exameAjuda: { fontSize: 12, color: '#64748B', lineHeight: 18, marginBottom: 12 },
+  btnAnexar: { backgroundColor: '#F1F5F9', borderRadius: 12, paddingVertical: 13, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnAnexarTexto: { color: '#475569', fontWeight: '700', fontSize: 13 },
   blocoExame: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 14, marginBottom: 18, borderWidth: 1, borderColor: '#E2E8F0' },
   exameRotulo: { fontSize: 12, color: '#64748B', fontWeight: '600', marginBottom: 6, marginTop: 6 },
   linhaOpcoes: { flexDirection: 'row', gap: 6, marginBottom: 6, flexWrap: 'wrap' },
