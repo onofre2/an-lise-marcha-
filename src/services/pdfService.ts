@@ -526,17 +526,20 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
     medidas = [{ label: 'Angulo Craniovertebral', valor: av.angulo, unidade: ' graus' }];
   }
 
-  const linhas = medidas.map(m => {
-    const ehCva = m.label === 'Angulo Craniovertebral';
-    const fora = ehCva && m.valor < 48;
-    const situacao = ehCva
-      ? (fora ? 'Cabeca anteriorizada' : 'Dentro da referencia')
-      : 'Valor medido';
+  const ROTULO_CERVICAL: Record<string, string> = {
+    preservado: 'Preservado',
+    discreto: 'Desajuste discreto',
+    alterado: 'Alterado',
+  };
+
+  const linhas = medidas.map((m: any) => {
+    const faixa = m.classificacao || 'preservado';
+    const classe = faixa === 'preservado' ? 'ok' : 'alerta';
     return `
       <tr>
         <td>${m.label}</td>
-        <td class="${fora ? 'alerta' : 'ok'}">${m.valor}${m.unidade}</td>
-        <td class="${fora ? 'alerta' : 'ok'}">${situacao}</td>
+        <td class="${classe}">${m.valor}${m.unidade}</td>
+        <td class="${classe}">${ROTULO_CERVICAL[faixa]}</td>
       </tr>`;
   }).join('');
 

@@ -551,9 +551,10 @@ function renderMedidas(tipo: string, registro: any, desajustes: Desajuste[]) {
 
     return (
       <>
-        {medidas.map(m => {
+        {medidas.map((m: any) => {
           const ehCva = m.label === 'Angulo Craniovertebral';
-          const alerta = ehCva && m.valor < 48;
+          const faixa = m.classificacao || 'preservado';
+          const alerta = faixa !== 'preservado';
           return (
             <View key={m.label} style={styles.card}>
               <View style={{ flex: 1 }}>

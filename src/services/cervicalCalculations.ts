@@ -12,10 +12,53 @@
 export interface Ponto { x: number; y: number; }
 export type PontosCervicais = Record<string, Ponto>;
 
+export type ClassificacaoCervical = 'preservado' | 'discreto' | 'alterado';
+
 export interface MedidaCervical {
   label: string;
   valor: number;
   unidade: string;
+  classificacao?: ClassificacaoCervical;
+}
+
+// Faixas de classificacao.
+//
+// O angulo craniovertebral tem logica invertida: quanto menor, pior. O corte
+// de 48 graus e o mais citado na literatura; entre 48 e 52 os estudos
+// divergem, entao essa faixa entra como atencao, nao como normal.
+//
+// As demais medidas nao possuem faixa normativa publicada. Os cortes abaixo
+// sao criterio operacional deste aplicativo, declarados como tal no relatorio.
+function classificarCraniovertebral(v: number): ClassificacaoCervical {
+  if (v >= 52) return 'preservado';
+  if (v >= 48) return 'discreto';
+  return 'alterado';
+}
+
+function classificarLordose(v: number): ClassificacaoCervical {
+  if (v >= 40 && v <= 55) return 'preservado';
+  if ((v >= 35 && v < 40) || (v > 55 && v <= 60)) return 'discreto';
+  return 'alterado';
+}
+
+function classificarDiferencaInclinacao(dif: number): ClassificacaoCervical {
+  const d = Math.abs(dif);
+  if (d <= 3) return 'preservado';
+  if (d <= 6) return 'discreto';
+  return 'alterado';
+}
+
+function classificarIndiceRotacao(v: number): ClassificacaoCervical {
+  const d = Math.abs(v);
+  if (d <= 5) return 'preservado';
+  if (d <= 10) return 'discreto';
+  return 'alterado';
+}
+
+function classificarRotacao(v: number): ClassificacaoCervical {
+  if (v >= 175 && v <= 185) return 'preservado';
+  if ((v >= 170 && v < 175) || (v > 185 && v <= 190)) return 'discreto';
+  return 'alterado';
 }
 
 /** Angulo entre a reta origem-alvo e a horizontal, de 0 a 90 graus. */
@@ -57,18 +100,22 @@ function calcularLateral(p: PontosCervicais): MedidaCervical[] {
   const saida: MedidaCervical[] = [];
 
   if (p.trago && p.c7) {
+    const v = anguloComHorizontal(p.c7, p.trago);
     saida.push({
       label: 'Angulo Craniovertebral',
-      valor: anguloComHorizontal(p.c7, p.trago),
+      valor: v,
       unidade: '\u00b0',
+      classificacao: classificarCraniovertebral(v),
     });
   }
 
   if (p.trago && p.acromio && p.c7) {
+    const v = anguloNoVertice(p.trago, p.acromio, p.c7);
     saida.push({
       label: 'Lordose Cervical',
-      valor: anguloNoVertice(p.trago, p.acromio, p.c7),
+      valor: v,
       unidade: '\u00b0',
+      classificacao: classificarLordose(v),
     });
   }
 
@@ -95,6 +142,16 @@ function calcularPosterior(p: PontosCervicais): MedidaCervical[] {
     });
   }
 
+  // A inclinacao isolada nao tem faixa normativa. O que classifica e a
+  // diferenca entre os dois lados, aplicada a ambos.
+  const incD = saida.find(m => m.label === 'Inclinacao Cervical Direita');
+  const incE = saida.find(m => m.label === 'Inclinacao Cervical Esquerda');
+  if (incD && incE) {
+    const faixa = classificarDiferencaInclinacao(incD.valor - incE.valor);
+    incD.classificacao = faixa;
+    incE.classificacao = faixa;
+  }
+
   // Indice de rotacao: criterio operacional do aplicativo, sem respaldo
   // normativo. Serve para acompanhar a evolucao do proprio paciente.
   if (p.c7 && p.acromioclavicular_d && p.acromioclavicular_e && p.trago_d && p.trago_e) {
@@ -106,10 +163,12 @@ function calcularPosterior(p: PontosCervicais): MedidaCervical[] {
     const dE = distanciaAteReta(p.trago_e, p.c7, medioAcromios);
     const soma = dD + dE;
     if (soma > 0) {
+      const indice = Number((((dE - dD) / soma) * 100).toFixed(1));
       saida.push({
         label: 'Indice de Rotacao Cervical',
-        valor: Number((((dE - dD) / soma) * 100).toFixed(1)),
+        valor: indice,
         unidade: '%',
+        classificacao: classificarIndiceRotacao(indice),
       });
     }
   }
@@ -120,10 +179,12 @@ function calcularPosterior(p: PontosCervicais): MedidaCervical[] {
 /** Medida da vista superior: rotacao cervical. */
 function calcularSuperior(p: PontosCervicais): MedidaCervical[] {
   if (!p.manubrio || !p.topo_cabeca || !p.apice_nariz) return [];
+  const v = anguloNoVertice(p.manubrio, p.topo_cabeca, p.apice_nariz);
   return [{
     label: 'Rotacao Cervical',
-    valor: anguloNoVertice(p.manubrio, p.topo_cabeca, p.apice_nariz),
+    valor: v,
     unidade: '\u00b0',
+    classificacao: classificarRotacao(v),
   }];
 }
 

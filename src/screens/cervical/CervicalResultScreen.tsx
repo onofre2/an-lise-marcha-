@@ -362,15 +362,17 @@ export default function CervicalResultScreen({ route, navigation }: any) {
       ) : (
         medidas.map(m => {
           const ehCva = m.label === 'Angulo Craniovertebral';
-          const alerta = ehCva && m.valor < 48;
+          const faixa = m.classificacao || 'preservado';
+          const alerta = faixa === 'alterado';
+          const atencao = faixa === 'discreto';
           return (
             <View key={m.label} style={styles.card}>
               <View style={styles.cardTexto}>
                 <Text style={styles.cardLabel}>{m.label}</Text>
                 {ehCva && <Text style={styles.cardRef}>Normal: 48 graus ou mais</Text>}
               </View>
-              <View style={[styles.badge, alerta ? styles.badgeAlerta : styles.badgeOk]}>
-                <Text style={[styles.badgeText, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+              <View style={[styles.badge, alerta ? styles.badgeVermelho : atencao ? styles.badgeAlerta : styles.badgeOk]}>
+                <Text style={[styles.badgeText, alerta ? styles.badgeTextVermelho : atencao ? styles.badgeTextAlerta : styles.badgeTextOk]}>
                   {m.valor}{m.unidade}
                 </Text>
               </View>
@@ -533,6 +535,8 @@ const styles = StyleSheet.create({
   cardRef: { color: '#94A3B8', fontSize: 11, marginTop: 2 },
   badge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, minWidth: 70, alignItems: 'center' },
   badgeOk: { backgroundColor: '#DCFCE7' },
+  badgeVermelho: { backgroundColor: '#FEE2E2' },
+  badgeTextVermelho: { color: '#DC2626' },
   badgeAlerta: { backgroundColor: '#FEF3C7' },
   badgeText: { fontWeight: 'bold', fontSize: 13 },
   badgeTextOk: { color: '#16A34A' },
