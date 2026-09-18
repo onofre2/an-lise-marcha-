@@ -1,5 +1,5 @@
 export interface Ponto { x: number; y: number; }
-export interface Observacao { base: Ponto; ponta: Ponto; curva?: boolean; }
+export interface Observacao { base: Ponto; ponta: Ponto; curva?: boolean; centro?: Ponto; raio?: number; }
 
 /**
  * As observacoes de desajuste eram gravadas como um ponto unico (circulo) e
