@@ -34,7 +34,7 @@ export default function RadiografiaComPrumo({
     <View style={[styles.area, { width: largura, height: altura }]}>
       <Image source={{ uri }} style={styles.imagem} resizeMode="contain" />
       <View pointerEvents="none" style={[styles.linha, { left: esquerda }]} />
-      <View {...pan.panHandlers} style={[styles.alca, { left: esquerda - 20 }]} />
+      <View {...pan.panHandlers} style={[styles.alca, { left: esquerda - 28 }]} hitSlop={{ top: 0, bottom: 0, left: 12, right: 12 }} />
       {onRemover && (
         <TouchableOpacity style={styles.btnRemover} onPress={onRemover}>
           <Text style={styles.btnRemoverTexto}>Remover</Text>
@@ -47,8 +47,8 @@ export default function RadiografiaComPrumo({
 const styles = StyleSheet.create({
   area: { backgroundColor: '#000', borderRadius: 12, overflow: 'hidden', marginBottom: 12 },
   imagem: { width: '100%', height: '100%' },
-  linha: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
-  alca: { position: 'absolute', top: 0, bottom: 0, width: 40 },
-  btnRemover: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(15,23,42,0.75)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  linha: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E', zIndex: 10 },
+  alca: { position: 'absolute', top: 0, bottom: 0, width: 56, zIndex: 20 },
+  btnRemover: { position: 'absolute', top: 8, right: 8, zIndex: 30, backgroundColor: 'rgba(15,23,42,0.75)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
   btnRemoverTexto: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
 });
