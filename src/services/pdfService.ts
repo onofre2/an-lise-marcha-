@@ -159,9 +159,10 @@ function blocoAchados(achadosJson: string | null): string {
   });
   return html;
 }
-function cabecalho(p: Paciente, titulo: string): string {
+function cabecalho(p: Paciente, titulo: string, logoTopo?: string | null): string {
   const hoje = new Date().toLocaleDateString('pt-BR');
   return `
+    ${logoTopo ? `<div style="text-align:right;margin-bottom:4px;"><img src="${logoTopo}" style="height:46px;" /></div>` : ''}
     <h1>Exame de Biofotogrametria</h1>
     <div class="sub" style="font-size:11px;line-height:1.5;">
       Metodo de avaliacao que utiliza fotografias ou imagens digitais para medir
@@ -254,6 +255,13 @@ async function uriParaBase64(uri: string | null): Promise<string | null> {
     console.error('Erro ao converter imagem para base64:', e);
     return null;
   }
+}
+
+// Logo da clinica exibido no topo direito do relatorio.
+async function logoDoTopo(): Promise<string | null> {
+  const config = db.getFirstSync('SELECT * FROM configuracoes_terapeuta WHERE id = 1') as any;
+  if (config == null) return null;
+  return await uriParaBase64(config.logo_uri);
 }
 
 async function rodapeCompleto(): Promise<string> {
@@ -483,11 +491,12 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
   const medidas: Medida[] = medidasDaAvaliacao(av);
   const rodapeHtml = await rodapeCompleto();
+  const logoHtml = await logoDoTopo();
   const imagemHtml = await montarImagemPostural(av);
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Relatorio de Avaliacao Postural')}
+      ${cabecalho(p, 'Relatorio de Avaliacao Postural', logoHtml)}
       ${blocoAchados(av.achados_json)}
       <h2>Avaliacao ${av.vista.replace('_', ' ')} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
@@ -506,6 +515,7 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
+  const logoHtml = await logoDoTopo();
   const imagemHtml = await montarImagemCervical(av);
 
   const NOME_VISTA: Record<string, string> = {
@@ -578,7 +588,7 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Relatorio de Avaliacao Cervical')}
+      ${cabecalho(p, 'Relatorio de Avaliacao Cervical', logoHtml)}
       ${blocoAchados(av.achados_json)}
       <h2>${NOME_VISTA[vista] || 'Avaliacao Cervical'} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
@@ -600,13 +610,14 @@ export async function gerarRelatorioADM(idAvaliacao: number) {
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
+  const logoHtml = await logoDoTopo();
   const imagemHtml = await montarImagemADM(av);
   const deficit = Number((av.referencia - av.angulo).toFixed(1));
   const alerta = deficit >= 10;
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Relatorio de Amplitude de Movimento')}
+      ${cabecalho(p, 'Relatorio de Amplitude de Movimento', logoHtml)}
       <h2>${av.movimento} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       <table>
@@ -631,6 +642,7 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
+  const logoHtml = await logoDoTopo();
   const imagensHtml = await montarImagensMarcha(av);
 
   let tabelaFases = '';
@@ -657,7 +669,7 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Relatorio de Analise de Marcha')}
+      ${cabecalho(p, 'Relatorio de Analise de Marcha', logoHtml)}
       <h2>Captura ${av.angulo} - ${av.data_avaliacao}</h2>
       ${imagensHtml}
       ${tabelaFases || '<div class="info">Sem marcacoes por fase registradas nesta avaliacao.</div>'}
@@ -734,13 +746,14 @@ export async function gerarRelatorioAdams(idAvaliacao: number) {
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
+  const logoHtml = await logoDoTopo();
   const imagemHtml = await montarImagemAdams(av);
   const radiografiasHtml = await montarRadiografias(av);
   const alerta = av.angulo >= 5;
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Teste de Inclinacao de Adams')}
+      ${cabecalho(p, 'Teste de Inclinacao de Adams', logoHtml)}
       ${blocoAchados(av.achados_json)}
       ${blocoExameAdams(av.exame_clinico_json)}
       <h2>Triagem de assimetria - ${av.data_avaliacao}</h2>
@@ -923,10 +936,11 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   const rodapeHtml2 = await rodapeCompleto();
+  const logoHtml2 = await logoDoTopo();
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Historico Completo do Paciente')}
+      ${cabecalho(p, 'Historico Completo do Paciente', logoHtml2)}
       ${clinico}
       ${corpo}
       ${resumo}

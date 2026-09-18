@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
+import { salvarMidiaPermanente } from '../../services/armazenamento';
 import db from '../../services/database';
 
 interface Config {
@@ -54,8 +55,11 @@ export default function ConfiguracoesScreen() {
       quality: 0.8,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {
-      if (tipo === 'logo') setLogoUri(resultado.assets[0].uri);
-      else setAssinaturaUri(resultado.assets[0].uri);
+      // Sem copiar para a pasta permanente, o Android limpa o cache e a
+      // imagem some depois de um tempo.
+      const permanente = await salvarMidiaPermanente(resultado.assets[0].uri);
+      if (tipo === 'logo') setLogoUri(permanente);
+      else setAssinaturaUri(permanente);
     }
   };
 
