@@ -38,6 +38,34 @@ function anguloNoVertice(a: Ponto, vertice: Ponto, b: Ponto): number {
   return Number((Math.acos(cos) * (180 / Math.PI)).toFixed(1));
 }
 
+/**
+ * Angulo entre duas retas, de 0 a 90 graus. Cada reta e definida por dois
+ * pontos. O resultado e o desvio entre elas, nao o angulo no vertice.
+ */
+function anguloEntreRetas(a1: Ponto, a2: Ponto, b1: Ponto, b2: Ponto): number {
+  const v1x = a2.x - a1.x;
+  const v1y = a2.y - a1.y;
+  const v2x = b2.x - b1.x;
+  const v2y = b2.y - b1.y;
+
+  const mod1 = Math.sqrt(v1x * v1x + v1y * v1y);
+  const mod2 = Math.sqrt(v2x * v2x + v2y * v2y);
+  if (mod1 === 0 || mod2 === 0) return 0;
+
+  const cos = Math.abs(v1x * v2x + v1y * v2y) / (mod1 * mod2);
+  const limitado = Math.max(-1, Math.min(1, cos));
+  return Number((Math.acos(limitado) * (180 / Math.PI)).toFixed(1));
+}
+
+/** Sinal do produto vetorial entre duas retas: indica o lado do desvio. */
+function sinalEntreRetas(a1: Ponto, a2: Ponto, b1: Ponto, b2: Ponto): number {
+  const v1x = a2.x - a1.x;
+  const v1y = a2.y - a1.y;
+  const v2x = b2.x - b1.x;
+  const v2y = b2.y - b1.y;
+  return v1x * v2y - v1y * v2x >= 0 ? 1 : -1;
+}
+
 /** Produto vetorial 2D: o sinal indica para que lado o vertice se desvia. */
 function ladoDoDesvio(a: Ponto, vertice: Ponto, b: Ponto): number {
   const v1x = vertice.x - a.x;
@@ -95,7 +123,14 @@ function calcularAnterior(p: PontosJoelho): MedidaJoelho[] {
     const b = p[idDistal];
     if (!a || !v || !b) continue;
 
-    const graus = anguloNoVertice(a, v, b);
+    // Como na lateral, o angulo no vertice nao distingue valgo de varo:
+    // o produto vetorial diz para que lado o joelho desvia. Direita e
+    // esquerda sao espelhadas, entao o sinal se inverte entre elas.
+    const brutoFrontal = anguloNoVertice(a, v, b);
+    const desvioFrontal = 180 - brutoFrontal;
+    const sinalFrontal = ladoDoDesvio(a, v, b) >= 0 ? 1 : -1;
+    const orientacaoFrontal = lado === 'Esquerdo' ? -1 : 1;
+    const graus = Number((180 + desvioFrontal * sinalFrontal * orientacaoFrontal).toFixed(1));
     const { faixa, descricao } = classificarFrontal(graus);
     saida.push({
       label: `Alinhamento Frontal - Joelho ${lado}`,
@@ -116,7 +151,16 @@ function calcularAnterior(p: PontosJoelho): MedidaJoelho[] {
 function calcularLateral(p: PontosJoelho, lado: string): MedidaJoelho[] {
   if (!p.trocanter || !p.epicondilo || !p.maleolo) return [];
 
-  const graus = anguloNoVertice(p.trocanter, p.epicondilo, p.maleolo);
+  // O angulo no vertice e sempre positivo: 175 graus pode ser flexo ou
+  // recurvato. O produto vetorial diz para que lado o joelho projeta e
+  // permite separar os dois.
+  const bruto = anguloNoVertice(p.trocanter, p.epicondilo, p.maleolo);
+  const desvio = 180 - bruto;
+  const sinal = ladoDoDesvio(p.trocanter, p.epicondilo, p.maleolo) >= 0 ? 1 : -1;
+  // Direita e esquerda olham para lados opostos na foto, entao o sinal do
+  // produto vetorial se inverte entre elas.
+  const orientacao = lado === 'Esquerdo' ? -1 : 1;
+  const graus = Number((180 + desvio * sinal * orientacao).toFixed(1));
   const { faixa, descricao } = classificarSagital(graus);
 
   return [{
@@ -149,10 +193,10 @@ function calcularRetrope(p: PontosJoelho): MedidaJoelho[] {
     const perna = p[idPerna];
     if (!base || !insercao || !tendao || !perna) continue;
 
-    const bruto = anguloNoVertice(base, insercao, perna);
-    // O angulo entre as retas e o desvio em relacao ao alinhamento reto.
-    const desvio = Number((180 - bruto).toFixed(1));
-    const sinal = ladoDoDesvio(base, insercao, perna) >= 0 ? 1 : -1;
+    // Reta inferior: base do calcaneo ate a insercao do tendao.
+    // Reta superior: tendao na altura do maleolo ate o centro da perna.
+    const desvio = anguloEntreRetas(base, insercao, tendao, perna);
+    const sinal = sinalEntreRetas(base, insercao, tendao, perna);
     const graus = Number((desvio * sinal).toFixed(1));
 
     const { faixa, descricao } = classificarRetrope(graus);
