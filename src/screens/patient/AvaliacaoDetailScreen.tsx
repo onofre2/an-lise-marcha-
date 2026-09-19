@@ -212,7 +212,9 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       {(() => {
         let achados: any[] = [];
         try { achados = registro.achados_json ? JSON.parse(registro.achados_json) : []; } catch {}
-        if (achados.length === 0) return null;
+        // O joelho grava achados_json como objeto de numero para lado, nao
+        // como lista de diagnosticos. So a lista e renderizada aqui.
+        if (!Array.isArray(achados) || achados.length === 0) return null;
         return (
           <>
             <Text style={styles.sectionTitle}>Diagnóstico Clínico Sugerido</Text>
