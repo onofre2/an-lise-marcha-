@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dim
 import db from '../../services/database';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { calcularJoelho } from '../../services/joelhoCalculations';
+import { gerarRelatorioJoelho } from '../../services/pdfService';
 import { LABEL_VISTA } from '../../constants/joelhoPoints';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
 import CirculoDestaque, { RAIO_PADRAO } from '../../components/CirculoDestaque';
@@ -175,8 +176,20 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
           JSON.stringify(achados),
         ]
       );
-      Alert.alert('Sucesso', 'Avaliacao salva no historico do paciente.', [
-        { text: 'OK', onPress: () => navigation.navigate('JoelhoHome') },
+      const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
+      Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
+        { text: 'Agora nao', onPress: () => navigation.navigate('JoelhoHome') },
+        {
+          text: 'Gerar PDF',
+          onPress: async () => {
+            try {
+              await gerarRelatorioJoelho(nova.id);
+            } catch (e) {
+              Alert.alert('Erro', 'Nao foi possivel gerar o PDF.');
+            }
+            navigation.navigate('JoelhoHome');
+          },
+        },
       ]);
     } catch (error) {
       console.error('Erro ao salvar avaliacao de joelho:', error);
