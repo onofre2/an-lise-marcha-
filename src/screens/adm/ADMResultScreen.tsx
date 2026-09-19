@@ -6,6 +6,7 @@ import { gerarRelatorioADM } from '../../services/pdfService';
 import { MOVIMENTOS } from '../../constants/movimentos';
 import { Observacao } from '../../services/observacoes';
 import SetaDesajuste from '../../components/SetaDesajuste';
+import CirculoDestaque, { RAIO_PADRAO } from '../../components/CirculoDestaque';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
 
 interface Ponto { x: number; y: number; }
@@ -56,7 +57,6 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
-  const [setaCurva, setSetaCurva] = useState(false);
 
   const adicionarObservacao = (evt: any) => {
     if (!modoObservacao) return;
@@ -66,7 +66,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
     const by = locationY / IMAGE_HEIGHT;
     setObservacoes(prev => ({
       ...prev,
-      [novoId]: { base: { x: bx, y: by }, ponta: { x: Math.min(bx + 0.16, 1), y: by }, curva: setaCurva },
+      [novoId]: { base: { x: bx, y: by }, ponta: { x: bx, y: by }, centro: { x: bx, y: by }, raio: RAIO_PADRAO },
     }));
   };
 
@@ -89,6 +89,24 @@ export default function ADMResultScreen({ route, navigation }: any) {
           },
         },
       };
+    });
+  };
+
+  const moverCirculo = (id: string, x: number, y: number) => {
+    setObservacoes(prev => {
+      const atual = prev[id];
+      if (!atual) return prev;
+      const nx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
+      const ny = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);
+      return { ...prev, [id]: { ...atual, centro: { x: nx, y: ny }, base: { x: nx, y: ny }, ponta: { x: nx, y: ny } } };
+    });
+  };
+
+  const redimensionarCirculo = (id: string, raio: number) => {
+    setObservacoes(prev => {
+      const atual = prev[id];
+      if (!atual) return prev;
+      return { ...prev, [id]: { ...atual, raio } };
     });
   };
 
@@ -223,12 +241,24 @@ export default function ADMResultScreen({ route, navigation }: any) {
         onStartShouldSetResponderCapture={(evt: any) => {
           if (!modoObservacao) return false;
           const { locationX, locationY } = evt.nativeEvent;
+          // Uma marcacao existente continua respondendo ao proprio toque:
+          // a captura so cria marcacao nova em area livre.
+          const sobreUmCirculo = Object.values(observacoes).some(o => {
+            if (!o.centro) return false;
+            const px = o.centro.x * IMAGE_WIDTH;
+            const py = o.centro.y * IMAGE_HEIGHT;
+            const r = o.raio || RAIO_PADRAO;
+            const dx = locationX - px;
+            const dy = locationY - py;
+            return Math.sqrt(dx * dx + dy * dy) <= r + 8;
+          });
           const sobreUmaSeta = Object.values(observacoes).some(o => {
+            if (o.centro) return false;
             const px = o.ponta.x * IMAGE_WIDTH;
             const py = o.ponta.y * IMAGE_HEIGHT;
             return Math.abs(locationX - px) < 22 && Math.abs(locationY - py) < 22;
           });
-          return !sobreUmaSeta;
+          return !sobreUmaSeta && !sobreUmCirculo;
         }}
         onResponderRelease={adicionarObservacao}
       >
@@ -258,16 +288,28 @@ export default function ADMResultScreen({ route, navigation }: any) {
         ))}
 
         {Object.entries(observacoes).map(([id, o]) => (
-          <SetaDesajuste
-            key={id}
-            id={id}
-            base={{ x: o.base.x * IMAGE_WIDTH, y: o.base.y * IMAGE_HEIGHT }}
-            ponta={{ x: o.ponta.x * IMAGE_WIDTH, y: o.ponta.y * IMAGE_HEIGHT }}
-            onMoverPonta={moverPontaObservacao}
-            onMoverBase={moverBaseObservacao}
-            curva={o.curva === true}
-            onLongPress={removerObservacao}
-          />
+          o.centro ? (
+            <CirculoDestaque
+              key={id}
+              id={id}
+              centro={{ x: o.centro.x * IMAGE_WIDTH, y: o.centro.y * IMAGE_HEIGHT }}
+              raio={o.raio || RAIO_PADRAO}
+              onMover={moverCirculo}
+              onRedimensionar={redimensionarCirculo}
+              onLongPress={removerObservacao}
+            />
+          ) : (
+            <SetaDesajuste
+              key={id}
+              id={id}
+              base={{ x: o.base.x * IMAGE_WIDTH, y: o.base.y * IMAGE_HEIGHT }}
+              ponta={{ x: o.ponta.x * IMAGE_WIDTH, y: o.ponta.y * IMAGE_HEIGHT }}
+              onMoverPonta={moverPontaObservacao}
+              onMoverBase={moverBaseObservacao}
+              curva={o.curva === true}
+              onLongPress={removerObservacao}
+            />
+          )
         ))}
       </View>
 
@@ -327,16 +369,6 @@ export default function ADMResultScreen({ route, navigation }: any) {
         </Text>
       </TouchableOpacity>
 
-      {modoObservacao && (
-        <TouchableOpacity
-          style={[styles.btnObservacao, setaCurva && styles.btnObservacaoAtivo]}
-          onPress={() => setSetaCurva(!setaCurva)}
-        >
-          <Text style={[styles.btnObservacaoText, setaCurva && styles.btnObservacaoTextAtivo]}>
-            {setaCurva ? 'Seta curva' : 'Seta reta'}
-          </Text>
-        </TouchableOpacity>
-      )}
 
       {Object.keys(observacoes).length > 0 && (
         <Text style={styles.dicaArrastar}>Toque longo em um circulo vermelho para remove-lo.</Text>

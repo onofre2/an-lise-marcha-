@@ -7,6 +7,7 @@ import { salvarMidiaPermanente } from '../services/armazenamento';
 import { gerarRelatorioMarcha } from '../services/pdfService';
 import ViewShot, { captureRef } from 'react-native-view-shot';
 import SetaDesajuste from '../components/SetaDesajuste';
+import CirculoDestaque, { RAIO_PADRAO } from '../components/CirculoDestaque';
 import { Observacao } from '../services/observacoes';
 import MarcadorComLupa from '../components/MarcadorComLupa';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -149,6 +150,21 @@ export default function VideoEditScreen({ route, navigation }: any) {
     // No modo observacao o toque cria um circulo de desajuste, nao um ponto.
     if (modoObservacao) {
       const { locationX, locationY } = evt.nativeEvent;
+
+      // Uma marcacao existente continua respondendo ao proprio toque:
+      // so cria marcacao nova em area livre.
+      const daFaseAtual = observacoesPorFase[fase.id] || {};
+      const sobreUmCirculo = Object.values(daFaseAtual).some((o: any) => {
+        if (!o.centro) return false;
+        const px = o.centro.x * areaVideo.largura + areaVideo.offsetX;
+        const py = o.centro.y * areaVideo.altura + areaVideo.offsetY;
+        const r = o.raio || RAIO_PADRAO;
+        const dx = locationX - px;
+        const dy = locationY - py;
+        return Math.sqrt(dx * dx + dy * dy) <= r + 8;
+      });
+      if (sobreUmCirculo) return;
+
       const novoId = `obs_${Date.now()}`;
       const bx = (locationX - areaVideo.offsetX) / areaVideo.largura;
       const by = (locationY - areaVideo.offsetY) / areaVideo.altura;
@@ -156,7 +172,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
         ...prev,
         [fase.id]: {
           ...(prev[fase.id] || {}),
-          [novoId]: { base: { x: bx, y: by }, ponta: { x: Math.min(bx + 0.16, 1), y: by }, curva: setaCurva },
+          [novoId]: { base: { x: bx, y: by }, ponta: { x: bx, y: by }, centro: { x: bx, y: by }, raio: RAIO_PADRAO },
         },
       }));
       return;
@@ -176,7 +192,6 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const limparFase = () => setPontosFaseAtual({});
 
   const [modoObservacao, setModoObservacao] = useState(false);
-  const [setaCurva, setSetaCurva] = useState(false);
 
   // Caracteristicas do pe: observadas pelo terapeuta, nao calculadas pelo app.
   const [pisada, setPisada] = useState<Record<string, string>>(lerSalvo(pisadaSalva));
@@ -210,6 +225,26 @@ export default function VideoEditScreen({ route, navigation }: any) {
           },
         },
       };
+    });
+  };
+
+  const moverCirculo = (id: string, x: number, y: number) => {
+    setObservacoesPorFase(prev => {
+      const daFase = prev[fase.id] || {};
+      const atual = daFase[id];
+      if (!atual) return prev;
+      const nx = Math.min(Math.max((x - areaVideo.offsetX) / areaVideo.largura, 0), 1);
+      const ny = Math.min(Math.max((y - areaVideo.offsetY) / areaVideo.altura, 0), 1);
+      return { ...prev, [fase.id]: { ...daFase, [id]: { ...atual, centro: { x: nx, y: ny }, base: { x: nx, y: ny }, ponta: { x: nx, y: ny } } } };
+    });
+  };
+
+  const redimensionarCirculo = (id: string, raio: number) => {
+    setObservacoesPorFase(prev => {
+      const daFase = prev[fase.id] || {};
+      const atual = daFase[id];
+      if (!atual) return prev;
+      return { ...prev, [fase.id]: { ...daFase, [id]: { ...atual, raio } } };
     });
   };
 
@@ -355,6 +390,17 @@ export default function VideoEditScreen({ route, navigation }: any) {
             />
           ))}
           {Object.entries(observacoes).map(([id, o]) => (
+            o.centro ? (
+              <CirculoDestaque
+                key={id}
+                id={id}
+                centro={{ x: o.centro.x * areaVideo.largura + areaVideo.offsetX, y: o.centro.y * areaVideo.altura + areaVideo.offsetY }}
+                raio={o.raio || RAIO_PADRAO}
+                onMover={moverCirculo}
+                onRedimensionar={redimensionarCirculo}
+                onLongPress={removerObservacao}
+              />
+            ) : (
             <SetaDesajuste
               key={id}
               id={id}
@@ -365,6 +411,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
             curva={o.curva === true}
               onLongPress={removerObservacao}
             />
+            )
           ))}
         </TouchableOpacity>
       </ViewShot>
@@ -421,16 +468,6 @@ export default function VideoEditScreen({ route, navigation }: any) {
                 {modoObservacao ? 'Marcando' : 'Marcar desajuste'}
               </Text>
             </TouchableOpacity>
-            {modoObservacao && (
-              <TouchableOpacity
-                style={[styles.btnSec, setaCurva && styles.btnSecAtivo]}
-                onPress={() => setSetaCurva(!setaCurva)}
-              >
-                <Text style={[styles.btnSecText, setaCurva && styles.btnSecTextAtivo]}>
-                  {setaCurva ? 'Curva' : 'Reta'}
-                </Text>
-              </TouchableOpacity>
-            )}
             {faseCompleta && (
               <TouchableOpacity style={styles.btnPri} onPress={confirmarFase}>
                 <Text style={styles.btnPriText}>Confirmar Fase</Text>
