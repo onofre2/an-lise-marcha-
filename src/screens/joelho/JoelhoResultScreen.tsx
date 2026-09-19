@@ -323,6 +323,8 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
         </>
       )}
 
+      {vista !== 'retrope' && (
+        <>
       <Text style={styles.sectionTitle}>Achados Clinicos Complementares</Text>
       <View style={styles.blocoAchados}>
         <Image
@@ -370,6 +372,8 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
           })}
         </View>
       </View>
+        </>
+      )}
 
       <TouchableOpacity
         style={[styles.btnObservacao, modoObservacao && styles.btnObservacaoAtivo]}
