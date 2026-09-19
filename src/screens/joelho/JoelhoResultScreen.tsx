@@ -34,6 +34,26 @@ const CARDS_POR_VISTA: Record<string, string[]> = {
 
 const OPCOES_PISADA = ['Pronada', 'Neutra', 'Supinada'];
 
+// Achados clinicos numerados, na ordem da imagem de referencia.
+// O item 13 nao tem ilustracao.
+const ACHADOS_JOELHO = [
+  'Dor Patelar',
+  'Lesao no Menisco',
+  'Degeneracao do Menisco',
+  'Tendinite',
+  'Ligamento Cruzado',
+  'Tendinite Patelar',
+  'Bursite',
+  'Artrose Inicial',
+  'Bursite (variacao)',
+  'Artrose Avancada',
+  'Ligamento Lateral',
+  'Cisto de Baker',
+  'Derrame Articular',
+];
+
+const LADOS_ACHADO = ['Direito', 'Esquerdo', 'Bilateral'];
+
 export default function JoelhoResultScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, vista, pontos } = route.params as {
     fotoUri: string; pacienteId: number; vista: string; pontos: Record<string, Ponto>;
@@ -44,6 +64,28 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
   const [modoObservacao, setModoObservacao] = useState(false);
   const [cardsMarcados, setCardsMarcados] = useState<string[]>([]);
   const [pisada, setPisada] = useState<Record<string, string>>({});
+
+  // Achados marcados: numero do achado para o lado escolhido.
+  const [achados, setAchados] = useState<Record<number, string>>({});
+  const [achadoAberto, setAchadoAberto] = useState<number | null>(null);
+
+  const escolherLadoAchado = (numero: number, lado: string) => {
+    setAchados(prev => ({ ...prev, [numero]: lado }));
+    setAchadoAberto(null);
+  };
+
+  const alternarAchado = (numero: number) => {
+    if (achados[numero]) {
+      setAchados(prev => {
+        const copia = { ...prev };
+        delete copia[numero];
+        return copia;
+      });
+      setAchadoAberto(null);
+      return;
+    }
+    setAchadoAberto(achadoAberto === numero ? null : numero);
+  };
 
   const pontosPx = useMemo(() => {
     const out: Record<string, Ponto> = {};
@@ -120,8 +162,8 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
         `INSERT INTO avaliacoes_joelho
-         (id_paciente, data_avaliacao, vista, foto_uri, pontos_json, medidas_json, cards_json, pisada_json, observacoes_json, dimensoes_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (id_paciente, data_avaliacao, vista, foto_uri, pontos_json, medidas_json, cards_json, pisada_json, observacoes_json, dimensoes_json, achados_json)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           pacienteId, dataHoje, vista, fotoPermanente,
           JSON.stringify(pontosEditaveis),
@@ -130,6 +172,7 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
           JSON.stringify(pisada),
           JSON.stringify(observacoes),
           JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }),
+          JSON.stringify(achados),
         ]
       );
       Alert.alert('Sucesso', 'Avaliacao salva no historico do paciente.', [
@@ -265,6 +308,54 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
         </>
       )}
 
+      <Text style={styles.sectionTitle}>Achados Clinicos Complementares</Text>
+      <View style={styles.blocoAchados}>
+        <Image
+          source={require('../../../assets/referencias/achados-joelho.jpg')}
+          style={styles.imagemAchados}
+          resizeMode="contain"
+        />
+        <Text style={styles.ajudaAchados}>
+          Toque no achado observado e escolha o lado. Toque de novo para desmarcar.
+          O item 13 nao tem ilustracao.
+        </Text>
+
+        <View style={styles.gradeChips}>
+          {ACHADOS_JOELHO.map((nome, i) => {
+            const numero = i + 1;
+            const marcado = achados[numero];
+            return (
+              <View key={numero} style={styles.chipArea}>
+                <TouchableOpacity
+                  style={[styles.chip, marcado ? styles.chipAtivo : null]}
+                  onPress={() => alternarAchado(numero)}
+                >
+                  <Text style={[styles.chipNumero, marcado ? styles.chipTextoAtivo : null]}>{numero}</Text>
+                  <Text style={[styles.chipNome, marcado ? styles.chipTextoAtivo : null]} numberOfLines={2}>
+                    {nome}
+                  </Text>
+                  {marcado ? <Text style={styles.chipLado}>{marcado}</Text> : null}
+                </TouchableOpacity>
+
+                {achadoAberto === numero && (
+                  <View style={styles.linhaLados}>
+                    {LADOS_ACHADO.map(lado => (
+                      <TouchableOpacity
+                        key={lado}
+                        style={styles.botaoLado}
+                        onPress={() => escolherLadoAchado(numero, lado)}
+                      >
+                        <Text style={styles.botaoLadoTexto}>{lado}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      </View>
+
       <TouchableOpacity
         style={[styles.btnObservacao, modoObservacao && styles.btnObservacaoAtivo]}
         onPress={() => setModoObservacao(!modoObservacao)}
@@ -315,6 +406,20 @@ const styles = StyleSheet.create({
   cardClinicoAtivo: { backgroundColor: '#FEE2E2', borderColor: '#DC2626' },
   cardClinicoTexto: { fontSize: 13, color: '#334155' },
   cardClinicoTextoAtivo: { color: '#B91C1C', fontWeight: '700' },
+  blocoAchados: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 12 },
+  imagemAchados: { width: '100%', height: 260, borderRadius: 10 },
+  ajudaAchados: { fontSize: 11, color: '#64748B', lineHeight: 16, marginTop: 8, marginBottom: 10 },
+  gradeChips: { gap: 6 },
+  chipArea: { marginBottom: 4 },
+  chip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderRadius: 10, paddingVertical: 9, paddingHorizontal: 10, borderWidth: 1, borderColor: '#E2E8F0', gap: 8 },
+  chipAtivo: { backgroundColor: '#FEE2E2', borderColor: '#DC2626' },
+  chipNumero: { fontSize: 12, fontWeight: '700', color: '#64748B', minWidth: 18 },
+  chipNome: { fontSize: 12, color: '#334155', flex: 1 },
+  chipTextoAtivo: { color: '#B91C1C', fontWeight: '700' },
+  chipLado: { fontSize: 11, fontWeight: '700', color: '#B91C1C' },
+  linhaLados: { flexDirection: 'row', gap: 6, marginTop: 6 },
+  botaoLado: { flex: 1, backgroundColor: '#F1F5F9', borderRadius: 8, paddingVertical: 8, alignItems: 'center', borderWidth: 1, borderColor: '#CBD5E1' },
+  botaoLadoTexto: { fontSize: 11, color: '#475569', fontWeight: '600' },
   btnObservacao: { backgroundColor: '#FFFFFF', padding: 14, borderRadius: 14, alignItems: 'center', marginBottom: 10, borderWidth: 1, borderColor: '#FCA5A5' },
   btnObservacaoAtivo: { backgroundColor: '#FEE2E2', borderColor: '#EF4444' },
   btnObservacaoText: { color: '#EF4444', fontWeight: 'bold', fontSize: 13 },
