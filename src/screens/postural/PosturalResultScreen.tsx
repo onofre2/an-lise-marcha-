@@ -10,7 +10,7 @@ import MarcadorComLupa from '../../components/MarcadorComLupa';
 import SetaDesajuste from '../../components/SetaDesajuste';
 import CirculoDestaque, { RAIO_PADRAO } from '../../components/CirculoDestaque';
 
-interface Ponto { x: number; y: number; }
+import { Observacao, Ponto } from '../../services/observacoes';
 
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 const IMAGE_WIDTH = Dimensions.get('window').width - 32;
@@ -117,7 +117,6 @@ export default function PosturalResultScreen({ route, navigation }: any) {
   const restaurarPontos = () => setPontosEditaveis(pontos);
 
   // Cada observacao tem base e ponta: a seta aponta sem cobrir a regiao.
-  interface Observacao { base: Ponto; ponta: Ponto; curva?: boolean; centro?: Ponto; raio?: number; }
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
   // Recebe as opcoes gravadas ao reabrir uma avaliacao: sem isso, salvar de
