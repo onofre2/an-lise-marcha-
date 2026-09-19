@@ -156,6 +156,26 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
 
+    db.execSync(`
+      CREATE TABLE IF NOT EXISTS avaliacoes_joelho (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_paciente INTEGER NOT NULL,
+        data_avaliacao TEXT NOT NULL,
+        vista TEXT NOT NULL,
+        foto_uri TEXT,
+        pontos_json TEXT,
+        medidas_json TEXT,
+        cards_json TEXT,
+        achados_json TEXT,
+        pisada_json TEXT,
+        observacoes_json TEXT,
+        dimensoes_json TEXT,
+        sem_cor INTEGER DEFAULT 0,
+        com_grade INTEGER DEFAULT 0,
+        FOREIGN KEY (id_paciente) REFERENCES pacientes (id) ON DELETE CASCADE
+      );
+    `);
+
     // Vista da avaliacao cervical e as medidas calculadas nela. Avaliacoes
     // anteriores as cinco vistas usavam apenas a lateral.
     try {
