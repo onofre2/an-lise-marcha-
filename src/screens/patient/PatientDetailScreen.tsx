@@ -261,6 +261,7 @@ export default function PatientDetailScreen() {
     adm: 'avaliacoes_adm',
     adams: 'avaliacoes_adams',
     marcha: 'avaliacoes',
+    joelho: 'avaliacoes_joelho',
   };
 
   const excluirAvaliacao = (tipo: string, avaliacaoId: number) => {
