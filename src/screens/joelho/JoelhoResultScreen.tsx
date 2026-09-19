@@ -91,7 +91,7 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
   const pontosPx = useMemo(() => {
     const out: Record<string, Ponto> = {};
     for (const [id, pt] of Object.entries(pontosEditaveis)) {
-      out[id] = { x: pt.x, y: pt.y };
+      out[id] = { x: pt.x * IMAGE_WIDTH, y: pt.y * IMAGE_HEIGHT };
     }
     return out;
   }, [pontosEditaveis]);
@@ -99,7 +99,9 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
   const medidas = useMemo(() => calcularJoelho(vista, pontosPx), [vista, pontosEditaveis]);
 
   const moverPonto = (id: string, x: number, y: number) => {
-    setPontosEditaveis(prev => ({ ...prev, [id]: { x, y } }));
+    const nx = Math.min(Math.max(x / IMAGE_WIDTH, 0), 1);
+    const ny = Math.min(Math.max(y / IMAGE_HEIGHT, 0), 1);
+    setPontosEditaveis(prev => ({ ...prev, [id]: { x: nx, y: ny } }));
   };
 
   const restaurarPontos = () => setPontosEditaveis(pontos);
@@ -227,7 +229,7 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
           <MarcadorComLupa
             key={id}
             id={id}
-            ponto={p}
+            ponto={{ x: p.x * IMAGE_WIDTH, y: p.y * IMAGE_HEIGHT }}
             onMove={moverPonto}
             fotoUri={fotoUri}
             larguraImagem={IMAGE_WIDTH}

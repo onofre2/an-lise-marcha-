@@ -51,7 +51,13 @@ export default function JoelhoMarkingScreen({ route, navigation }: any) {
   };
 
   const confirmar = () => {
-    navigation.navigate('JoelhoResult', { fotoUri, pacienteId, vista, pontos: pontosMarcados });
+    // Grava normalizado (0 a 1): a tela de resultado tem area diferente
+    // desta, entao pixel cru sairia deslocado.
+    const normalizado: Record<string, Ponto> = {};
+    for (const [id, pt] of Object.entries(pontosMarcados)) {
+      normalizado[id] = { x: pt.x / IMAGE_WIDTH, y: pt.y / IMAGE_HEIGHT };
+    }
+    navigation.navigate('JoelhoResult', { fotoUri, pacienteId, vista, pontos: normalizado });
   };
 
   return (
