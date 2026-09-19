@@ -326,7 +326,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const videoPermanente = await salvarMidiaPermanente(videoUri);
-      const dimensoes = JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura });
+      const dimensoes = JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura, offsetX: areaVideo.offsetX, offsetY: areaVideo.offsetY });
 
       // Reaberta do historico: atualiza o registro em vez de criar outro.
       let idAvaliacao: number;

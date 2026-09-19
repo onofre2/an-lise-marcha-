@@ -76,12 +76,40 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
   const pontosDesenho = useMemo(() => {
     // Multiplica pela area de exibicao DESTA tela, nao pela da tela de edicao:
     // a coordenada normalizada e independente de tamanho, e por isso funciona.
+    // Na marcha o video tem letterbox: as barras pretas fazem a area util ser
+    // menor que a area total. Os pontos foram gravados relativos a essa area
+    // util, entao aqui o mesmo enquadramento precisa ser reaplicado.
+    const areaUtil = (() => {
+      if (tipo !== 'marcha' || !registro?.dimensoes_json) {
+        return { largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT, offsetX: 0, offsetY: 0 };
+      }
+      try {
+        const d = JSON.parse(registro.dimensoes_json);
+        if (!d.largura || !d.altura) {
+          return { largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT, offsetX: 0, offsetY: 0 };
+        }
+        const proporcao = d.largura / d.altura;
+        const propTela = IMAGE_WIDTH / IMAGE_HEIGHT;
+        if (proporcao > propTela) {
+          const altura = IMAGE_WIDTH / proporcao;
+          return { largura: IMAGE_WIDTH, altura, offsetX: 0, offsetY: (IMAGE_HEIGHT - altura) / 2 };
+        }
+        const largura = IMAGE_HEIGHT * proporcao;
+        return { largura, altura: IMAGE_HEIGHT, offsetX: (IMAGE_WIDTH - largura) / 2, offsetY: 0 };
+      } catch {
+        return { largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT, offsetX: 0, offsetY: 0 };
+      }
+    })();
+
     const out: Record<string, { x: number; y: number }> = {};
     for (const [id, pt] of Object.entries(pontos as Record<string, { x: number; y: number }>)) {
-      out[id] = { x: pt.x * IMAGE_WIDTH, y: pt.y * IMAGE_HEIGHT };
+      out[id] = {
+        x: pt.x * areaUtil.largura + areaUtil.offsetX,
+        y: pt.y * areaUtil.altura + areaUtil.offsetY,
+      };
     }
     return out;
-  }, [pontos, tipo]);
+  }, [pontos, tipo, registro]);
 
   // Circulos de desajuste marcados sobre os frames da marcha.
   const observacoesMarcha = useMemo(() => {
@@ -103,10 +131,46 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
   // Mesma conversao para os circulos de observacao da avaliacao postural.
   // Todos os modulos gravam coordenadas normalizadas (0 a 1), entao a
   // conversao para pixel vale para qualquer tipo de avaliacao.
-  const observacoesDesenho = useMemo(
-    () => observacoesEmPixel(observacoes, IMAGE_WIDTH, IMAGE_HEIGHT),
-    [observacoes]
-  );
+  // Na marcha o letterbox tambem vale para os circulos: a area util e menor
+  // que a area total, entao o mesmo enquadramento precisa ser reaplicado.
+  const areaUtilObs = useMemo(() => {
+    if (tipo !== 'marcha' || !registro?.dimensoes_json) {
+      return { largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT, offsetX: 0, offsetY: 0 };
+    }
+    try {
+      const d = JSON.parse(registro.dimensoes_json);
+      if (!d.largura || !d.altura) {
+        return { largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT, offsetX: 0, offsetY: 0 };
+      }
+      const proporcao = d.largura / d.altura;
+      const propTela = IMAGE_WIDTH / IMAGE_HEIGHT;
+      if (proporcao > propTela) {
+        const altura = IMAGE_WIDTH / proporcao;
+        return { largura: IMAGE_WIDTH, altura, offsetX: 0, offsetY: (IMAGE_HEIGHT - altura) / 2 };
+      }
+      const largura = IMAGE_HEIGHT * proporcao;
+      return { largura, altura: IMAGE_HEIGHT, offsetX: (IMAGE_WIDTH - largura) / 2, offsetY: 0 };
+    } catch {
+      return { largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT, offsetX: 0, offsetY: 0 };
+    }
+  }, [tipo, registro]);
+
+  const observacoesDesenho = useMemo(() => {
+    const base = observacoesEmPixel(observacoes, areaUtilObs.largura, areaUtilObs.altura);
+    if (areaUtilObs.offsetX === 0 && areaUtilObs.offsetY === 0) return base;
+    const out: typeof base = {};
+    for (const [id, o] of Object.entries(base)) {
+      out[id] = {
+        ...o,
+        base: { x: o.base.x + areaUtilObs.offsetX, y: o.base.y + areaUtilObs.offsetY },
+        ponta: { x: o.ponta.x + areaUtilObs.offsetX, y: o.ponta.y + areaUtilObs.offsetY },
+        centro: o.centro
+          ? { x: o.centro.x + areaUtilObs.offsetX, y: o.centro.y + areaUtilObs.offsetY }
+          : undefined,
+      };
+    }
+    return out;
+  }, [observacoes, areaUtilObs]);
 
 
   const desajustes: Desajuste[] = useMemo(() => {
