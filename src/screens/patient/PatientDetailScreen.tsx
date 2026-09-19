@@ -23,7 +23,7 @@ interface Paciente {
 
 interface ItemAvaliacao {
   id: number;
-  tipo: 'marcha' | 'postural' | 'cervical' | 'adm' | 'adams';
+  tipo: 'marcha' | 'postural' | 'cervical' | 'adm' | 'adams' | 'joelho';
   data_avaliacao: string;
   detalhe: string;
   info_extra?: string;
@@ -91,6 +91,11 @@ export default function PatientDetailScreen() {
       [id]
     ) as { id: number; angulo: number; lado_elevado: string; data_avaliacao: string }[];
 
+    const joelhos = db.getAllSync(
+      'SELECT id, vista, data_avaliacao, medidas_json FROM avaliacoes_joelho WHERE id_paciente = ?',
+      [id]
+    ) as { id: number; vista: string; data_avaliacao: string; medidas_json: string | null }[];
+
     const itensMarcha: ItemAvaliacao[] = marchas.map((m) => ({
         id: m.id,
         tipo: 'marcha',
@@ -141,7 +146,28 @@ export default function PatientDetailScreen() {
       info_extra: `${a3.angulo} graus | lado ${a3.lado_elevado || '-'}`,
     }));
 
-    const todos = [...itensMarcha, ...itensPostural, ...itensCervical, ...itensADM, ...itensAdams];
+    const NOME_VISTA_JOELHO: Record<string, string> = {
+      anterior: 'Anterior',
+      lateral_direita: 'Lateral Direita',
+      lateral_esquerda: 'Lateral Esquerda',
+      retrope: 'Analise da Pisada',
+    };
+
+    const itensJoelho: ItemAvaliacao[] = joelhos.map((j) => {
+      let qtd = 0;
+      if (j.medidas_json) {
+        try { qtd = (JSON.parse(j.medidas_json) as any[]).length; } catch { qtd = 0; }
+      }
+      return {
+        id: j.id,
+        tipo: 'joelho',
+        data_avaliacao: j.data_avaliacao,
+        detalhe: `Joelhos - ${NOME_VISTA_JOELHO[j.vista] || j.vista}`,
+        info_extra: qtd > 0 ? `${qtd} medida${qtd === 1 ? '' : 's'}` : undefined,
+      };
+    });
+
+    const todos = [...itensMarcha, ...itensPostural, ...itensCervical, ...itensADM, ...itensAdams, ...itensJoelho];
 
       const mapa = new Map<string, ItemAvaliacao[]>();
       todos.forEach((item) => {
@@ -384,7 +410,7 @@ export default function PatientDetailScreen() {
               {grupo.itens.map((item) => (
                 <TouchableOpacity key={`${item.tipo}-${item.id}`} style={styles.itemAvaliacao} activeOpacity={0.7} onPress={() => navigation.navigate('AvaliacaoDetail', { tipo: item.tipo, id: item.id })}>
                   <View style={[styles.itemBadge, item.tipo === 'marcha' ? styles.itemBadgeMarcha : styles.itemBadgePostural]}>
-                    <Text style={styles.itemBadgeText}>{item.tipo === 'marcha' ? 'Marcha' : item.tipo === 'cervical' ? 'Cervical' : item.tipo === 'adm' ? 'ADM' : item.tipo === 'adams' ? 'Adams' : 'Postural'}</Text>
+                    <Text style={styles.itemBadgeText}>{item.tipo === 'marcha' ? 'Marcha' : item.tipo === 'cervical' ? 'Cervical' : item.tipo === 'adm' ? 'ADM' : item.tipo === 'adams' ? 'Adams' : item.tipo === 'joelho' ? 'Joelhos' : 'Postural'}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.itemDetalhe}>{item.detalhe}</Text>
