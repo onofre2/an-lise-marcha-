@@ -38,7 +38,7 @@ function faixaDe(d: any): 'preservado' | 'discreto' | 'alterado' {
 }
 
 export default function AvaliacaoDetailScreen({ route, navigation }: any) {
-  const { tipo, id } = route.params as { tipo: 'postural' | 'cervical' | 'adm' | 'marcha' | 'adams'; id: number };
+  const { tipo, id } = route.params as { tipo: 'postural' | 'cervical' | 'adm' | 'marcha' | 'adams' | 'joelho'; id: number };
 
   const [registro, setRegistro] = useState<any>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -51,6 +51,7 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
         adm: 'avaliacoes_adm',
         marcha: 'avaliacoes',
         adams: 'avaliacoes_adams',
+        joelho: 'avaliacoes_joelho',
       };
       const resultado = db.getFirstSync(`SELECT * FROM ${tabelas[tipo]} WHERE id = ?`, [id]);
       if (resultado) setRegistro(resultado);
@@ -524,6 +525,7 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
 
 function tituloDaAvaliacao(tipo: string, registro: any): string {
   if (tipo === 'postural') return `Postural — ${String(registro.vista || '').replace('_', ' ')}`;
+  if (tipo === 'joelho') return 'Avaliacao dos Joelhos';
   if (tipo === 'adams') return 'Teste de Inclinacao de Adams';
   if (tipo === 'cervical') return 'Avaliacao Cervical';
   if (tipo === 'adm') return `ADM — ${registro.movimento || ''}`;
@@ -593,6 +595,92 @@ function renderMedidas(tipo: string, registro: any, desajustes: Desajuste[]) {
               <Text style={styles.cardLabel}>Achados clinicos</Text>
               {cards.map(c => (
                 <Text key={c} style={styles.cardRef}>{'\u2022'} {c}</Text>
+              ))}
+            </View>
+          </View>
+        )}
+      </>
+    );
+  }
+
+  if (tipo === 'joelho') {
+    let medidas: any[] = [];
+    if (registro.medidas_json) {
+      try { medidas = JSON.parse(registro.medidas_json); } catch { medidas = []; }
+    }
+
+    let cards: string[] = [];
+    if (registro.cards_json) {
+      try { cards = JSON.parse(registro.cards_json); } catch { cards = []; }
+    }
+
+    let pisada: Record<string, string> = {};
+    if (registro.pisada_json) {
+      try { pisada = JSON.parse(registro.pisada_json); } catch { pisada = {}; }
+    }
+
+    const NOMES_ACHADOS = ['Dor Patelar', 'Lesao no Menisco', 'Degeneracao do Menisco', 'Tendinite',
+      'Ligamento Cruzado', 'Tendinite Patelar', 'Bursite', 'Artrose Inicial',
+      'Bursite (variacao)', 'Artrose Avancada', 'Ligamento Lateral', 'Cisto de Baker',
+      'Derrame Articular'];
+
+    let achadosJoelho: Record<string, string> = {};
+    if (registro.achados_json) {
+      try { achadosJoelho = JSON.parse(registro.achados_json); } catch { achadosJoelho = {}; }
+    }
+
+    const pisadaItens = Object.entries(pisada).filter(([, v]) => v !== '');
+    const achadosItens = Object.entries(achadosJoelho);
+
+    return (
+      <>
+        {medidas.map((m: any) => {
+          const alerta = m.classificacao !== 'preservado';
+          return (
+            <View key={m.label} style={styles.card}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.cardLabel}>{m.label}</Text>
+                <Text style={styles.cardRef}>{m.descricao}</Text>
+              </View>
+              <View style={[styles.badge, alerta ? styles.badgeAlerta : styles.badgeOk]}>
+                <Text style={[styles.badgeText, alerta ? styles.badgeTextAlerta : styles.badgeTextOk]}>
+                  {m.valor}{m.unidade}
+                </Text>
+              </View>
+            </View>
+          );
+        })}
+
+        {pisadaItens.length > 0 && (
+          <View style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>Classificacao da pisada</Text>
+              {pisadaItens.map(([lado, valor]) => (
+                <Text key={lado} style={styles.cardRef}>{lado}: {valor}</Text>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {cards.length > 0 && (
+          <View style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>Achados observados</Text>
+              {cards.map(c => (
+                <Text key={c} style={styles.cardRef}>{'\u2022'} {c}</Text>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {achadosItens.length > 0 && (
+          <View style={styles.card}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardLabel}>Achados clinicos complementares</Text>
+              {achadosItens.map(([num, lado]) => (
+                <Text key={num} style={styles.cardRef}>
+                  {num}. {NOMES_ACHADOS[Number(num) - 1] || ''} - {lado}
+                </Text>
               ))}
             </View>
           </View>
