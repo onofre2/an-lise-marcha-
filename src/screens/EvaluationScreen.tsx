@@ -68,12 +68,20 @@ export default function EvaluationScreen({ navigation }: any) {
       <View style={styles.protocolCard}>
         <TouchableOpacity activeOpacity={0.8} onPress={() => setProtocoloAberto(true)}>
           <Image
-            source={require('../../assets/referencias/protocolo-marcha.jpg')}
+            source={require('../../assets/referencias/marcha-pontos.jpg')}
             style={styles.imagemProtocolo}
             resizeMode="contain"
           />
           <Text style={styles.dicaAmpliar}>Toque para ampliar</Text>
         </TouchableOpacity>
+
+        <Text style={styles.protocoloTexto}>
+          1. Camera perpendicular ao trajeto, na altura do quadril, a 3-4 metros.{'\n'}
+          2. Use tripe: a camera precisa ficar imovel durante toda a filmagem.{'\n'}
+          3. O paciente caminha paralelo a camera, em velocidade habitual.{'\n'}
+          4. Filme descalco, com roupa que deixe joelho e tornozelo visiveis.{'\n'}
+          5. Pause na fase desejada e marque os cinco pontos com o paciente no centro.
+        </Text>
       </View>
 
       <Modal visible={protocoloAberto} transparent animationType="fade">
@@ -83,7 +91,7 @@ export default function EvaluationScreen({ navigation }: any) {
           onPress={() => setProtocoloAberto(false)}
         >
           <Image
-            source={require('../../assets/referencias/protocolo-marcha.jpg')}
+            source={require('../../assets/referencias/marcha-pontos.jpg')}
             style={styles.imagemAmpliada}
             resizeMode="contain"
           />
@@ -167,6 +175,7 @@ const styles = StyleSheet.create({
   trocarLink: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
   avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
   avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
+  protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19, marginTop: 10 },
   imagemProtocolo: { width: '100%', height: 190, borderRadius: 8 },
   dicaAmpliar: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
   fundoAmpliado: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
