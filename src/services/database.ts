@@ -189,6 +189,11 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
     try {
+      db.execSync("ALTER TABLE avaliacoes_adm ADD COLUMN lado TEXT DEFAULT 'Direito'");
+    } catch {
+      // coluna ja existe - ignora
+    }
+    try {
       db.execSync('ALTER TABLE avaliacoes_cervicais ADD COLUMN cards_json TEXT');
     } catch {
       // coluna ja existe - ignora

@@ -7,7 +7,7 @@ import { MOVIMENTOS } from '../../constants/movimentos';
 export default function ADMCaptureScreen({ route, navigation }: any) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
-  const { pacienteId, movimentoId } = route.params as { pacienteId: number; movimentoId: string };
+  const { pacienteId, movimentoId, lado } = route.params as { pacienteId: number; movimentoId: string; lado: string };
 
   const movimento = MOVIMENTOS.find(m => m.id === movimentoId);
 
@@ -35,7 +35,7 @@ export default function ADMCaptureScreen({ route, navigation }: any) {
       quality: 0.8,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {
-      navigation.navigate('ADMMarking', { fotoUri: resultado.assets[0].uri, pacienteId, movimentoId });
+      navigation.navigate('ADMMarking', { fotoUri: resultado.assets[0].uri, pacienteId, movimentoId, lado });
     }
   }
 
@@ -43,7 +43,7 @@ export default function ADMCaptureScreen({ route, navigation }: any) {
     if (cameraRef.current) {
       try {
         const foto = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-        navigation.navigate('ADMMarking', { fotoUri: foto.uri, pacienteId, movimentoId });
+        navigation.navigate('ADMMarking', { fotoUri: foto.uri, pacienteId, movimentoId, lado });
       } catch (error) {
         console.error('Erro ao tirar foto:', error);
       }

@@ -15,8 +15,8 @@ const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 const IMAGE_WIDTH = Dimensions.get('window').width - 32;
 
 export default function ADMResultScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId, movimentoId, pontos } = route.params as {
-    fotoUri: string; pacienteId: number; movimentoId: string; pontos: Record<string, Ponto>;
+  const { fotoUri, pacienteId, movimentoId, lado, pontos } = route.params as {
+    fotoUri: string; pacienteId: number; movimentoId: string; lado: string; pontos: Record<string, Ponto>;
   };
 
   const movimento = MOVIMENTOS.find(m => m.id === movimentoId);
@@ -201,8 +201,8 @@ export default function ADMResultScreen({ route, navigation }: any) {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
-        'INSERT INTO avaliacoes_adm (id_paciente, movimento, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, movimento.nome, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
+        'INSERT INTO avaliacoes_adm (id_paciente, movimento, lado, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, movimento.nome, lado, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [

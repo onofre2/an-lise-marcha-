@@ -10,8 +10,8 @@ const IMAGE_HEIGHT = Dimensions.get('window').height * 0.62;
 const IMAGE_WIDTH = Dimensions.get('window').width;
 
 export default function ADMMarkingScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId, movimentoId } = route.params as {
-    fotoUri: string; pacienteId: number; movimentoId: string;
+  const { fotoUri, pacienteId, movimentoId, lado } = route.params as {
+    fotoUri: string; pacienteId: number; movimentoId: string; lado: string;
   };
 
   const movimento = MOVIMENTOS.find(m => m.id === movimentoId);
@@ -70,7 +70,7 @@ export default function ADMMarkingScreen({ route, navigation }: any) {
   };
 
   const confirmar = () => {
-    navigation.navigate('ADMResult', { fotoUri, pacienteId, movimentoId, pontos: pontosMarcados });
+    navigation.navigate('ADMResult', { fotoUri, pacienteId, movimentoId, lado, pontos: pontosMarcados });
   };
 
   return (

@@ -6,13 +6,14 @@ import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
 export default function ADMHomeScreen({ navigation }: any) {
   const { pacienteAtivo } = usePacienteAtivo();
   const [movimentoSelecionado, setMovimentoSelecionado] = useState<string | null>(null);
+  const [ladoSelecionado, setLadoSelecionado] = useState<string>('Direito');
 
   const iniciar = () => {
     if (!pacienteAtivo || !movimentoSelecionado) {
       Alert.alert('Atencao', 'Selecione o paciente na aba Historico e o movimento antes de continuar.');
       return;
     }
-    navigation.navigate('ADMCapture', { pacienteId: pacienteAtivo.id, movimentoId: movimentoSelecionado });
+    navigation.navigate('ADMCapture', { pacienteId: pacienteAtivo.id, movimentoId: movimentoSelecionado, lado: ladoSelecionado });
   };
 
   return (
@@ -40,6 +41,19 @@ export default function ADMHomeScreen({ navigation }: any) {
             onPress={() => setMovimentoSelecionado(m.id)}
           >
             <Text style={[styles.itemText, movimentoSelecionado === m.id && styles.itemTextAtivo]}>{m.nome}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.sectionTitle}>Lado Avaliado</Text>
+      <View style={styles.linhaLados}>
+        {['Direito', 'Esquerdo'].map(l => (
+          <TouchableOpacity
+            key={l}
+            style={[styles.botaoLado, ladoSelecionado === l && styles.botaoLadoAtivo]}
+            onPress={() => setLadoSelecionado(l)}
+          >
+            <Text style={[styles.itemText, ladoSelecionado === l && styles.itemTextAtivo]}>{l}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -83,6 +97,9 @@ const styles = StyleSheet.create({
   itemAtivo: { backgroundColor: '#22C55E' },
   itemText: { color: '#475569', fontWeight: '600', fontSize: 14 },
   itemTextAtivo: { color: '#FFFFFF' },
+  linhaLados: { flexDirection: 'row', gap: 10 },
+  botaoLado: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12, paddingVertical: 13, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  botaoLadoAtivo: { backgroundColor: '#0284C7', borderColor: '#0284C7' },
   cardProtocolo: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', marginTop: 8 },
   imagemReferencia: { width: '100%', height: 200, borderRadius: 10, backgroundColor: '#F8FAFC' },
   protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19, marginTop: 10 },

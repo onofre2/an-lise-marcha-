@@ -623,7 +623,7 @@ export async function gerarRelatorioADM(idAvaliacao: number) {
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Relatorio de Amplitude de Movimento', logoHtml)}
-      <h2>${av.movimento} - ${av.data_avaliacao}</h2>
+      <h2>${av.movimento}${av.lado ? ' - ' + av.lado : ''} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       <table>
         <tr><th>Medida</th><th>Valor</th></tr>
