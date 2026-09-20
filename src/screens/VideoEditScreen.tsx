@@ -384,6 +384,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
               id={id}
               ponto={p}
               onMove={moverPontoFase}
+              inativo={modoObservacao}
               fotoUri={frameCongelado || ''}
               larguraImagem={areaVideo.largura}
               alturaImagem={areaVideo.altura}

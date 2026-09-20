@@ -7,7 +7,7 @@ const ZOOM = 2.5;
 const LUPA_DIAMETRO = 110;
 
 export default function MarcadorComLupa({
-  id, ponto, onMove, fotoUri, larguraImagem, alturaImagem, cor = '#22C55E', onLongPress, tamanho = 16, rotulo,
+  id, ponto, onMove, fotoUri, larguraImagem, alturaImagem, cor = '#22C55E', onLongPress, tamanho = 16, rotulo, inativo = false,
 }: {
   id: string;
   ponto: Ponto;
@@ -17,6 +17,7 @@ export default function MarcadorComLupa({
   alturaImagem: number;
   cor?: string;
   onLongPress?: (id: string) => void;
+  inativo?: boolean;
   tamanho?: number;
   rotulo?: string;
 }) {
@@ -55,7 +56,9 @@ export default function MarcadorComLupa({
 
   return (
     <>
-      <View {...panResponder.panHandlers} onTouchEnd={() => { if (tempoToque.current && Date.now() - tempoToque.current > 600 && onLongPress) onLongPress(id); }} style={[styles.marcador, { left: ponto.x - tamanho / 2, top: ponto.y - tamanho / 2, width: tamanho, height: tamanho, borderRadius: tamanho / 2, borderColor: cor }]} />
+      <View
+        pointerEvents={inativo ? 'none' : 'auto'}
+        {...panResponder.panHandlers} onTouchEnd={() => { if (tempoToque.current && Date.now() - tempoToque.current > 600 && onLongPress) onLongPress(id); }} style={[styles.marcador, { left: ponto.x - tamanho / 2, top: ponto.y - tamanho / 2, width: tamanho, height: tamanho, borderRadius: tamanho / 2, borderColor: cor }]} />
       {rotulo ? (
         <Text pointerEvents="none" style={[styles.rotulo, { left: ponto.x + tamanho / 2 + 4, top: ponto.y - 7, color: cor }]}>{rotulo}</Text>
       ) : null}

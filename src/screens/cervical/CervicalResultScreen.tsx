@@ -349,6 +349,7 @@ export default function CervicalResultScreen({ route, navigation }: any) {
             id={id}
             ponto={p}
             onMove={moverPonto}
+            inativo={modoObservacao}
             fotoUri={fotoUri}
             larguraImagem={IMAGE_WIDTH}
             alturaImagem={IMAGE_HEIGHT}

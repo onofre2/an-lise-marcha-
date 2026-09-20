@@ -298,6 +298,7 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
             id={id}
             ponto={{ x: p.x * IMAGE_WIDTH, y: p.y * IMAGE_HEIGHT }}
             onMove={moverPonto}
+            inativo={modoObservacao}
             fotoUri={fotoUri}
             larguraImagem={IMAGE_WIDTH}
             alturaImagem={IMAGE_HEIGHT}
