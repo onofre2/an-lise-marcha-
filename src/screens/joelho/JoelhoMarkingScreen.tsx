@@ -8,6 +8,31 @@ interface Ponto { x: number; y: number; }
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.55;
 const IMAGE_WIDTH = Dimensions.get('window').width;
 
+// Segmentos ligados por linha, na mesma ordem usada no calculo.
+const SEGMENTOS_VISTA: Record<string, [string, string][]> = {
+  anterior: [
+    ['eias_d', 'patela_d'], ['patela_d', 'maleolo_d'],
+    ['eias_e', 'patela_e'], ['patela_e', 'maleolo_e'],
+  ],
+  lateral_direita: [['trocanter', 'epicondilo'], ['epicondilo', 'maleolo']],
+  lateral_esquerda: [['trocanter', 'epicondilo'], ['epicondilo', 'maleolo']],
+  retrope: [
+    ['base_d', 'insercao_d'], ['tendao_d', 'perna_d'],
+    ['base_e', 'insercao_e'], ['tendao_e', 'perna_e'],
+  ],
+};
+
+function LinhaSegmento({ a, b }: { a: Ponto; b: Ponto }) {
+  const comprimento = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
+  const angulo = Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
+  return (
+    <View
+      pointerEvents="none"
+      style={[styles.linhaSegmento, { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
+    />
+  );
+}
+
 export default function JoelhoMarkingScreen({ route, navigation }: any) {
   const { fotoUri, pacienteId, vista } = route.params as {
     fotoUri: string; pacienteId: number; vista: string;
@@ -75,6 +100,13 @@ export default function JoelhoMarkingScreen({ route, navigation }: any) {
 
       <TouchableOpacity activeOpacity={1} onPress={handleImagePress} style={styles.imageContainer}>
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
+        {(SEGMENTOS_VISTA[vista] || []).map(([idA, idB], i) => {
+          const a = pontosMarcados[idA];
+          const b = pontosMarcados[idB];
+          if (!a || !b) return null;
+          return <LinhaSegmento key={`seg-${i}`} a={a} b={b} />;
+        })}
+
         {Object.entries(pontosMarcados).map(([id, p]) => (
           <MarcadorComLupa
             key={id}
@@ -131,6 +163,7 @@ const styles = StyleSheet.create({
   progresso: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000' },
   image: { width: '100%', height: '100%' },
+  linhaSegmento: { position: 'absolute', height: 2.5, backgroundColor: '#4ADE80', transformOrigin: 'left' },
   apoio: { padding: 12, backgroundColor: '#FFFFFF', marginTop: 10 },
   apoioTitulo: { fontSize: 13, fontWeight: 'bold', color: '#64748B', marginBottom: 8 },
   apoioImagem: { width: '100%', height: 130, marginBottom: 8 },
