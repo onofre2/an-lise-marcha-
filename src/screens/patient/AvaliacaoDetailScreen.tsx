@@ -13,6 +13,20 @@ interface Ponto { x: number; y: number; }
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.5;
 const IMAGE_WIDTH = Dimensions.get('window').width - 40;
 
+// Segmentos ligados por linha em cada vista do joelho.
+const LIGACOES_JOELHO: Record<string, [string, string][]> = {
+  anterior: [
+    ['eias_d', 'patela_d'], ['patela_d', 'maleolo_d'],
+    ['eias_e', 'patela_e'], ['patela_e', 'maleolo_e'],
+  ],
+  lateral_direita: [['trocanter', 'epicondilo'], ['epicondilo', 'maleolo']],
+  lateral_esquerda: [['trocanter', 'epicondilo'], ['epicondilo', 'maleolo']],
+  retrope: [
+    ['base_d', 'insercao_d'], ['tendao_d', 'perna_d'],
+    ['base_e', 'insercao_e'], ['tendao_e', 'perna_e'],
+  ],
+};
+
 // Dimensoes de referencia da area de video onde os pontos da marcha foram
 // marcados. Usadas para converter as coordenadas normalizadas de volta.
 // Dimensoes da area onde os pontos foram marcados, gravadas junto com a
@@ -342,6 +356,13 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
             const b = pontosDesenho[idB];
             if (!a || !b) return null;
             return <Linha key={i} a={a} b={b} />;
+          })}
+
+          {tipo === 'joelho' && (LIGACOES_JOELHO[registro.vista] || []).map(([idA, idB], i) => {
+            const a = pontosDesenho[idA];
+            const b = pontosDesenho[idB];
+            if (!a || !b) return null;
+            return <Linha key={`j-${i}`} a={a} b={b} />;
           })}
 
           {tipo === 'adams' && pontosDesenho.dorso_d && pontosDesenho.dorso_e && <Linha a={pontosDesenho.dorso_d} b={pontosDesenho.dorso_e} />}
