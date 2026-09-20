@@ -87,6 +87,8 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
   const [modoObservacao, setModoObservacao] = useState(false);
   const [cardsMarcados, setCardsMarcados] = useState<string[]>([]);
   const [pisada, setPisada] = useState<Record<string, string>>({});
+  const [semCor, setSemCor] = useState(false);
+  const [mostrarGrade, setMostrarGrade] = useState(false);
 
   // Achados marcados: numero do achado para o lado escolhido.
   const [achados, setAchados] = useState<Record<number, string>>({});
@@ -187,8 +189,8 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
       db.runSync(
         `INSERT INTO avaliacoes_joelho
-         (id_paciente, data_avaliacao, vista, foto_uri, pontos_json, medidas_json, cards_json, pisada_json, observacoes_json, dimensoes_json, achados_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (id_paciente, data_avaliacao, vista, foto_uri, pontos_json, medidas_json, cards_json, pisada_json, observacoes_json, dimensoes_json, achados_json, sem_cor, com_grade)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           pacienteId, dataHoje, vista, fotoPermanente,
           JSON.stringify(pontosEditaveis),
@@ -198,6 +200,8 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
           JSON.stringify(observacoes),
           JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }),
           JSON.stringify(achados),
+          semCor ? 1 : 0,
+          mostrarGrade ? 1 : 0,
         ]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
@@ -245,7 +249,22 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
         }}
         onResponderRelease={adicionarObservacao}
       >
-        <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
+        <Image
+          source={{ uri: fotoUri }}
+          style={[styles.image, semCor && styles.imagemSemCor]}
+          resizeMode="contain"
+        />
+        {semCor && <View pointerEvents="none" style={styles.camadaSemCor} />}
+        {mostrarGrade && (
+          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+            {Array.from({ length: 11 }).map((_, i) => (
+              <View key={`gv-${i}`} style={[styles.gradeLinhaV, { left: (IMAGE_WIDTH / 10) * i }]} />
+            ))}
+            {Array.from({ length: 13 }).map((_, i) => (
+              <View key={`gh-${i}`} style={[styles.gradeLinhaH, { top: (IMAGE_HEIGHT / 12) * i }]} />
+            ))}
+          </View>
+        )}
 
         {(EIXOS_REFERENCIA[vista] || []).map(([idA, idB], i) => {
           const a = pontosEditaveis[idA];
@@ -423,6 +442,21 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
         </>
       )}
 
+      <View style={styles.barraVisual}>
+        <TouchableOpacity
+          style={[styles.btnVisual, mostrarGrade && styles.btnVisualAtivo]}
+          onPress={() => setMostrarGrade(!mostrarGrade)}
+        >
+          <Text style={[styles.btnVisualTexto, mostrarGrade && styles.btnVisualTextoAtivo]}>Grade</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.btnVisual, semCor && styles.btnVisualAtivo]}
+          onPress={() => setSemCor(!semCor)}
+        >
+          <Text style={[styles.btnVisualTexto, semCor && styles.btnVisualTextoAtivo]}>Preto e branco</Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity
         style={[styles.btnObservacao, modoObservacao && styles.btnObservacaoAtivo]}
         onPress={() => setModoObservacao(!modoObservacao)}
@@ -472,6 +506,15 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12, marginTop: 8 },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   image: { width: '100%', height: '100%' },
+  imagemSemCor: { opacity: 0.35 },
+  camadaSemCor: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.12 },
+  gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
+  gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.25)' },
+  barraVisual: { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  btnVisual: { flex: 1, backgroundColor: '#FFFFFF', borderRadius: 12, paddingVertical: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnVisualAtivo: { backgroundColor: '#DBEAFE', borderColor: '#0284C7' },
+  btnVisualTexto: { fontSize: 12, color: '#475569', fontWeight: '600' },
+  btnVisualTextoAtivo: { color: '#0369A1', fontWeight: '700' },
   linhaSegmento: { position: 'absolute', height: 2.5, backgroundColor: '#4ADE80', transformOrigin: 'left' },
   linhaEixo: { position: 'absolute', height: 0, borderTopWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.7)', transformOrigin: 'left' },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
