@@ -745,6 +745,43 @@ async function montarImagemAdams(av: any): Promise<string> {
 }
 
 // Relatorio de um teste de inclinacao de Adams
+// Segmentos ligados por linha em cada vista do joelho.
+const LIGACOES_JOELHO: Record<string, [string, string][]> = {
+  anterior: [
+    ['eias_d', 'patela_d'], ['patela_d', 'maleolo_d'],
+    ['eias_e', 'patela_e'], ['patela_e', 'maleolo_e'],
+  ],
+  lateral_direita: [['trocanter', 'epicondilo'], ['epicondilo', 'maleolo']],
+  lateral_esquerda: [['trocanter', 'epicondilo'], ['epicondilo', 'maleolo']],
+  retrope: [
+    ['base_d', 'insercao_d'], ['tendao_d', 'perna_d'],
+    ['base_e', 'insercao_e'], ['tendao_e', 'perna_e'],
+  ],
+};
+
+/** Foto do joelho com pontos, linhas, grade e preto e branco. */
+async function montarImagemJoelho(av: any): Promise<string> {
+  try {
+    const fotoBase64 = await fotoParaBase64(av.foto_uri);
+    if (fotoBase64 == null) return '';
+
+    const pontos = av.pontos_json ? JSON.parse(av.pontos_json) : {};
+    const observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {};
+    const dimensoes = av.dimensoes_json
+      ? JSON.parse(av.dimensoes_json)
+      : { largura: 343, altura: 400 };
+
+    const ligacoes = LIGACOES_JOELHO[av.vista] || [];
+    return imagemSimples(
+      fotoBase64, pontos, ligacoes, null, dimensoes, observacoes,
+      av.sem_cor === 1, av.com_grade === 1,
+    );
+  } catch (e) {
+    console.error('Erro ao montar imagem do joelho:', e);
+    return '';
+  }
+}
+
 // Relatorio de uma avaliacao de joelhos.
 export async function gerarRelatorioJoelho(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_joelho WHERE id = ?', [idAvaliacao]) as any;
@@ -753,7 +790,7 @@ export async function gerarRelatorioJoelho(idAvaliacao: number) {
 
   const rodapeHtml = await rodapeCompleto();
   const logoHtml = await logoDoTopo();
-  const fotoBase64 = await fotoParaBase64(av.foto_uri);
+  const imagemHtml = await montarImagemJoelho(av);
 
   const NOME_VISTA: Record<string, string> = {
     anterior: 'Vista Anterior',
@@ -846,7 +883,7 @@ export async function gerarRelatorioJoelho(idAvaliacao: number) {
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
       ${cabecalho(p, 'Relatorio de Avaliacao dos Joelhos', logoHtml)}
       <h2>${NOME_VISTA[vista] || 'Avaliacao'} - ${av.data_avaliacao}</h2>
-      ${fotoBase64 ? '<img src="' + fotoBase64 + '" style="width:100%;border-radius:8px;" />' : ''}
+      ${imagemHtml}
       ${medidas.length > 0
         ? '<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>' + linhas + '</table>'
         : '<div class="bloco">Sem medidas calculadas nesta vista.</div>'}
@@ -978,10 +1015,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     for (const av of joelhos) {
       corpo += `<div class="bloco"><b>${NOME_VISTA_J[av.vista] || av.vista}</b> - ${av.data_avaliacao}</div>`;
 
-      const fotoJ = await fotoParaBase64(av.foto_uri);
-      if (fotoJ != null) {
-        corpo += '<img src="' + fotoJ + '" style="width:100%;border-radius:8px;margin-bottom:8px;" />';
-      }
+      corpo += await montarImagemJoelho(av);
 
       let medidasJ: any[] = [];
       if (av.medidas_json) {
