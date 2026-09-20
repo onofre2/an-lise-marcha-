@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, PanResponder, TouchableOpacity } from 'react-native';
 
 interface Ponto { x: number; y: number; }
 
@@ -69,7 +69,8 @@ export default function CirculoDestaque({
   ).current;
 
   return (
-    <View
+    <>
+      <View
       {...pan.panHandlers}
       onTouchEnd={() => {
         if (tempoToque.current && Date.now() - tempoToque.current > 600 && onLongPress) {
@@ -86,7 +87,17 @@ export default function CirculoDestaque({
           borderRadius: raio,
         },
       ]}
-    />
+      />
+      {onLongPress && (
+        <TouchableOpacity
+          style={[styles.btnRemover, { left: centro.x + raio - 12, top: centro.y - raio - 12 }]}
+          onPress={() => onLongPress(id)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.btnRemoverTexto}>X</Text>
+        </TouchableOpacity>
+      )}
+    </>
   );
 }
 
@@ -98,4 +109,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     zIndex: 15,
   },
+  btnRemover: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#DC2626',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 25,
+  },
+  btnRemoverTexto: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
 });
