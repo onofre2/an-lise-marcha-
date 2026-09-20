@@ -80,7 +80,9 @@ export default function MarcadorComLupa({
 
 const styles = StyleSheet.create({
   rotulo: { position: 'absolute', fontSize: 9, fontWeight: '700' },
-  marcador: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: 'transparent', borderWidth: 2, borderColor: '#22C55E' },
+  // zIndex menor que o circulo de destaque: sobrepostos, o circulo continua
+  // clicavel e nao some atras do ponto.
+  marcador: { position: 'absolute', width: 16, height: 16, borderRadius: 8, backgroundColor: 'transparent', borderWidth: 2, borderColor: '#22C55E', zIndex: 5 },
   lupa: {
     position: 'absolute',
     width: LUPA_DIAMETRO,
