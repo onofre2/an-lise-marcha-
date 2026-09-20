@@ -102,7 +102,7 @@ export default function CervicalMarkingScreen({ route, navigation }: any) {
         {!finalizado ? (
           <Text style={styles.headerText}>Toque em: {pontoAtual!.nome}</Text>
         ) : (
-          <Text style={styles.headerText}>Ajuste os pontos se necessário</Text>
+          <Text style={styles.headerText}>{PONTOS_SEQUENCIA.length === 0 ? 'Vista de registro: sem pontos a marcar' : 'Ajuste os pontos se necessário'}</Text>
         )}
         <View style={styles.progressoBadge}>
           <Text style={styles.progresso}>{Object.keys(pontosMarcados).length}/{PONTOS_SEQUENCIA.length}</Text>
