@@ -124,12 +124,7 @@ export default function JoelhoMarkingScreen({ route, navigation }: any) {
         <View style={styles.apoio}>
           <Text style={styles.apoioTitulo}>Referencia visual</Text>
           <Image
-            source={require('../../../assets/referencias/pisada-posterior.jpg')}
-            style={styles.apoioImagem}
-            resizeMode="contain"
-          />
-          <Image
-            source={require('../../../assets/referencias/pisada-plantar.jpg')}
+            source={require('../../../assets/referencias/retrope-pontos.jpg')}
             style={styles.apoioImagem}
             resizeMode="contain"
           />
