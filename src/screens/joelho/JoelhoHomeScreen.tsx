@@ -95,6 +95,19 @@ export default function JoelhoHomeScreen({ navigation }: any) {
       <TouchableOpacity style={styles.btnPisada} onPress={() => iniciar('retrope')}>
         <Text style={styles.btnIniciarText}>Analise da Pisada</Text>
       </TouchableOpacity>
+
+      <View style={styles.cardProtocolo}>
+        <Image
+          source={require('../../../assets/referencias/pisada-plantar.jpg')}
+          style={styles.imagemPisada}
+          resizeMode="contain"
+        />
+        <Image
+          source={require('../../../assets/referencias/pisada-posterior.jpg')}
+          style={styles.imagemPisada}
+          resizeMode="contain"
+        />
+      </View>
     </ScrollView>
   );
 }
@@ -117,5 +130,6 @@ const styles = StyleSheet.create({
   protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19 },
   btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 16, alignItems: 'center' },
   btnPisada: { backgroundColor: '#0284C7', padding: 18, borderRadius: 16, marginTop: 16, alignItems: 'center' },
+  imagemPisada: { width: '100%', height: 130, marginBottom: 8 },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });
