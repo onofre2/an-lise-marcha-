@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { MOVIMENTOS } from '../../constants/movimentos';
-import CardReferencia from '../../components/CardReferencia';
 import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
 
 export default function ADMHomeScreen({ navigation }: any) {
@@ -60,7 +59,6 @@ export default function ADMHomeScreen({ navigation }: any) {
         </Text>
       </View>
 
-      <CardReferencia card="adm" />
 
       {movimentoSelecionado && (
         <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
