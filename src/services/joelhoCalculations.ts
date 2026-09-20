@@ -127,7 +127,7 @@ function calcularAnterior(p: PontosJoelho): MedidaJoelho[] {
     // o produto vetorial diz para que lado o joelho desvia. Direita e
     // esquerda sao espelhadas, entao o sinal se inverte entre elas.
     const brutoFrontal = anguloNoVertice(a, v, b);
-    const desvioFrontal = 180 - brutoFrontal;
+    const desvioFrontal = Math.abs(180 - brutoFrontal);
     const sinalFrontal = ladoDoDesvio(a, v, b) >= 0 ? 1 : -1;
     const orientacaoFrontal = lado === 'Esquerdo' ? -1 : 1;
     const graus = Number((180 + desvioFrontal * sinalFrontal * orientacaoFrontal).toFixed(1));
@@ -155,7 +155,7 @@ function calcularLateral(p: PontosJoelho, lado: string): MedidaJoelho[] {
   // recurvato. O produto vetorial diz para que lado o joelho projeta e
   // permite separar os dois.
   const bruto = anguloNoVertice(p.trocanter, p.epicondilo, p.maleolo);
-  const desvio = 180 - bruto;
+  const desvio = Math.abs(180 - bruto);
   const sinal = ladoDoDesvio(p.trocanter, p.epicondilo, p.maleolo) >= 0 ? 1 : -1;
   // Direita e esquerda olham para lados opostos na foto, entao o sinal do
   // produto vetorial se inverte entre elas.
