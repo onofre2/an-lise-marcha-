@@ -82,9 +82,9 @@ export default function PatientDetailScreen() {
     ) as { id: number; angulo: number; data_avaliacao: string }[];
 
     const adms = db.getAllSync(
-      'SELECT id, movimento, angulo, referencia, data_avaliacao FROM avaliacoes_adm WHERE id_paciente = ?',
+      'SELECT id, movimento, lado, angulo, referencia, data_avaliacao FROM avaliacoes_adm WHERE id_paciente = ?',
       [id]
-    ) as { id: number; movimento: string; angulo: number; referencia: number; data_avaliacao: string }[];
+    ) as { id: number; movimento: string; lado: string; angulo: number; referencia: number; data_avaliacao: string }[];
 
     const adamses = db.getAllSync(
       'SELECT id, angulo, lado_elevado, data_avaliacao FROM avaliacoes_adams WHERE id_paciente = ?',
@@ -134,7 +134,7 @@ export default function PatientDetailScreen() {
       id: a2.id,
       tipo: 'adm',
       data_avaliacao: a2.data_avaliacao,
-      detalhe: `ADM — ${a2.movimento}`,
+      detalhe: `ADM — ${a2.movimento}${a2.lado ? ' - ' + a2.lado : ''}`,
       info_extra: `${a2.angulo}/${a2.referencia} graus`,
     }));
 
