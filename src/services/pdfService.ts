@@ -1140,7 +1140,29 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       discretasResumo.push(`<b>${av.vista.replace('_', ' ')}</b>: ${discretas.join(', ')}`);
     }
   }
-  if (alteradas.length > 0 || discretasResumo.length > 0 || cervicais.length > 0 || pendentes.length > 0) {
+  // Achados de joelho e pisada com classificacao fora do preservado.
+  const resumoJoelho: string[] = [];
+  for (const av of joelhos) {
+    if (!av.medidas_json) continue;
+    try {
+      const ms = JSON.parse(av.medidas_json) as any[];
+      const fora = ms.filter(m => m.classificacao !== 'preservado')
+        .map(m => `${m.label}: ${m.valor}${m.unidade} (${m.descricao})`);
+      if (fora.length > 0) resumoJoelho.push(...fora);
+    } catch {}
+  }
+
+  // Deficit de amplitude a partir de 10 graus.
+  const resumoADM: string[] = [];
+  for (const av of adms) {
+    const deficit = Number((av.referencia - av.angulo).toFixed(1));
+    if (deficit >= 10) {
+      const lado = av.lado ? ` (${av.lado})` : '';
+      resumoADM.push(`${av.movimento}${lado}: deficit de ${deficit} graus`);
+    }
+  }
+
+  if (alteradas.length > 0 || discretasResumo.length > 0 || cervicais.length > 0 || pendentes.length > 0 || resumoJoelho.length > 0 || resumoADM.length > 0) {
     resumo = '<h2>Resumo dos Achados</h2>';
     if (alteradas.length > 0) {
       resumo += '<div class="bloco"><b>Alteracoes identificadas (3 graus ou mais)</b></div>';
@@ -1156,6 +1178,14 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       const ultima = cervicais[0];
       const alt = ultima.angulo < 48;
       resumo += `<div class="bloco"><b>Angulo craniovertebral:</b> ${ultima.angulo} graus - ${alt ? 'cabeca anteriorizada' : 'dentro da referencia'}</div>`;
+    }
+    if (resumoJoelho.length > 0) {
+      resumo += '<div class="bloco"><b>Joelhos e pisada</b></div>';
+      resumoJoelho.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
+    }
+    if (resumoADM.length > 0) {
+      resumo += '<div class="bloco"><b>Amplitude de movimento</b></div>';
+      resumoADM.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
     }
     if (pendentes.length > 0) {
       resumo += `<div class="bloco"><b>Nao realizadas:</b> ${pendentes.join(', ')}</div>`;
