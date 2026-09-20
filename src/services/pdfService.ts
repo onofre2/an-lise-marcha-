@@ -917,6 +917,9 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   const marchas = db.getAllSync(
     'SELECT * FROM avaliacoes WHERE id_paciente = ? ORDER BY id DESC', [idPaciente]
   ) as any[];
+  const joelhos = db.getAllSync(
+    'SELECT * FROM avaliacoes_joelho WHERE id_paciente = ? ORDER BY id DESC', [idPaciente]
+  ) as any[];
   const adamses = db.getAllSync(
     'SELECT * FROM avaliacoes_adams WHERE id_paciente = ? ORDER BY id DESC', [idPaciente]
   ) as any[];
@@ -960,6 +963,76 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     corpo += '</div>';
     for (const av of adms) {
       corpo += await montarImagemADM(av);
+    }
+  }
+
+  if (joelhos.length > 0) {
+    const NOME_VISTA_J: Record<string, string> = {
+      anterior: 'Vista Anterior',
+      lateral_direita: 'Lateral Direita',
+      lateral_esquerda: 'Lateral Esquerda',
+      retrope: 'Analise da Pisada',
+    };
+
+    corpo += '<h2>Avaliacao dos Joelhos</h2>';
+    for (const av of joelhos) {
+      corpo += `<div class="bloco"><b>${NOME_VISTA_J[av.vista] || av.vista}</b> - ${av.data_avaliacao}</div>`;
+
+      const fotoJ = await fotoParaBase64(av.foto_uri);
+      if (fotoJ != null) {
+        corpo += '<img src="' + fotoJ + '" style="width:100%;border-radius:8px;margin-bottom:8px;" />';
+      }
+
+      let medidasJ: any[] = [];
+      if (av.medidas_json) {
+        try { medidasJ = JSON.parse(av.medidas_json); } catch { medidasJ = []; }
+      }
+      if (medidasJ.length > 0) {
+        corpo += '<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>';
+        medidasJ.forEach((m: any) => {
+          const classe = m.classificacao === 'preservado' ? 'ok' : 'alerta';
+          corpo += '<tr><td>' + m.label + '</td><td class="' + classe + '">' + m.valor + m.unidade
+            + '</td><td class="' + classe + '">' + m.descricao + '</td></tr>';
+        });
+        corpo += '</table>';
+      }
+
+      if (av.pisada_json) {
+        try {
+          const pisadaJ = JSON.parse(av.pisada_json) as Record<string, string>;
+          const itens = Object.entries(pisadaJ).filter(([, v]) => v !== '')
+            .map(([lado, valor]) => '<li>' + lado + ': ' + valor + '</li>').join('');
+          if (itens !== '') {
+            corpo += '<div class="bloco"><b>Classificacao da pisada</b></div><ul>' + itens + '</ul>';
+          }
+        } catch {}
+      }
+
+      if (av.cards_json) {
+        try {
+          const cardsJ = JSON.parse(av.cards_json) as string[];
+          if (cardsJ.length > 0) {
+            corpo += '<div class="bloco"><b>Achados observados</b></div><ul>'
+              + cardsJ.map(c => '<li>' + c + '</li>').join('') + '</ul>';
+          }
+        } catch {}
+      }
+
+      if (av.achados_json) {
+        try {
+          const achadosJ = JSON.parse(av.achados_json) as Record<string, string>;
+          const nomes = ['Dor Patelar', 'Lesao no Menisco', 'Degeneracao do Menisco', 'Tendinite',
+            'Ligamento Cruzado', 'Tendinite Patelar', 'Bursite', 'Artrose Inicial',
+            'Bursite (variacao)', 'Artrose Avancada', 'Ligamento Lateral', 'Cisto de Baker',
+            'Derrame Articular'];
+          const itens = Object.entries(achadosJ)
+            .map(([num, lado]) => '<li>' + num + '. ' + (nomes[Number(num) - 1] || '') + ' - ' + lado + '</li>')
+            .join('');
+          if (itens !== '') {
+            corpo += '<div class="bloco"><b>Achados clinicos complementares</b></div><ul>' + itens + '</ul>';
+          }
+        } catch {}
+      }
     }
   }
 
