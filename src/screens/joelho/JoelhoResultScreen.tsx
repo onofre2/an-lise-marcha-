@@ -35,6 +35,28 @@ const CARDS_POR_VISTA: Record<string, string[]> = {
 
 const OPCOES_PISADA = ['Pronada', 'Neutra', 'Supinada'];
 
+// Segmentos ligados por linha em cada vista, na ordem proximal-vertice-distal.
+const SEGMENTOS_VISTA: Record<string, [string, string][]> = {
+  anterior: [
+    ['eias_d', 'patela_d'], ['patela_d', 'maleolo_d'],
+    ['eias_e', 'patela_e'], ['patela_e', 'maleolo_e'],
+  ],
+  lateral_direita: [['trocanter', 'epicondilo'], ['epicondilo', 'maleolo']],
+  lateral_esquerda: [['trocanter', 'epicondilo'], ['epicondilo', 'maleolo']],
+  retrope: [
+    ['base_d', 'insercao_d'], ['tendao_d', 'perna_d'],
+    ['base_e', 'insercao_e'], ['tendao_e', 'perna_e'],
+  ],
+};
+
+// Linha de referencia que corta os pontos mostrando o sentido do desvio.
+const EIXOS_REFERENCIA: Record<string, [string, string][]> = {
+  anterior: [['eias_d', 'maleolo_d'], ['eias_e', 'maleolo_e']],
+  lateral_direita: [['trocanter', 'maleolo']],
+  lateral_esquerda: [['trocanter', 'maleolo']],
+  retrope: [['base_d', 'perna_d'], ['base_e', 'perna_e']],
+};
+
 // Achados clinicos numerados, na ordem da imagem de referencia.
 // O item 13 nao tem ilustracao.
 const ACHADOS_JOELHO = [
@@ -225,6 +247,32 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
       >
         <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
 
+        {(EIXOS_REFERENCIA[vista] || []).map(([idA, idB], i) => {
+          const a = pontosEditaveis[idA];
+          const b = pontosEditaveis[idB];
+          if (!a || !b) return null;
+          return (
+            <LinhaEixo
+              key={`eixo-${i}`}
+              a={{ x: a.x * IMAGE_WIDTH, y: a.y * IMAGE_HEIGHT }}
+              b={{ x: b.x * IMAGE_WIDTH, y: b.y * IMAGE_HEIGHT }}
+            />
+          );
+        })}
+
+        {(SEGMENTOS_VISTA[vista] || []).map(([idA, idB], i) => {
+          const a = pontosEditaveis[idA];
+          const b = pontosEditaveis[idB];
+          if (!a || !b) return null;
+          return (
+            <LinhaSegmento
+              key={`seg-${i}`}
+              a={{ x: a.x * IMAGE_WIDTH, y: a.y * IMAGE_HEIGHT }}
+              b={{ x: b.x * IMAGE_WIDTH, y: b.y * IMAGE_HEIGHT }}
+            />
+          );
+        })}
+
         {Object.entries(pontosEditaveis).map(([id, p]) => (
           <MarcadorComLupa
             key={id}
@@ -395,12 +443,37 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
   );
 }
 
+function LinhaSegmento({ a, b }: { a: Ponto; b: Ponto }) {
+  const comprimento = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
+  const angulo = Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
+  return (
+    <View
+      pointerEvents="none"
+      style={[styles.linhaSegmento, { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
+    />
+  );
+}
+
+/** Eixo tracejado entre os pontos extremos: mostra o sentido do desvio. */
+function LinhaEixo({ a, b }: { a: Ponto; b: Ponto }) {
+  const comprimento = Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
+  const angulo = Math.atan2(b.y - a.y, b.x - a.x) * (180 / Math.PI);
+  return (
+    <View
+      pointerEvents="none"
+      style={[styles.linhaEixo, { left: a.x, top: a.y, width: comprimento, transform: [{ rotate: `${angulo}deg` }] }]}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 16, paddingBottom: 40 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginBottom: 12, marginTop: 8 },
   imageContainer: { height: IMAGE_HEIGHT, backgroundColor: '#000', borderRadius: 16, overflow: 'hidden', marginBottom: 20 },
   image: { width: '100%', height: '100%' },
+  linhaSegmento: { position: 'absolute', height: 2.5, backgroundColor: '#4ADE80', transformOrigin: 'left' },
+  linhaEixo: { position: 'absolute', height: 0, borderTopWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.7)', transformOrigin: 'left' },
   semDados: { color: '#94A3B8', textAlign: 'center', padding: 20 },
   card: { backgroundColor: '#FFFFFF', paddingVertical: 14, paddingHorizontal: 16, borderRadius: 14, marginBottom: 10, borderWidth: 1, borderColor: '#E2E8F0', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLabel: { color: '#334155', fontSize: 14, fontWeight: '600' },
