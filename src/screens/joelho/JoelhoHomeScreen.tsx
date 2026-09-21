@@ -82,6 +82,15 @@ export default function JoelhoHomeScreen({ navigation }: any) {
 
       {vistaSelecionada && (
         <>
+          <Text style={styles.sectionTitle}>Pontos de Marcacao</Text>
+          <View style={styles.cardProtocolo}>
+            <Image
+              source={require('../../../assets/referencias/joelho-pontos.jpg')}
+              style={styles.imagemPisada}
+              resizeMode="contain"
+            />
+          </View>
+
           <Text style={styles.sectionTitle}>Como realizar a avaliacao</Text>
           <View style={styles.cardProtocolo}>
             <Text style={styles.protocoloTexto}>{PROTOCOLOS[vistaSelecionada]}</Text>
