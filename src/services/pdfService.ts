@@ -1203,6 +1203,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       ${corpo}
       ${resumo}
       ${rodapeHtml2}
+      ${paginaReferencias()}
     </body></html>
   `;
   return gerarEcompartilhar(html);

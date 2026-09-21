@@ -49,6 +49,40 @@ export default function ConfiguracoesScreen() {
     }
   };
 
+  // Grava direto no banco: sem isso a imagem some se a aba for fechada
+  // antes de tocar em Salvar.
+  const persistir = (logo: string | null, assinatura: string | null) => {
+    try {
+      db.runSync(
+        `INSERT INTO configuracoes_terapeuta (id, nome, registro, logo_uri, assinatura_uri)
+         VALUES (1, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET nome = ?, registro = ?, logo_uri = ?, assinatura_uri = ?`,
+        [nome, registro, logo, assinatura, nome, registro, logo, assinatura]
+      );
+    } catch (error) {
+      console.error('Erro ao persistir imagem:', error);
+    }
+  };
+
+  const removerImagem = (tipo: 'logo' | 'assinatura') => {
+    Alert.alert('Remover', 'Deseja remover esta imagem?', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Remover',
+        style: 'destructive',
+        onPress: () => {
+          if (tipo === 'logo') {
+            setLogoUri(null);
+            persistir(null, assinaturaUri);
+          } else {
+            setAssinaturaUri(null);
+            persistir(logoUri, null);
+          }
+        },
+      },
+    ]);
+  };
+
   const escolherImagem = async (tipo: 'logo' | 'assinatura') => {
     const resultado = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -58,8 +92,13 @@ export default function ConfiguracoesScreen() {
       // Sem copiar para a pasta permanente, o Android limpa o cache e a
       // imagem some depois de um tempo.
       const permanente = await salvarMidiaPermanente(resultado.assets[0].uri);
-      if (tipo === 'logo') setLogoUri(permanente);
-      else setAssinaturaUri(permanente);
+      if (tipo === 'logo') {
+        setLogoUri(permanente);
+        persistir(permanente, assinaturaUri);
+      } else {
+        setAssinaturaUri(permanente);
+        persistir(logoUri, permanente);
+      }
     }
   };
 
@@ -82,6 +121,12 @@ export default function ConfiguracoesScreen() {
         )}
       </TouchableOpacity>
 
+      {logoUri ? (
+        <TouchableOpacity style={styles.btnRemover} onPress={() => removerImagem('logo')}>
+          <Text style={styles.btnRemoverTexto}>Remover logo</Text>
+        </TouchableOpacity>
+      ) : null}
+
       <Text style={styles.sectionTitle}>Assinatura</Text>
       <TouchableOpacity style={styles.imagemBox} onPress={() => escolherImagem('assinatura')}>
         {assinaturaUri ? (
@@ -90,6 +135,13 @@ export default function ConfiguracoesScreen() {
           <Text style={styles.imagemPlaceholder}>Toque para escolher uma imagem</Text>
         )}
       </TouchableOpacity>
+
+      {assinaturaUri ? (
+        <TouchableOpacity style={styles.btnRemover} onPress={() => removerImagem('assinatura')}>
+          <Text style={styles.btnRemoverTexto}>Remover assinatura</Text>
+        </TouchableOpacity>
+      ) : null}
+
       <Text style={styles.dica}>Essas imagens aparecerao em tamanho reduzido no rodape dos relatorios PDF gerados.</Text>
 
       <TouchableOpacity style={styles.btnSalvar} onPress={salvar}>
@@ -217,6 +269,8 @@ const styles = StyleSheet.create({
   imagemPreview: { width: '90%', height: '90%' },
   imagemPlaceholder: { color: '#94A3B8', fontSize: 13 },
   dica: { color: '#94A3B8', fontSize: 11, marginTop: 8, lineHeight: 16 },
+  btnRemover: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, alignItems: 'center', marginTop: 8, borderWidth: 1, borderColor: '#FCA5A5' },
+  btnRemoverTexto: { color: '#B91C1C', fontWeight: 'bold', fontSize: 13 },
   btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 24 },
   btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
   cardReferencias: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' },
