@@ -1165,7 +1165,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   if (alteradas.length > 0 || discretasResumo.length > 0 || cervicais.length > 0 || pendentes.length > 0 || resumoJoelho.length > 0 || resumoADM.length > 0) {
     resumo = '<h2>Resumo dos Achados</h2>';
     if (alteradas.length > 0) {
-      resumo += '<div class="bloco"><b>Alteracoes identificadas (3 graus ou mais)</b></div>';
+      resumo += '<div class="bloco"><b>Alteracoes identificadas</b></div>';
       alteradas.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
     } else if (posturais.length > 0) {
       resumo += '<div class="bloco">Nenhum segmento fora dos parametros adotados.</div>';
