@@ -30,7 +30,13 @@ const PROTOCOLOS: Record<string, string> = {
     "1. Paciente em pe, descalco, de costas para a camera.\n" +
     "2. Pes alinhados na largura do quadril, carga bipodal igual.\n" +
     "3. Camera a 1 metro, na altura do tornozelo, perpendicular ao chao.\n" +
-    "4. Marque os quatro pontos do retrope em cada pe.",
+    "4. Marque os quatro pontos do retrope em cada pe.\n\n" +
+    "Faixas do angulo do retrope:\n" +
+    "abaixo de -3 graus: supinada acentuada\n" +
+    "-3 a -0,1: tendencia a supinada\n" +
+    "0 a 6: neutra\n" +
+    "6,1 a 9: tendencia a pronada\n" +
+    "acima de 9: pronada acentuada",
 };
 
 export default function JoelhoHomeScreen({ navigation }: any) {
