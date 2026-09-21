@@ -63,7 +63,8 @@ function sinalEntreRetas(a1: Ponto, a2: Ponto, b1: Ponto, b2: Ponto): number {
   const v1y = a2.y - a1.y;
   const v2x = b2.x - b1.x;
   const v2y = b2.y - b1.y;
-  return v1x * v2y - v1y * v2x >= 0 ? 1 : -1;
+  // Validado em teste isolado: negativo aqui corresponde a pronacao.
+  return v1x * v2y - v1y * v2x >= 0 ? -1 : 1;
 }
 
 /** Produto vetorial 2D: o sinal indica para que lado o vertice se desvia. */
