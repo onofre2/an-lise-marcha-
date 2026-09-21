@@ -38,11 +38,11 @@ export const PONTOS_JOELHO: Record<VistaJoelho, PontoJoelho[]> = {
 export const PONTOS_RETROPE: PontoJoelho[] = [
   { id: 'base_d', nome: 'Base do Calcaneo Direito, logo acima do solo' },
   { id: 'insercao_d', nome: 'Centro do Calcanhar Direito, insercao do tendao de Aquiles' },
-  { id: 'tendao_d', nome: 'Tendao de Aquiles Direito, na altura do maleolo medial' },
+  { id: 'tendao_d', nome: 'Tendao de Aquiles Direito, na altura do maleolo' },
   { id: 'perna_d', nome: 'Centro da Perna Direita, 15 cm acima do ponto anterior' },
   { id: 'base_e', nome: 'Base do Calcaneo Esquerdo, logo acima do solo' },
   { id: 'insercao_e', nome: 'Centro do Calcanhar Esquerdo, insercao do tendao de Aquiles' },
-  { id: 'tendao_e', nome: 'Tendao de Aquiles Esquerdo, na altura do maleolo medial' },
+  { id: 'tendao_e', nome: 'Tendao de Aquiles Esquerdo, na altura do maleolo' },
   { id: 'perna_e', nome: 'Centro da Perna Esquerda, 15 cm acima do ponto anterior' },
 ];
 
