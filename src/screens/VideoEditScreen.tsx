@@ -324,6 +324,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
 
   const salvar = async () => {
     try {
+      // A fase em andamento ainda nao foi confirmada: sem isso, os pontos
+      // marcados agora se perderiam ao salvar.
+      const marcacoesFinais = Object.keys(pontosFaseAtual).length > 0
+        ? { ...marcacoes, [fase.id]: pontosFaseAtual }
+        : marcacoes;
+
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const videoPermanente = await salvarMidiaPermanente(videoUri);
       const dimensoes = JSON.stringify({ largura: areaVideo.largura, altura: areaVideo.altura, offsetX: areaVideo.offsetX, offsetY: areaVideo.offsetY });
@@ -336,14 +342,14 @@ export default function VideoEditScreen({ route, navigation }: any) {
            SET video_uri = ?, marcacoes_json = ?, frames_json = ?, dimensoes_json = ?,
                observacoes_json = ?, pisada_json = ?, tempos_json = ?
            WHERE id = ?`,
-          [videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), dimensoes,
+          [videoPermanente, JSON.stringify(marcacoesFinais), JSON.stringify(framesFases), dimensoes,
            JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases), avaliacaoId]
         );
         idAvaliacao = avaliacaoId;
       } else {
         db.runSync(
           'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json, pisada_json, tempos_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoes), JSON.stringify(framesFases), dimensoes, JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases)]
+          [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoesFinais), JSON.stringify(framesFases), dimensoes, JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases)]
         );
         const criada = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
         idAvaliacao = criada.id;
