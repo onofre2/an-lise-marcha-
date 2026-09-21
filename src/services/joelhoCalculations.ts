@@ -128,7 +128,9 @@ function calcularAnterior(p: PontosJoelho): MedidaJoelho[] {
     // esquerda sao espelhadas, entao o sinal se inverte entre elas.
     const brutoFrontal = anguloNoVertice(a, v, b);
     const desvioFrontal = Math.abs(180 - brutoFrontal);
-    const sinalFrontal = ladoDoDesvio(a, v, b) >= 0 ? 1 : -1;
+    // Validado em teste isolado: produto vetorial positivo aqui corresponde
+    // ao joelho projetado para dentro, ou seja, valgo.
+    const sinalFrontal = ladoDoDesvio(a, v, b) >= 0 ? -1 : 1;
     const orientacaoFrontal = lado === 'Esquerdo' ? -1 : 1;
     const graus = Number((180 + desvioFrontal * sinalFrontal * orientacaoFrontal).toFixed(1));
     const { faixa, descricao } = classificarFrontal(graus);
@@ -156,11 +158,13 @@ function calcularLateral(p: PontosJoelho, lado: string): MedidaJoelho[] {
   // permite separar os dois.
   const bruto = anguloNoVertice(p.trocanter, p.epicondilo, p.maleolo);
   const desvio = Math.abs(180 - bruto);
-  const sinal = ladoDoDesvio(p.trocanter, p.epicondilo, p.maleolo) >= 0 ? 1 : -1;
-  // Direita e esquerda olham para lados opostos na foto, entao o sinal do
-  // produto vetorial se inverte entre elas.
-  const orientacao = lado === 'Esquerdo' ? -1 : 1;
-  const graus = Number((180 + desvio * sinal * orientacao).toFixed(1));
+  // Validado em teste isolado: produto vetorial positivo aqui corresponde
+  // ao joelho projetado para a frente, ou seja, flexo.
+  const sinal = ladoDoDesvio(p.trocanter, p.epicondilo, p.maleolo) >= 0 ? -1 : 1;
+  // Sem correcao por lado: nas fotos laterais a camera mantem a mesma
+  // orientacao em relacao ao corpo nos dois lados, ao contrario da vista
+  // anterior, onde as pernas aparecem espelhadas.
+  const graus = Number((180 + desvio * sinal).toFixed(1));
   const { faixa, descricao } = classificarSagital(graus);
 
   return [{
