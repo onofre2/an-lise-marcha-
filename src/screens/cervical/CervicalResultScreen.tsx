@@ -52,7 +52,8 @@ const CARDS_POR_VISTA: Record<string, string[]> = {
 };
 
 export default function CervicalResultScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId, vista, pontos } = route.params as {
+  const { fotoUri, pacienteId, vista, pontos , avaliacaoId } = route.params as {
+    avaliacaoId?: number;
     fotoUri: string; pacienteId: number; vista: string; pontos: Record<string, Ponto>;
   };
 
@@ -223,6 +224,12 @@ export default function CervicalResultScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
+      // Reaberta para edicao: remove o registro antigo para que o
+      // historico do paciente nao fique com duas copias da mesma avaliacao.
+      if (avaliacaoId) {
+        db.runSync('DELETE FROM avaliacoes_cervicais WHERE id = ?', [avaliacaoId]);
+      }
+
       db.runSync(
         'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json, achados_json, sem_cor, com_grade, vista, medidas_json, cards_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), JSON.stringify(achados), semCor ? 1 : 0, mostrarGrade ? 1 : 0, vista, JSON.stringify(medidas), JSON.stringify(cardsMarcados)]

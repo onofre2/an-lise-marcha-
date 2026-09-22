@@ -78,8 +78,9 @@ const ACHADOS_JOELHO = [
 const LADOS_ACHADO = ['Direito', 'Esquerdo', 'Bilateral'];
 
 export default function JoelhoResultScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId, vista, pontos } = route.params as {
+  const { fotoUri, pacienteId, vista, pontos, avaliacaoId } = route.params as {
     fotoUri: string; pacienteId: number; vista: string; pontos: Record<string, Ponto>;
+    avaliacaoId?: number;
   };
 
   const [pontosEditaveis, setPontosEditaveis] = useState<Record<string, Ponto>>(pontos);
@@ -187,6 +188,34 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
+      // Reaberta para edicao: atualiza o registro em vez de criar outro.
+      if (avaliacaoId) {
+        db.runSync(
+          `UPDATE avaliacoes_joelho
+           SET foto_uri = ?, pontos_json = ?, medidas_json = ?, cards_json = ?,
+               pisada_json = ?, observacoes_json = ?, dimensoes_json = ?,
+               achados_json = ?, sem_cor = ?, com_grade = ?
+           WHERE id = ?`,
+          [
+            fotoPermanente,
+            JSON.stringify(pontosEditaveis),
+            JSON.stringify(medidas),
+            JSON.stringify(cardsMarcados),
+            JSON.stringify(pisada),
+            JSON.stringify(observacoes),
+            JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }),
+            JSON.stringify(achados),
+            semCor ? 1 : 0,
+            mostrarGrade ? 1 : 0,
+            avaliacaoId,
+          ]
+        );
+        Alert.alert('Sucesso', 'Avaliacao atualizada.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+        return;
+      }
+
       db.runSync(
         `INSERT INTO avaliacoes_joelho
          (id_paciente, data_avaliacao, vista, foto_uri, pontos_json, medidas_json, cards_json, pisada_json, observacoes_json, dimensoes_json, achados_json, sem_cor, com_grade)

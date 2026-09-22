@@ -264,6 +264,79 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
         </TouchableOpacity>
       ) : null}
 
+      {tipo === 'cervical' && registro.foto_uri ? (
+        <TouchableOpacity
+          style={styles.btnReeditar}
+          onPress={() => navigation.navigate('CervicalTab', {
+            screen: 'CervicalResult',
+            params: {
+              avaliacaoId: registro.id,
+              fotoUri: registro.foto_uri,
+              pacienteId: registro.id_paciente,
+              vista: registro.vista,
+              pontos,
+            },
+          })}
+        >
+          <Text style={styles.btnReeditarText}>Reabrir para editar pontos</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {tipo === 'adm' && registro.foto_uri ? (
+        <TouchableOpacity
+          style={styles.btnReeditar}
+          onPress={() => navigation.navigate('ADMTab', {
+            screen: 'ADMResult',
+            params: {
+              avaliacaoId: registro.id,
+              fotoUri: registro.foto_uri,
+              pacienteId: registro.id_paciente,
+              movimentoId: registro.movimento,
+              lado: registro.lado || 'Direito',
+              pontos,
+            },
+          })}
+        >
+          <Text style={styles.btnReeditarText}>Reabrir para editar pontos</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {tipo === 'adams' && registro.foto_uri ? (
+        <TouchableOpacity
+          style={styles.btnReeditar}
+          onPress={() => navigation.navigate('AdamsTab', {
+            screen: 'AdamsResult',
+            params: {
+              avaliacaoId: registro.id,
+              fotoUri: registro.foto_uri,
+              pacienteId: registro.id_paciente,
+              vista: registro.vista,
+              pontos,
+            },
+          })}
+        >
+          <Text style={styles.btnReeditarText}>Reabrir para editar pontos</Text>
+        </TouchableOpacity>
+      ) : null}
+
+      {tipo === 'joelho' && registro.foto_uri ? (
+        <TouchableOpacity
+          style={styles.btnReeditar}
+          onPress={() => navigation.navigate('JoelhoTab', {
+            screen: 'JoelhoResult',
+            params: {
+              avaliacaoId: registro.id,
+              fotoUri: registro.foto_uri,
+              pacienteId: registro.id_paciente,
+              vista: registro.vista,
+              pontos,
+            },
+          })}
+        >
+          <Text style={styles.btnReeditarText}>Reabrir para editar pontos</Text>
+        </TouchableOpacity>
+      ) : null}
+
       {tipo === 'postural' && registro.foto_uri ? (
         <TouchableOpacity
           style={styles.btnReeditar}

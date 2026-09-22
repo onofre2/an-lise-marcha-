@@ -25,7 +25,8 @@ interface Radiografia { uri: string; x: number; }
 const LIMIAR = 5;
 
 export default function AdamsResultScreen({ route, navigation }: any) {
-  const { fotoUri, pacienteId, pontos, vista = 'posterior' } = route.params as {
+  const { fotoUri, pacienteId, pontos, vista = 'posterior' , avaliacaoId } = route.params as {
+    avaliacaoId?: number;
     fotoUri: string; pacienteId: number; pontos: Record<string, Ponto>;
     vista?: 'posterior' | 'lateral';
   };
@@ -261,6 +262,12 @@ export default function AdamsResultScreen({ route, navigation }: any) {
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
+      // Reaberta para edicao: remove o registro antigo para que o
+      // historico do paciente nao fique com duas copias da mesma avaliacao.
+      if (avaliacaoId) {
+        db.runSync('DELETE FROM avaliacoes_adams WHERE id = ?', [avaliacaoId]);
+      }
+
       db.runSync(
         'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade, achados_json, exame_clinico_json, radiografias_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
