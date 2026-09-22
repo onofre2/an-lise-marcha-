@@ -194,6 +194,11 @@ export const initDatabase = () => {
       // coluna ja existe - ignora
     }
     try {
+      db.execSync('ALTER TABLE avaliacoes ADD COLUMN escala_json TEXT');
+    } catch {
+      // coluna ja existe - ignora
+    }
+    try {
       db.execSync('ALTER TABLE avaliacoes_cervicais ADD COLUMN cards_json TEXT');
     } catch {
       // coluna ja existe - ignora

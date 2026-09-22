@@ -22,11 +22,11 @@ const IMG_FASES = require('../../assets/referencias/fases-marcha.jpg');
 export default function VideoEditScreen({ route, navigation }: any) {
   const {
     videoUri, pacienteId, angulo, avaliacaoId,
-    marcacoesSalvas, framesSalvos, temposSalvos, observacoesSalvas, pisadaSalva,
+    marcacoesSalvas, framesSalvos, temposSalvos, observacoesSalvas, pisadaSalva, escalaSalva,
   } = route.params as {
     videoUri: string; pacienteId: number; angulo: string;
     avaliacaoId?: number;
-    marcacoesSalvas?: string; framesSalvos?: string; temposSalvos?: string;
+    marcacoesSalvas?: string; framesSalvos?: string; temposSalvos?: string; escalaSalva?: string;
     observacoesSalvas?: string; pisadaSalva?: string;
   };
 
@@ -148,6 +148,16 @@ export default function VideoEditScreen({ route, navigation }: any) {
     }
 
     // No modo observacao o toque cria um circulo de desajuste, nao um ponto.
+    // Escala: os dois primeiros toques definem a distancia de um metro.
+    if (modoEscala) {
+      const { locationX, locationY } = evt.nativeEvent;
+      setPontosEscala(prev => {
+        const proximo = prev.length >= 2 ? [] : prev;
+        return [...proximo, { x: locationX, y: locationY }];
+      });
+      return;
+    }
+
     if (modoObservacao) {
       const { locationX, locationY } = evt.nativeEvent;
 
@@ -192,6 +202,13 @@ export default function VideoEditScreen({ route, navigation }: any) {
   const limparFase = () => setPontosFaseAtual({});
 
   const [modoObservacao, setModoObservacao] = useState(false);
+
+  // Escala: duas marcas de um metro no chao convertem pixel em metro e
+  // liberam comprimento do passo, da passada e velocidade da marcha.
+  const [modoEscala, setModoEscala] = useState(false);
+  const [pontosEscala, setPontosEscala] = useState<{ x: number; y: number }[]>(
+    lerSalvo(escalaSalva) as any || []
+  );
 
   // Caracteristicas do pe: observadas pelo terapeuta, nao calculadas pelo app.
   const [pisada, setPisada] = useState<Record<string, string>>(lerSalvo(pisadaSalva));
@@ -340,16 +357,16 @@ export default function VideoEditScreen({ route, navigation }: any) {
         db.runSync(
           `UPDATE avaliacoes
            SET video_uri = ?, marcacoes_json = ?, frames_json = ?, dimensoes_json = ?,
-               observacoes_json = ?, pisada_json = ?, tempos_json = ?
+               observacoes_json = ?, pisada_json = ?, tempos_json = ?, escala_json = ?
            WHERE id = ?`,
           [videoPermanente, JSON.stringify(marcacoesFinais), JSON.stringify(framesFases), dimensoes,
-           JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases), avaliacaoId]
+           JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases), JSON.stringify(pontosEscala), avaliacaoId]
         );
         idAvaliacao = avaliacaoId;
       } else {
         db.runSync(
-          'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json, pisada_json, tempos_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoesFinais), JSON.stringify(framesFases), dimensoes, JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases)]
+          'INSERT INTO avaliacoes (id_paciente, angulo, data_avaliacao, video_uri, marcacoes_json, frames_json, dimensoes_json, observacoes_json, pisada_json, tempos_json, escala_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [pacienteId, angulo, dataHoje, videoPermanente, JSON.stringify(marcacoesFinais), JSON.stringify(framesFases), dimensoes, JSON.stringify(observacoesPorFase), JSON.stringify(pisada), JSON.stringify(temposFases), JSON.stringify(pontosEscala)]
         );
         const criada = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
         idAvaliacao = criada.id;
@@ -396,6 +413,22 @@ export default function VideoEditScreen({ route, navigation }: any) {
               alturaImagem={areaVideo.altura}
             />
           ))}
+          {pontosEscala.map((pt, i) => (
+            <View key={`esc-${i}`} pointerEvents="none" style={[styles.pontoEscala, { left: pt.x - 7, top: pt.y - 7 }]} />
+          ))}
+
+          {pontosEscala.length === 2 && (() => {
+            const [a1, b1] = pontosEscala;
+            const comp = Math.sqrt((b1.x - a1.x) ** 2 + (b1.y - a1.y) ** 2);
+            const ang = Math.atan2(b1.y - a1.y, b1.x - a1.x) * (180 / Math.PI);
+            return (
+              <View
+                pointerEvents="none"
+                style={[styles.linhaEscala, { left: a1.x, top: a1.y, width: comp, transform: [{ rotate: `${ang}deg` }] }]}
+              />
+            );
+          })()}
+
           {Object.entries(observacoes).map(([id, o]) => (
             o.centro ? (
               <CirculoDestaque
@@ -475,6 +508,20 @@ export default function VideoEditScreen({ route, navigation }: any) {
                 {modoObservacao ? 'Marcando' : 'Marcar desajuste'}
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.btnSec, modoEscala && styles.btnSecAtivo]}
+              onPress={() => {
+                setModoEscala(!modoEscala);
+                if (modoObservacao) setModoObservacao(false);
+              }}
+            >
+              <Text style={[styles.btnSecText, modoEscala && styles.btnSecTextAtivo]}>
+                {modoEscala
+                  ? `Escala ${pontosEscala.length}/2`
+                  : pontosEscala.length === 2 ? 'Escala definida' : 'Definir escala'}
+              </Text>
+            </TouchableOpacity>
+
             {faseCompleta && (
               <TouchableOpacity style={styles.btnPri} onPress={confirmarFase}>
                 <Text style={styles.btnPriText}>Confirmar Fase</Text>
@@ -628,6 +675,8 @@ function Segmentos({ pontos }: { pontos: PontosFase }) {
 }
 
 const styles = StyleSheet.create({
+  pontoEscala: { position: 'absolute', width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: '#FBBF24', backgroundColor: 'rgba(251,191,36,0.3)', zIndex: 12 },
+  linhaEscala: { position: 'absolute', height: 2, backgroundColor: '#FBBF24', transformOrigin: 'left', zIndex: 11 },
   blocoTemporal: { backgroundColor: '#F8FAFC', borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E2E8F0' },
   blocoTemporalTitulo: { fontSize: 14, fontWeight: '700', color: '#0F172A', marginBottom: 10 },
   linhaTemporal: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
