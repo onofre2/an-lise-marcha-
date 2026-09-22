@@ -131,17 +131,6 @@ export default function JoelhoMarkingScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {vista !== 'retrope' && (
-        <View style={styles.apoio}>
-          <Text style={styles.apoioTitulo}>Referencia visual</Text>
-          <Image
-            source={require('../../../assets/referencias/joelho-pontos.jpg')}
-            style={styles.apoioImagem}
-            resizeMode="contain"
-          />
-        </View>
-      )}
-
       {vista === 'retrope' && (
         <View style={styles.apoio}>
           <Text style={styles.apoioTitulo}>Referencia visual</Text>
