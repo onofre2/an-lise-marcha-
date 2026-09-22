@@ -251,3 +251,29 @@ export function calcularParametrosEspaciais(
 
   return saida;
 }
+
+/**
+ * Distancia em pixels entre a ponta do pe nas duas fases de contato.
+ * E o comprimento do passo antes da conversao pela escala.
+ */
+export function passoEmPixels(
+  marcacoes: Record<string, Record<string, Ponto>>,
+): number | null {
+  const cd = marcacoes['contato_direito'];
+  const ce = marcacoes['contato_esquerdo'];
+  if (!cd || !ce || !cd.pe || !ce.pe) return null;
+  const dx = ce.pe.x - cd.pe.x;
+  const dy = ce.pe.y - cd.pe.y;
+  return Number(Math.sqrt(dx * dx + dy * dy).toFixed(1));
+}
+
+/** Pixels por metro, a partir das duas marcas de um metro no chao. */
+export function escalaPixelsPorMetro(
+  pontos: { x: number; y: number }[] | null,
+): number | null {
+  if (!pontos || pontos.length < 2) return null;
+  const dx = pontos[1].x - pontos[0].x;
+  const dy = pontos[1].y - pontos[0].y;
+  const d = Math.sqrt(dx * dx + dy * dy);
+  return d > 0 ? Number(d.toFixed(1)) : null;
+}

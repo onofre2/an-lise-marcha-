@@ -6,7 +6,7 @@ import { SEGMENTOS_RAPIDA, Vista } from '../../constants/posturalPoints';
 import { calcularDesajustes, Desajuste } from '../../services/posturalCalculations';
 import { MOVIMENTOS } from '../../constants/movimentos';
 import { FASES_MARCHA } from '../../constants/fasesMarcha';
-import { calcularFase, calcularParametrosTemporais } from '../../services/marchaCalculations';
+import { calcularFase, calcularParametrosTemporais, calcularParametrosEspaciais, passoEmPixels, escalaPixelsPorMetro } from '../../services/marchaCalculations';
 
 interface Ponto { x: number; y: number; }
 
@@ -213,6 +213,16 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       </View>
     );
   }
+
+  // A altura vem do cadastro do paciente: e dela que saem os valores
+  // esperados de passo e passada.
+  const alturaPaciente = useMemo(() => {
+    if (registro == null || registro.id_paciente == null) return null;
+    try {
+      const pac = db.getFirstSync('SELECT altura_cm FROM pacientes WHERE id = ?', [registro.id_paciente]) as any;
+      return pac?.altura_cm || null;
+    } catch { return null; }
+  }, [registro]);
 
   const segmentos = tipo === 'postural' && registro.vista ? SEGMENTOS_RAPIDA[registro.vista as Vista] : [];
   const movimento = tipo === 'adm' ? MOVIMENTOS.find(m => m.nome === registro.movimento) : undefined;
@@ -639,6 +649,42 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
         ];
         return (
           <>
+            {(() => {
+              // Medidas espaciais dependem da escala de um metro definida
+              // na tela de edicao. Sem ela, so os tempos sao exibidos.
+              let marcacoes: any = {};
+              try { marcacoes = registro.marcacoes_json ? JSON.parse(registro.marcacoes_json) : {}; } catch {}
+              let escala: any = null;
+              try { escala = registro.escala_json ? JSON.parse(registro.escala_json) : null; } catch {}
+
+              const espaciais = calcularParametrosEspaciais(
+                passoEmPixels(marcacoes),
+                escalaPixelsPorMetro(escala),
+                t.duracaoCiclo,
+                alturaPaciente,
+              );
+              if (espaciais.length === 0) return null;
+
+              return (
+                <>
+                  <Text style={styles.sectionTitle}>Parâmetros Espaciais</Text>
+                  {espaciais.map((m, i) => (
+                    <View key={`esp-${i}`} style={styles.card}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.cardLabel}>{m.label}</Text>
+                        <Text style={styles.cardRef}>{m.referencia}</Text>
+                      </View>
+                      <View style={[styles.badge, m.classificacao === 'preservado' ? styles.badgeOk : styles.badgeAlerta]}>
+                        <Text style={[styles.badgeText, m.classificacao === 'preservado' ? styles.badgeTextOk : styles.badgeTextAlerta]}>
+                          {m.valor}{m.unidade}
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </>
+              );
+            })()}
+
             <Text style={styles.sectionTitle}>Parâmetros Temporais</Text>
             {linhas.map(([rotulo, valor, alerta], i) => (
               <View key={i} style={styles.card}>
