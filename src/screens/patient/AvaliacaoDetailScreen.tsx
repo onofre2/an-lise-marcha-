@@ -198,6 +198,16 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
     return [];
   }, [registro, tipo, pontos]);
 
+  // A altura vem do cadastro do paciente: e dela que saem os valores
+  // esperados de passo e passada.
+  const alturaPaciente = useMemo(() => {
+    if (registro == null || registro.id_paciente == null) return null;
+    try {
+      const pac = db.getFirstSync('SELECT altura_cm FROM pacientes WHERE id = ?', [registro.id_paciente]) as any;
+      return pac?.altura_cm || null;
+    } catch { return null; }
+  }, [registro]);
+
   if (erro) {
     return (
       <View style={styles.centro}>
@@ -213,16 +223,6 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
       </View>
     );
   }
-
-  // A altura vem do cadastro do paciente: e dela que saem os valores
-  // esperados de passo e passada.
-  const alturaPaciente = useMemo(() => {
-    if (registro == null || registro.id_paciente == null) return null;
-    try {
-      const pac = db.getFirstSync('SELECT altura_cm FROM pacientes WHERE id = ?', [registro.id_paciente]) as any;
-      return pac?.altura_cm || null;
-    } catch { return null; }
-  }, [registro]);
 
   const segmentos = tipo === 'postural' && registro.vista ? SEGMENTOS_RAPIDA[registro.vista as Vista] : [];
   const movimento = tipo === 'adm' ? MOVIMENTOS.find(m => m.nome === registro.movimento) : undefined;
