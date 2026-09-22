@@ -385,9 +385,6 @@ function AssinaturaCriador() {
       <Image source={require('../../assets/marca/criador.png')} style={styles.assinaturaImg} resizeMode="contain" />
       <Text style={styles.assinaturaApp}>Postural Global</Text>
       <Text style={styles.assinaturaAutor}>Desenvolvido por @fisionofre</Text>
-      <TouchableOpacity onPress={() => Linking.openURL('mailto:jrferreiraa22@gmail.com')}>
-        <Text style={styles.assinaturaLink}>jrferreiraa22@gmail.com</Text>
-      </TouchableOpacity>
       <TouchableOpacity onPress={() => Linking.openURL('tel:+5532984143217')}>
         <Text style={styles.assinaturaLink}>(32) 98414-3217</Text>
       </TouchableOpacity>

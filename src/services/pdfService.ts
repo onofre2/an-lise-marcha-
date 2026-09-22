@@ -168,6 +168,14 @@ function cabecalho(p: Paciente, titulo: string, logoTopo?: string | null): strin
       Metodo de avaliacao que utiliza fotografias ou imagens digitais para medir
       angulos, distancias e o alinhamento corporal de forma precisa.
     </div>
+    <div class="sub" style="font-size:11px;line-height:1.5;background:#F1F5F9;border-left:3px solid #64748B;padding:8px 10px;margin-top:8px;">
+      O Postural Global reune diferentes parametros de avaliacao para ampliar a
+      observacao do alinhamento corporal. A analise conjunta de diferentes angulos,
+      planos e medidas permite identificar padroes e possiveis relacoes entre os
+      achados, tornando as evidencias mais consistentes para a interpretacao do
+      avaliador. Os resultados sao recursos de apoio a avaliacao clinica e devem ser
+      correlacionados com o exame fisico e demais testes funcionais.
+    </div>
     <div class="sub">${titulo} &middot; Emitido em ${hoje}</div>
     <h2>Dados do Paciente</h2>
     <div class="info">
@@ -1163,7 +1171,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (alteradas.length > 0 || discretasResumo.length > 0 || cervicais.length > 0 || pendentes.length > 0 || resumoJoelho.length > 0 || resumoADM.length > 0) {
-    resumo = '<h2>Resumo dos Achados</h2>';
+    resumo = '<h2>Resumo sugerido dos achados clinicos</h2>';
     if (alteradas.length > 0) {
       resumo += '<div class="bloco"><b>Alteracoes identificadas</b></div>';
       alteradas.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
