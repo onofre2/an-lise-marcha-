@@ -8,7 +8,7 @@ import { REFERENCIA_BASE64 } from './referenciaImagem';
 import { MARCA_BASE64 } from './marcaImagem';
 import { fotoParaBase64, imagemPostural, imagemSimples } from './imagemAvaliacao';
 import { SEGMENTOS_RAPIDA, Vista } from '../constants/posturalPoints';
-import { calcularFase, calcularParametrosTemporais } from './marchaCalculations';
+import { calcularFase, calcularParametrosTemporais, calcularParametrosEspaciais, passoEmPixels, escalaPixelsPorMetro } from './marchaCalculations';
 import { FASES_MARCHA } from '../constants/fasesMarcha';
 import { calcularDesajustes } from './posturalCalculations';
 import * as FileSystem from 'expo-file-system';
@@ -110,6 +110,44 @@ function blocoExameAdams(json: string | null): string {
  * sao mensuraveis com video de celular, ao contrario de comprimento do passo
  * e velocidade.
  */
+/**
+ * Parametros espaciais da marcha. So saem quando a escala de um metro foi
+ * definida na tela de edicao: sem ela nao ha conversao de pixel em metro.
+ */
+function blocoEspacial(av: any, alturaCm: number | null): string {
+  let marcacoes: any = {};
+  try { marcacoes = av.marcacoes_json ? JSON.parse(av.marcacoes_json) : {}; } catch { return ''; }
+
+  let escala: any = null;
+  try { escala = av.escala_json ? JSON.parse(av.escala_json) : null; } catch { return ''; }
+
+  let tempos: Record<string, number> = {};
+  try { tempos = av.tempos_json ? JSON.parse(av.tempos_json) : {}; } catch { tempos = {}; }
+  const t = calcularParametrosTemporais(tempos);
+
+  const medidas = calcularParametrosEspaciais(
+    passoEmPixels(marcacoes),
+    escalaPixelsPorMetro(escala),
+    t.duracaoCiclo,
+    alturaCm,
+  );
+  if (medidas.length === 0) return '';
+
+  const linhas = medidas.map(m => {
+    const classe = m.classificacao === 'preservado' ? 'ok' : 'alerta';
+    return '<tr><td>' + m.label + '</td><td class="' + classe + '">' + m.valor + m.unidade
+      + '</td><td>' + m.referencia + '</td></tr>';
+  }).join('');
+
+  return `<h2>Parametros Espaciais</h2>
+    <table>
+      <tr><th>Parametro</th><th>Valor</th><th>Referencia</th></tr>
+      ${linhas}
+    </table>
+    <div class="info">Medidas obtidas pela escala de um metro marcada no solo.
+    Velocidade abaixo de 0,8 m/s e descrita como limiar de risco funcional.</div>`;
+}
+
 function blocoTemporalMarcha(json: string | null): string {
   let tempos: Record<string, number> = {};
   try { tempos = json ? JSON.parse(json) : {}; } catch { return ''; }
@@ -686,6 +724,7 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
       <h2>Captura ${av.angulo} - ${av.data_avaliacao}</h2>
       ${imagensHtml}
       ${tabelaFases || '<div class="info">Sem marcacoes por fase registradas nesta avaliacao.</div>'}
+      ${blocoEspacial(av, p.altura_cm || null)}
       ${blocoTemporalMarcha(av.tempos_json)}
       ${(() => {
         try {
@@ -1099,6 +1138,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     corpo += '</table>';
     for (const av of marchas) {
       corpo += await montarImagensMarcha(av);
+      corpo += blocoEspacial(av, p.altura_cm || null);
       corpo += blocoTemporalMarcha(av.tempos_json);
     }
   }
