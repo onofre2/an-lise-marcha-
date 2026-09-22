@@ -484,9 +484,19 @@ export default function VideoEditScreen({ route, navigation }: any) {
 
           <Image source={IMG_FASES} style={styles.imgFases} resizeMode="contain" />
           <Text style={styles.dicaFilmagem}>
-            Filmagem: camera perpendicular ao trajeto, na altura do quadril,
-            a 3-4 metros de distancia. O paciente caminha paralelo a camera,
-            atravessando o quadro. Marque os pontos com o paciente no centro da imagem.
+            Filmagem: camera no tripe, perpendicular ao trajeto, na altura do
+            quadril, a 3-4 metros de distancia. O paciente caminha paralelo a
+            camera, em velocidade habitual, atravessando o quadro. Filme descalco,
+            com roupa que deixe joelho e tornozelo visiveis.
+            {'\n\n'}
+            Escala: coloque duas marcas no solo a 1 metro de distancia, dentro do
+            quadro. Toque em "Definir escala" e marque os dois pontos. Sem essa
+            referencia o exame calcula apenas angulos e tempos.
+            {'\n\n'}
+            O exame gera: angulos de quadril, joelho e tornozelo em cada fase;
+            cadencia, duracao do ciclo, tempo de apoio e assimetria entre os lados;
+            e, com a escala definida, comprimento do passo, da passada e velocidade
+            da marcha.
           </Text>
           {pontoAtual ? (
             <Text style={styles.instrucao}>Avance ate a fase e toque em: {pontoAtual.nome}</Text>
