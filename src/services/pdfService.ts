@@ -847,7 +847,7 @@ export async function gerarRelatorioJoelho(idAvaliacao: number) {
         'Bursite (variacao)', 'Artrose Avancada', 'Ligamento Lateral', 'Cisto de Baker',
         'Derrame Articular'];
       const itens = Object.entries(achados)
-        .map(([num, lado]) => '<li>' + num + '. ' + (nomes[Number(num) - 1] || '') + ' - ' + lado + '</li>')
+        .map(([num, lado]) => '<li>' + (nomes[Number(num) - 1] || '') + ' - ' + lado + '</li>')
         .join('');
       if (itens !== '') {
         achadosHtml = '<div class="bloco"><b>Achados clinicos complementares</b></div><ul>' + itens + '</ul>';
@@ -1068,7 +1068,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
             'Bursite (variacao)', 'Artrose Avancada', 'Ligamento Lateral', 'Cisto de Baker',
             'Derrame Articular'];
           const itens = Object.entries(achadosJ)
-            .map(([num, lado]) => '<li>' + num + '. ' + (nomes[Number(num) - 1] || '') + ' - ' + lado + '</li>')
+            .map(([num, lado]) => '<li>' + (nomes[Number(num) - 1] || '') + ' - ' + lado + '</li>')
             .join('');
           if (itens !== '') {
             corpo += '<div class="bloco"><b>Achados clinicos complementares</b></div><ul>' + itens + '</ul>';

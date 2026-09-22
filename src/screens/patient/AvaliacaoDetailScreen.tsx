@@ -766,7 +766,7 @@ function renderMedidas(tipo: string, registro: any, desajustes: Desajuste[]) {
               <Text style={styles.cardLabel}>Achados clinicos complementares</Text>
               {achadosItens.map(([num, lado]) => (
                 <Text key={num} style={styles.cardRef}>
-                  {num}. {NOMES_ACHADOS[Number(num) - 1] || ''} - {lado}
+                  {NOMES_ACHADOS[Number(num) - 1] || ''} - {lado}
                 </Text>
               ))}
             </View>
