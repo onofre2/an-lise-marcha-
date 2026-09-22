@@ -146,3 +146,108 @@ export function calcularParametrosTemporais(
     alertaSimetria: simetria !== null && simetria > 10,
   };
 }
+
+// Faixas de referencia dos parametros da marcha.
+//
+// Velocidade: 1,2 a 1,4 m/s em adultos; 0,8 m/s e o ponto de corte classico
+// de risco funcional e mobilidade comunitaria reduzida.
+// Cadencia: 100 a 120 passos por minuto no adulto.
+// Simetria: ate 5% e assintomatica; acima de 10% indica assimetria clinica
+// (indice de Robinson).
+// Passo e passada: normalizados pela altura, 0,41 e 0,83 vezes a estatura,
+// com margem de 10% adotada como criterio operacional deste aplicativo.
+
+export type FaixaMarcha = 'preservado' | 'discreto' | 'alterado';
+
+export interface MedidaMarcha {
+  label: string;
+  valor: number;
+  unidade: string;
+  referencia: string;
+  classificacao: FaixaMarcha;
+}
+
+export function classificarVelocidade(v: number): FaixaMarcha {
+  if (v >= 1.2) return 'preservado';
+  if (v >= 0.8) return 'discreto';
+  return 'alterado';
+}
+
+export function classificarCadencia(c: number): FaixaMarcha {
+  if (c >= 100 && c <= 120) return 'preservado';
+  if (c >= 90 && c <= 130) return 'discreto';
+  return 'alterado';
+}
+
+export function classificarSimetria(s: number): FaixaMarcha {
+  if (s <= 5) return 'preservado';
+  if (s <= 10) return 'discreto';
+  return 'alterado';
+}
+
+/** Compara a medida com o esperado para a altura, com margem de 10%. */
+function classificarPorAltura(valor: number, esperado: number): FaixaMarcha {
+  const desvio = Math.abs(valor - esperado) / esperado;
+  if (desvio <= 0.1) return 'preservado';
+  if (desvio <= 0.2) return 'discreto';
+  return 'alterado';
+}
+
+/**
+ * Parametros espaciais da marcha. Dependem da escala definida pelas duas
+ * marcas de um metro no chao: sem ela, nao ha como converter pixel em metro.
+ */
+export function calcularParametrosEspaciais(
+  passoPixels: number | null,
+  pixelsPorMetro: number | null,
+  duracaoCiclo: number | null,
+  alturaCm: number | null,
+): MedidaMarcha[] {
+  if (!passoPixels || !pixelsPorMetro || pixelsPorMetro <= 0) return [];
+
+  const saida: MedidaMarcha[] = [];
+  const passo = Number((passoPixels / pixelsPorMetro).toFixed(2));
+  const passada = Number((passo * 2).toFixed(2));
+
+  if (alturaCm && alturaCm > 0) {
+    const altura = alturaCm / 100;
+    const passoEsperado = Number((altura * 0.41).toFixed(2));
+    const passadaEsperada = Number((altura * 0.83).toFixed(2));
+
+    saida.push({
+      label: 'Comprimento do Passo',
+      valor: passo,
+      unidade: ' m',
+      referencia: `esperado ${passoEsperado} m para ${alturaCm} cm`,
+      classificacao: classificarPorAltura(passo, passoEsperado),
+    });
+    saida.push({
+      label: 'Comprimento da Passada',
+      valor: passada,
+      unidade: ' m',
+      referencia: `esperado ${passadaEsperada} m para ${alturaCm} cm`,
+      classificacao: classificarPorAltura(passada, passadaEsperada),
+    });
+  } else {
+    saida.push({
+      label: 'Comprimento do Passo',
+      valor: passo,
+      unidade: ' m',
+      referencia: '60 a 80 cm em adultos',
+      classificacao: passo >= 0.6 && passo <= 0.8 ? 'preservado' : 'discreto',
+    });
+  }
+
+  if (duracaoCiclo && duracaoCiclo > 0) {
+    const velocidade = Number((passada / duracaoCiclo).toFixed(2));
+    saida.push({
+      label: 'Velocidade da Marcha',
+      valor: velocidade,
+      unidade: ' m/s',
+      referencia: '1,2 a 1,4 m/s; abaixo de 0,8 indica risco funcional',
+      classificacao: classificarVelocidade(velocidade),
+    });
+  }
+
+  return saida;
+}
