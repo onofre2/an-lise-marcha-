@@ -77,7 +77,16 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   const [exame, setExame] = useState<Record<string, string>>({ resultado: 'Nao realizado' });
 
   // Radiografias anexadas, cada uma com a posicao da linha de prumo.
-  const [radiografias, setRadiografias] = useState<Radiografia[]>([]);
+  // Ao reabrir uma avaliacao, as radiografias precisam voltar do banco:
+  // sem isso o estado comeca vazio e o proximo salvamento as apagaria.
+  const [radiografias, setRadiografias] = useState<Radiografia[]>(() => {
+    if (avaliacaoId == null) return [];
+    try {
+      const reg = db.getFirstSync('SELECT radiografias_json FROM avaliacoes_adams WHERE id = ?', [avaliacaoId]) as any;
+      const lido = reg?.radiografias_json ? JSON.parse(reg.radiografias_json) : [];
+      return Array.isArray(lido) ? lido : [];
+    } catch { return []; }
+  });
 
   const anexarRadiografia = async () => {
     const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.9 });

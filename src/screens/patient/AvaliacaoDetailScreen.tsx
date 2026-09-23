@@ -595,7 +595,7 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
             {lista.map((r, i) => (
               <View key={i} style={styles.raioxArea}>
                 <Image source={{ uri: r.uri }} style={styles.raioxImagem} resizeMode="contain" />
-                <View style={[styles.raioxPrumo, { left: r.x * (IMAGE_WIDTH - 24) }]} />
+                <View style={[styles.raioxPrumo, { left: `${r.x * 100}%` }]} />
               </View>
             ))}
           </>
