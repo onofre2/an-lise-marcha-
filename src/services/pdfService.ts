@@ -247,33 +247,6 @@ function diagramasMedidas(medidas: Medida[]): string {
   return svgs ? '<div class="diagramas">' + svgs + '</div>' : '';
 }
 
-function paginaReferencias(): string {
-  return `
-    <div style="page-break-before: always;"></div>
-    <h2>Referencias Cientificas</h2>
-    <div class="info">
-      Os parametros normativos adotados neste relatorio seguem protocolos consagrados
-      na avaliacao fisioterapeutica:
-    </div>
-    <ul class="info" style="margin-top: 8px; padding-left: 18px; line-height: 1.6;">
-      <li><b>SAPO</b> (Duarte et al., 2005) - Software para Avaliacao Postural.</li>
-      <li><b>POTSI / ATSI</b> (Suzuki et al., 1999) - Indices de simetria do tronco.</li>
-      <li><b>Angulo Craniovertebral</b> - posicionamento anterior da cabeca.</li>
-      <li><b>Angulo do Retrope</b> (Eng e Pierrynowski, 1994) - varo abaixo de 0 graus, normal entre 0 e 6, valgo acima de 6. Faixas de transicao de 3 graus sao criterio operacional deste aplicativo.</li>
-      <li><b>Protocolo de quatro marcadores do retrope</b> - base do calcaneo, insercao do tendao de Aquiles, tendao na altura do maleolo e centro da perna 15 cm acima.</li>
-      <li><b>Alinhamento frontal e sagital do joelho</b> - angulo no vertice com produto vetorial 2D. Faixas de classificacao sao criterio operacional deste aplicativo.</li>
-      <li><b>SAPO, vista posterior</b> - ponto medial da perna, linha intermaleolar e tendao calcaneo bilateralmente.</li>
-      <li><b>Lordose cervical</b> (SAPO) - trago e C7 com vertice no acromio. Medida de superficie, validada contra goniometria, nao contra radiografia.</li>
-      <li><b>Goniometria de Kendall / AAOS</b> - amplitudes articulares.</li>
-      <li><b>Ciclo da Marcha de Perry</b> - angulos por fase da marcha.</li>
-    </ul>
-    <div class="info" style="margin-top: 10px;">
-      Limite de alerta para alinhamentos: 5 graus. Desniveis lineares a partir de 1 cm
-      tambem sao sinalizados quando a altura do paciente esta registrada.
-      Documento de apoio clinico - nao substitui avaliacao presencial.
-    </div>
-  `;
-}
 
 interface ConfigTerapeuta {
   nome: string | null;
