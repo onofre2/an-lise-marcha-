@@ -11,7 +11,7 @@ import { SEGMENTOS_RAPIDA, Vista } from '../constants/posturalPoints';
 import { calcularFase, calcularParametrosTemporais, calcularParametrosEspaciais, passoEmPixels, escalaPixelsPorMetro } from './marchaCalculations';
 import { FASES_MARCHA } from '../constants/fasesMarcha';
 import { calcularDesajustes } from './posturalCalculations';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
 
 interface Paciente {
   id: number;
@@ -250,7 +250,7 @@ function diagramasMedidas(medidas: Medida[]): string {
 function paginaReferencias(): string {
   return `
     <div style="page-break-before: always;"></div>
-    <h2>Valores de Referencia</h2>
+    <h2>Referencias Cientificas</h2>
     <div class="info">
       Os parametros normativos adotados neste relatorio seguem protocolos consagrados
       na avaliacao fisioterapeutica:
@@ -300,7 +300,9 @@ function mimeDaUri(uri: string): string {
 async function uriParaBase64(uri: string | null): Promise<string | null> {
   if (!uri) return null;
   try {
-    const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+    // API nova do expo-file-system: readAsStringAsync nao existe mais no
+    // import principal e devolvia undefined, quebrando toda conversao.
+    const base64 = new File(uri).base64Sync();
     return `data:${mimeDaUri(uri)};base64,${base64}`;
   } catch (e) {
     console.error('Erro ao converter imagem para base64:', e);
