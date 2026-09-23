@@ -206,9 +206,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
   // Escala: duas marcas de um metro no chao convertem pixel em metro e
   // liberam comprimento do passo, da passada e velocidade da marcha.
   const [modoEscala, setModoEscala] = useState(false);
-  const [pontosEscala, setPontosEscala] = useState<{ x: number; y: number }[]>(
-    lerSalvo(escalaSalva) as any || []
-  );
+  const [pontosEscala, setPontosEscala] = useState<{ x: number; y: number }[]>(() => {
+    // lerSalvo devolve objeto vazio quando nao ha dado: sem esta checagem o
+    // estado viraria objeto e o map da tela quebraria.
+    const lido = lerSalvo(escalaSalva);
+    return Array.isArray(lido) ? lido : [];
+  });
 
   // Caracteristicas do pe: observadas pelo terapeuta, nao calculadas pelo app.
   const [pisada, setPisada] = useState<Record<string, string>>(lerSalvo(pisadaSalva));
