@@ -381,6 +381,23 @@ async function rodapeCompleto(): Promise<string> {
       diagnosticos universais.
       As medidas obtidas por fotogrametria em ortostatismo servem como triagem e
       nao substituem exame de imagem nem medida instrumental.
+      Angulo do retrope medido pelo protocolo de quatro marcadores: base do
+      calcaneo, insercao do tendao de Aquiles, tendao na altura do maleolo e
+      centro da perna 15 cm acima; faixas de Eng JJ e Pierrynowski MR (1994),
+      varo abaixo de 0 graus, normal entre 0 e 6, valgo acima de 6, com as
+      faixas de transicao de 3 graus como criterio operacional deste aplicativo.
+      Alinhamento frontal e sagital do joelho medido como angulo no vertice,
+      com o sinal do produto vetorial indicando o lado do desvio; as faixas de
+      classificacao sao criterio operacional deste aplicativo.
+      Vista posterior do SAPO: ponto medial da perna, linha intermaleolar e
+      tendao calcaneo bilateralmente. Lordose cervical pelo SAPO: trago e C7
+      com vertice no acromio, medida de superficie validada contra goniometria
+      e nao contra radiografia.
+      Parametros da marcha: velocidade de referencia entre 1,2 e 1,4 m/s, com
+      0,8 m/s descrito como limiar de risco funcional; cadencia de 100 a 120
+      passos por minuto; assimetria de apoio acima de 10 por cento considerada
+      clinicamente relevante; comprimento do passo e da passada normalizados
+      pela altura do paciente.
     </div>
     ${terapeutaHtml}
     <div class="rodape">
@@ -1253,7 +1270,6 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       ${corpo}
       ${resumo}
       ${rodapeHtml2}
-      ${paginaReferencias()}
     </body></html>
   `;
   return gerarEcompartilhar(html);
