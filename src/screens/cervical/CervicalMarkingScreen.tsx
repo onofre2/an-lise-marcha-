@@ -116,6 +116,7 @@ export default function CervicalMarkingScreen({ route, navigation }: any) {
         ))}
       </TouchableOpacity>
 
+      <Image source={require("../../../assets/referencias/cervical-pontos.jpg")} style={styles.imgApoio} resizeMode="contain" />
       <View style={styles.footer}>
         {indiceAtual > 0 && !finalizado && (
           <TouchableOpacity style={styles.btnSecundario} onPress={voltarPonto}>
@@ -145,6 +146,7 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: '100%' },
   marcador: { position: 'absolute', width: 24, height: 24, borderRadius: 12, backgroundColor: '#22C55E', borderWidth: 2, borderColor: '#FFF' },
   footer: { flexDirection: 'row', padding: 16, gap: 12, backgroundColor: '#F8FAFC' },
+  imgApoio: { width: '100%', height: 120, marginTop: 10 },
   btnSecundario: { flex: 1, backgroundColor: '#F1F5F9', padding: 14, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
   btnSecundarioText: { color: '#0F172A', fontWeight: 'bold' },
   btnPrimario: { flex: 2, backgroundColor: '#22C55E', padding: 14, borderRadius: 12, alignItems: 'center' },
