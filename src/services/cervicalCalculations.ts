@@ -126,18 +126,18 @@ function calcularLateral(p: PontosCervicais): MedidaCervical[] {
 function calcularPosterior(p: PontosCervicais): MedidaCervical[] {
   const saida: MedidaCervical[] = [];
 
-  if (p.c7 && p.acromioclavicular_d && p.lobo_d) {
+  if (p.c7 && p.acromioclavicular_d && p.mastoide_d) {
     saida.push({
       label: 'Inclinacao Cervical Direita',
-      valor: anguloNoVertice(p.acromioclavicular_d, p.c7, p.lobo_d),
+      valor: anguloNoVertice(p.acromioclavicular_d, p.c7, p.mastoide_d),
       unidade: '\u00b0',
     });
   }
 
-  if (p.c7 && p.acromioclavicular_e && p.lobo_e) {
+  if (p.c7 && p.acromioclavicular_e && p.mastoide_e) {
     saida.push({
       label: 'Inclinacao Cervical Esquerda',
-      valor: anguloNoVertice(p.acromioclavicular_e, p.c7, p.lobo_e),
+      valor: anguloNoVertice(p.acromioclavicular_e, p.c7, p.mastoide_e),
       unidade: '\u00b0',
     });
   }
@@ -154,13 +154,13 @@ function calcularPosterior(p: PontosCervicais): MedidaCervical[] {
 
   // Indice de rotacao: criterio operacional do aplicativo, sem respaldo
   // normativo. Serve para acompanhar a evolucao do proprio paciente.
-  if (p.c7 && p.acromioclavicular_d && p.acromioclavicular_e && p.trago_d && p.trago_e) {
+  if (p.c7 && p.acromioclavicular_d && p.acromioclavicular_e && p.mastoide_d && p.mastoide_e) {
     const medioAcromios: Ponto = {
       x: (p.acromioclavicular_d.x + p.acromioclavicular_e.x) / 2,
       y: (p.acromioclavicular_d.y + p.acromioclavicular_e.y) / 2,
     };
-    const dD = distanciaAteReta(p.trago_d, p.c7, medioAcromios);
-    const dE = distanciaAteReta(p.trago_e, p.c7, medioAcromios);
+    const dD = distanciaAteReta(p.mastoide_d, p.c7, medioAcromios);
+    const dE = distanciaAteReta(p.mastoide_e, p.c7, medioAcromios);
     const soma = dD + dE;
     if (soma > 0) {
       const indice = Number((((dE - dD) / soma) * 100).toFixed(1));

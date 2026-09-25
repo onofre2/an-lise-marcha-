@@ -14,10 +14,8 @@ const PONTOS_POR_VISTA: Record<string, { id: string; nome: string }[]> = {
     { id: 'c7', nome: 'Processo Espinhoso de C7' },
     { id: 'acromioclavicular_d', nome: 'Articulacao Acromioclavicular Direita' },
     { id: 'acromioclavicular_e', nome: 'Articulacao Acromioclavicular Esquerda' },
-    { id: 'lobo_d', nome: 'Lobo da Orelha Direita' },
-    { id: 'lobo_e', nome: 'Lobo da Orelha Esquerda' },
-    { id: 'trago_d', nome: 'Trago Direito' },
-    { id: 'trago_e', nome: 'Trago Esquerdo' },
+    { id: 'mastoide_d', nome: 'Processo Mastoide Direito' },
+    { id: 'mastoide_e', nome: 'Processo Mastoide Esquerdo' },
   ],
   lateral_direita: [
     { id: 'trago', nome: 'Trago (orelha)' },
