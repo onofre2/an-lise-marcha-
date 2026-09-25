@@ -1119,6 +1119,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     for (const av of adamses) {
       corpo += await montarImagemAdams(av);
       corpo += blocoExameAdams(av.exame_clinico_json);
+      corpo += await montarRadiografias(av);
     }
   }
 
