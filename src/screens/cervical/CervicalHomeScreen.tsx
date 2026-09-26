@@ -98,7 +98,7 @@ export default function CervicalHomeScreen({ navigation }: any) {
           <Text style={styles.sectionTitle}>Como realizar a avaliacao</Text>
           <View style={styles.cardProtocolo}>
             <Image
-              source={require('../../../assets/referencias/card-cervical-vistas.jpg')}
+              source={require('../../../assets/referencias/cervical-pontos.jpg')}
               style={styles.imagemReferencia}
               resizeMode="contain"
             />
