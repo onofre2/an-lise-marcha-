@@ -304,6 +304,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
     setPontosFaseAtual(prev => ({ ...prev, [id]: { x: nx, y: ny } }));
   };
 
+
+  const moverPontoEscala = (i: number, x: number, y: number) => {
+    const nx = Math.min(Math.max((x - areaVideo.offsetX) / areaVideo.largura, 0), 1);
+    const ny = Math.min(Math.max((y - areaVideo.offsetY) / areaVideo.altura, 0), 1);
+    setPontosEscala(prev => prev.map((p, j) => (j === i ? { x: nx, y: ny } : p)));
+  };
   // Versao em pixel dos pontos, para desenhar as linhas sobre o video.
   const pontosPx = React.useMemo(() => {
     const out: Record<string, { x: number; y: number }> = {};
@@ -418,7 +424,7 @@ export default function VideoEditScreen({ route, navigation }: any) {
             />
           ))}
           {pontosEscala.map((pt, i) => (
-            <View key={`esc-${i}`} pointerEvents="none" style={[styles.pontoEscala, { left: pt.x * areaVideo.largura + areaVideo.offsetX - 7, top: pt.y * areaVideo.altura + areaVideo.offsetY - 7 }]} />
+            <MarcadorComLupa key={`esc-${i}`} id={String(i)} ponto={{ x: pt.x * areaVideo.largura + areaVideo.offsetX, y: pt.y * areaVideo.altura + areaVideo.offsetY }} onMove={(id, x, y) => moverPontoEscala(Number(id), x, y)} cor="#FBBF24" fotoUri={frameCongelado || ""} larguraImagem={areaVideo.largura} alturaImagem={areaVideo.altura} />
           ))}
 
           {pontosEscala.length === 2 && (() => {
