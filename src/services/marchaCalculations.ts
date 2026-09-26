@@ -264,7 +264,7 @@ export function passoEmPixels(
   if (!cd || !ce || !cd.pe || !ce.pe) return null;
   const dx = ce.pe.x - cd.pe.x;
   const dy = ce.pe.y - cd.pe.y;
-  return Number(Math.sqrt(dx * dx + dy * dy).toFixed(1));
+  return Number(Math.sqrt(dx * dx + dy * dy).toFixed(5));
 }
 
 /** Pixels por metro, a partir das duas marcas de um metro no chao. */
@@ -275,5 +275,5 @@ export function escalaPixelsPorMetro(
   const dx = pontos[1].x - pontos[0].x;
   const dy = pontos[1].y - pontos[0].y;
   const d = Math.sqrt(dx * dx + dy * dy);
-  return d > 0 ? Number(d.toFixed(1)) : null;
+  return d > 0 ? Number(d.toFixed(5)) : null;
 }

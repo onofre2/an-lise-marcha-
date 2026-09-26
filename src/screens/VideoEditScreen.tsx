@@ -151,9 +151,10 @@ export default function VideoEditScreen({ route, navigation }: any) {
     // Escala: os dois primeiros toques definem a distancia de um metro.
     if (modoEscala) {
       const { locationX, locationY } = evt.nativeEvent;
+      const nx=(locationX-areaVideo.offsetX)/areaVideo.largura, ny=(locationY-areaVideo.offsetY)/areaVideo.altura;
       setPontosEscala(prev => {
         const proximo = prev.length >= 2 ? [] : prev;
-        return [...proximo, { x: locationX, y: locationY }];
+        return [...proximo, { x: nx, y: ny }];
       });
       return;
     }
@@ -417,11 +418,12 @@ export default function VideoEditScreen({ route, navigation }: any) {
             />
           ))}
           {pontosEscala.map((pt, i) => (
-            <View key={`esc-${i}`} pointerEvents="none" style={[styles.pontoEscala, { left: pt.x - 7, top: pt.y - 7 }]} />
+            <View key={`esc-${i}`} pointerEvents="none" style={[styles.pontoEscala, { left: pt.x * areaVideo.largura + areaVideo.offsetX - 7, top: pt.y * areaVideo.altura + areaVideo.offsetY - 7 }]} />
           ))}
 
           {pontosEscala.length === 2 && (() => {
-            const [a1, b1] = pontosEscala;
+            const a1={x:pontosEscala[0].x*areaVideo.largura+areaVideo.offsetX,y:pontosEscala[0].y*areaVideo.altura+areaVideo.offsetY};
+            const b1={x:pontosEscala[1].x*areaVideo.largura+areaVideo.offsetX,y:pontosEscala[1].y*areaVideo.altura+areaVideo.offsetY};
             const comp = Math.sqrt((b1.x - a1.x) ** 2 + (b1.y - a1.y) ** 2);
             const ang = Math.atan2(b1.y - a1.y, b1.x - a1.x) * (180 / Math.PI);
             return (
