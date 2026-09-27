@@ -141,7 +141,7 @@ function blocoEspacial(av: any, alturaCm: number | null): string {
 
   return `<h2>Parametros Espaciais</h2>
     <table>
-      <tr><th>Parametro</th><th>Valor</th><th>Referencia</th></tr>
+      <tr><th>Parâmetro</th><th>Valor</th><th>Referência</th></tr>
       ${linhas}
     </table>
     <div class="info">Medidas obtidas pela escala de um metro marcada no solo.
@@ -156,7 +156,7 @@ function blocoTemporalMarcha(json: string | null): string {
   const classe = t.alertaSimetria ? 'alerta' : 'ok';
   return `<h2>Parametros Temporais</h2>
     <table>
-      <tr><th>Parametro</th><th>Valor</th></tr>
+      <tr><th>Parâmetro</th><th>Valor</th></tr>
       <tr><td>Cadencia</td><td>${t.cadencia} passos/min</td></tr>
       <tr><td>Duracao do ciclo</td><td>${t.duracaoCiclo} s</td></tr>
       <tr><td>Tempo de apoio direito</td><td>${t.apoioDireito} s</td></tr>
@@ -203,8 +203,8 @@ function cabecalho(p: Paciente, titulo: string, logoTopo?: string | null): strin
     ${logoTopo ? `<div style="text-align:right;margin-bottom:4px;"><img src="${logoTopo}" style="height:46px;" /></div>` : ''}
     <h1>Exame de Biofotogrametria</h1>
     <div class="sub" style="font-size:11px;line-height:1.5;">
-      Metodo de avaliacao que utiliza fotografias ou imagens digitais para medir
-      angulos, distancias e o alinhamento corporal de forma precisa.
+      Método de avaliação que utiliza fotografias ou imagens digitais para medir
+      ângulos, distâncias e o alinhamento corporal de forma precisa.
     </div>
     <div class="sub" style="font-size:11px;line-height:1.5;background:#F1F5F9;border-left:3px solid #64748B;padding:8px 10px;margin-top:8px;">
       O Postural Global reune diferentes parametros de avaliacao para ampliar a
@@ -234,7 +234,7 @@ function tabelaMedidas(medidas: Medida[]): string {
       <td class="${faixaDaMedida(m)}">${ROTULO_FAIXA[faixaDaMedida(m)]}</td>
     </tr>
   `).join('');
-  return `<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>${linhas}</table>`;
+  return `<table><tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>${linhas}</table>`;
 }
 
 // Gera diagramas visuais para as medidas expressas em graus
@@ -636,7 +636,7 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
       <h2>${NOME_VISTA[vista] || 'Avaliacao Cervical'} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       ${medidas.length > 0
-        ? `<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>${linhas}</table>`
+        ? `<table><tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>${linhas}</table>`
         : '<div class="bloco">Vista de registro fotografico, sem medicao angular.</div>'}
       ${cardsHtml}
       ${ressalvas}
@@ -699,7 +699,7 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
         const resultados = calcularFase(faseId, marcacoes[faseId] || {}, dimensoesDaAvaliacao(av));
         if (resultados.length === 0) continue;
         tabelaFases += `<div class="bloco"><b>${nomes[faseId] || faseId}</b></div>`;
-        tabelaFases += '<table><tr><th>Articulacao</th><th>Medido</th><th>Esperado</th><th>Situacao</th></tr>';
+        tabelaFases += '<table><tr><th>Articulacao</th><th>Medido</th><th>Esperado</th><th>Situação</th></tr>';
         resultados.forEach(r => {
           tabelaFases += `<tr><td>${r.nome}</td><td>${r.valor} graus</td><td>${r.referencia}</td><td class="${r.dentroFaixa ? 'ok' : 'alerta'}">${r.dentroFaixa ? 'Normal' : 'Fora da faixa'}</td></tr>`;
         });
@@ -924,7 +924,7 @@ export async function gerarRelatorioJoelho(idAvaliacao: number) {
       <h2>${NOME_VISTA[vista] || 'Avaliacao'} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       ${medidas.length > 0
-        ? '<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>' + linhas + '</table>'
+        ? '<table><tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>' + linhas + '</table>'
         : '<div class="bloco">Sem medidas calculadas nesta vista.</div>'}
       ${pisadaHtml}
       ${cardsHtml}
@@ -956,7 +956,7 @@ export async function gerarRelatorioAdams(idAvaliacao: number) {
       <h2>Triagem de assimetria - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       <table>
-        <tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>
+        <tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>
         <tr>
           <td>Inclinacao entre os lados do dorso</td>
           <td class="${alerta ? 'alerta' : 'ok'}">${av.angulo} graus</td>
@@ -1003,7 +1003,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   let corpo = '';
 
   if (posturais.length > 0) {
-    corpo += '<h2>Avaliacoes Posturais</h2>';
+    corpo += '<h2>Avaliações Posturais</h2>';
     for (const av of posturais) {
       const medidas: Medida[] = medidasDaAvaliacao(av);
       corpo += `<div style="page-break-inside:avoid;"><div class="bloco"><b>${av.vista.replace("_", " ")}</b> - ${av.data_avaliacao}</div>`;
@@ -1015,7 +1015,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (cervicais.length > 0) {
-    corpo += '<h2>Avaliacoes Cervicais</h2><table><tr><th>Data</th><th>Angulo Craniovertebral</th><th>Situacao</th></tr>';
+    corpo += '<h2>Avaliacoes Cervicais</h2><table><tr><th>Data</th><th>Angulo Craniovertebral</th><th>Situação</th></tr>';
     cervicais.forEach(av => {
       const alterado = av.angulo < 48;
       corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Cabeca anteriorizada' : 'Normal'}</td></tr>`;
@@ -1027,7 +1027,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (adms.length > 0) {
-    corpo += '<h2>Amplitude de Movimento</h2><table><tr><th>Data</th><th>Movimento</th><th>Medido</th><th>Referencia</th><th>Deficit</th></tr>';
+    corpo += '<h2>Amplitude de Movimento</h2><table><tr><th>Data</th><th>Movimento</th><th>Medido</th><th>Referência</th><th>Déficit</th></tr>';
     adms.forEach(av => {
       const deficit = Number((av.referencia - av.angulo).toFixed(1));
       corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.movimento}</td><td>${av.angulo} graus</td><td>${av.referencia} graus</td><td class="${deficit > 10 ? 'alerta' : 'ok'}">${deficit} graus</td></tr>`;
@@ -1051,7 +1051,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       retrope: 'Analise da Pisada',
     };
 
-    corpo += '<h2>Avaliacao dos Joelhos</h2>';
+    corpo += '<h2>Avaliação dos Joelhos</h2>';
     for (const av of joelhos) {
       corpo += `<div style="page-break-inside:avoid;"><div class="bloco"><b>${NOME_VISTA_J[av.vista] || av.vista}</b> - ${av.data_avaliacao}</div>`;
 
@@ -1062,7 +1062,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
         try { medidasJ = JSON.parse(av.medidas_json); } catch { medidasJ = []; }
       }
       if (medidasJ.length > 0) {
-        corpo += '<table><tr><th>Medida</th><th>Valor</th><th>Situacao</th></tr>';
+        corpo += '<table><tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>';
         medidasJ.forEach((m: any) => {
           const classe = m.classificacao === 'preservado' ? 'ok' : 'alerta';
           corpo += '<tr><td>' + m.label + '</td><td class="' + classe + '">' + m.valor + m.unidade
@@ -1112,7 +1112,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (adamses.length > 0) {
-    corpo += '<h2>Teste de Inclinacao de Adams</h2><table><tr><th>Data</th><th>Inclinacao</th><th>Lado elevado</th><th>Situacao</th></tr>';
+    corpo += '<h2>Teste de Inclinação de Adams</h2><table><tr><th>Data</th><th>Inclinação</th><th>Lado elevado</th><th>Situação</th></tr>';
     adamses.forEach(av => {
       const alterado = av.angulo >= 5;
       corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td>${av.lado_elevado || '-'}</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Assimetria observada' : 'Sem assimetria significativa'}</td></tr>`;
@@ -1126,7 +1126,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (marchas.length > 0) {
-    corpo += '<h2>Analises de Marcha</h2><table><tr><th>Data</th><th>Angulo de Captura</th></tr>';
+    corpo += '<h2>Análises de Marcha</h2><table><tr><th>Data</th><th>Ângulo de Captura</th></tr>';
     marchas.forEach(av => {
       corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo}</td></tr>`;
     });
@@ -1146,7 +1146,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   if (adms.length === 0) pendentes.push('Amplitude de movimento');
   if (cervicais.length === 0) pendentes.push('Avaliacao cervical');
   if (pendentes.length > 0 && corpo !== '') {
-    corpo += '<h2>Avaliacoes Complementares</h2><table><tr><th>Avaliacao</th><th>Situacao</th></tr>';
+    corpo += '<h2>Avaliações Complementares</h2><table><tr><th>Avaliação</th><th>Situação</th></tr>';
     pendentes.forEach(nome => {
       corpo += `<tr><td>${nome}</td><td>Nao realizada</td></tr>`;
     });
