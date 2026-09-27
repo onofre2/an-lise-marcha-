@@ -217,8 +217,13 @@ export default function CervicalResultScreen({ route, navigation }: any) {
   }, [cva, totalAlertas, alertaCva, alertaOmbro]);
 
   const salvarAvaliacao = async () => {
-    if (cva === null) {
-      Alert.alert('Erro', 'Marque C7 e o trago antes de salvar.');
+    // Cada vista tem requisito proprio: as laterais dependem do CVA, posterior
+    // e superior das medidas do servico, e a anterior e apenas registro. Exigir
+    // o trago em todas bloqueava o salvamento de tres vistas.
+    const ehLateral = vista === 'lateral_direita' || vista === 'lateral_esquerda';
+    const podeSalvar = vista === 'anterior' ? true : ehLateral ? cva !== null : medidas.length > 0;
+    if (!podeSalvar) {
+      Alert.alert('Erro', ehLateral ? 'Marque C7 e o trago antes de salvar.' : 'Marque todos os pontos desta vista antes de salvar.');
       return;
     }
     try {
