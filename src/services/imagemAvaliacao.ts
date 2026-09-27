@@ -53,6 +53,8 @@ function linha(a: Ponto, b: Ponto, alerta: boolean): string {
 }
 
 /** Badge com o valor medido, posicionado sobre a linha. */
+const FAIXA_BALOES = 96;
+
 function badge(x: number, y: number, texto: string, alerta: boolean): string {
   const largura = Math.max(34, texto.length * 8);
   const fundo = alerta ? FUNDO_ALERTA : FUNDO_OK;
@@ -127,6 +129,7 @@ export function imagemPostural(
   const observacoesPx = observacoesEmPixel(normalizarObservacoes(observacoes), largura, altura);
 
 
+  const baloes: { y: number; ax: number; texto: string; alerta: boolean }[] = [];
   segmentos.forEach(([idA, idB]) => {
     const a = pontosPx[idA];
     const b = pontosPx[idB];
@@ -141,7 +144,7 @@ export function imagemPostural(
     if (medida) {
       const mx = (a.x + b.x) / 2;
       const my = (a.y + b.y) / 2;
-      camadas += badge(mx, my, `${medida.valor}${medida.unidade}`, alerta);
+      baloes.push({ y: my, ax: mx, texto: `${medida.valor}${medida.unidade}`, alerta });
     }
   });
 
@@ -181,8 +184,21 @@ export function imagemPostural(
   Object.values(pontosPx).forEach(p => { camadas += marcador(p); });
   Object.values(observacoesPx).forEach(p => { camadas += observacao(p); });
 
+  // Baloes de valor em coluna lateral, fora da imagem: alinhados na vertical,
+  // afastados entre si para nao se sobreporem e ligados ao ponto medido por um
+  // tracejado, para nao cobrirem as linhas de referencia no centro.
+  camadas += `<rect x="${largura}" y="0" width="${FAIXA_BALOES}" height="${altura}" fill="#FFFFFF" />`;
+  baloes.sort((u, v) => u.y - v.y);
+  let ultimoBalaoY = -Infinity;
+  for (const b of baloes) {
+    const yb = Math.max(b.y, ultimoBalaoY + 22);
+    ultimoBalaoY = yb;
+    camadas += `<line x1="${largura + 4}" y1="${yb - 17}" x2="${b.ax}" y2="${b.y}" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 3" />`;
+    camadas += badge(largura + FAIXA_BALOES / 2, yb, b.texto, b.alerta);
+  }
+
   return `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura} ${altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${largura + FAIXA_BALOES} ${altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
       ${semCor ? '<filter id="semCor"><feColorMatrix type="saturate" values="0"/></filter>' : ''}
       <image href="${fotoBase64}" x="0" y="0" width="${largura}" height="${altura}" preserveAspectRatio="xMidYMid meet" ${semCor ? 'filter="url(#semCor)"' : ''} />
       ${comGrade ? Array.from({ length: 11 }).map((_, i) =>
