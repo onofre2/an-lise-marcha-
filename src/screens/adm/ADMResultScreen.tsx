@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dim
 import db from '../../services/database';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
 import { gerarRelatorioADM } from '../../services/pdfService';
-import { MOVIMENTOS } from '../../constants/movimentos';
+import { MOVIMENTOS , amplitudeClinica} from '../../constants/movimentos';
 import { Observacao } from '../../services/observacoes';
 import SetaDesajuste from '../../components/SetaDesajuste';
 import CirculoDestaque, { RAIO_PADRAO } from '../../components/CirculoDestaque';
@@ -159,7 +159,10 @@ export default function ADMResultScreen({ route, navigation }: any) {
     if (mod1 === 0 || mod2 === 0) return null;
 
     const cos = Math.max(-1, Math.min(1, produto / (mod1 * mod2)));
-    return Number((Math.acos(cos) * (180 / Math.PI)).toFixed(1));
+    // O angulo entre os segmentos so e a amplitude quando o zero anatomico do
+    // movimento coincide com o zero geometrico, caso do ombro. Nos demais a
+    // conversao vem da definicao do proprio movimento.
+    return amplitudeClinica(movimento.zero, Math.acos(cos) * (180 / Math.PI));
   }, [pontosEditaveis, movimento]);
 
   const referencia = movimento ? movimento.referencia : 0;
@@ -189,7 +192,15 @@ export default function ADMResultScreen({ route, navigation }: any) {
     diff = Math.atan2(Math.sin(diff), Math.cos(diff));
     const sentido = diff >= 0 ? 1 : -1;
 
-    const anguloIdeal = anguloBase + sentido * (referencia * Math.PI / 180);
+    // A reta ideal e desenhada em graus geometricos, entao a referencia
+    // clinica volta para a mesma base do desenho.
+    const zero = movimento ? movimento.zero : 'direto';
+    const referenciaGeometrica = zero === 'extensao'
+      ? 180 - referencia
+      : zero === 'neutro90'
+        ? 90 - referencia
+        : referencia;
+    const anguloIdeal = anguloBase + sentido * (referenciaGeometrica * Math.PI / 180);
     const comprimento = Math.sqrt((c.x - vertice.x) ** 2 + (c.y - vertice.y) ** 2);
 
     return {
