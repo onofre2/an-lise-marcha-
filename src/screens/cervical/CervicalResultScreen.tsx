@@ -232,7 +232,7 @@ export default function CervicalResultScreen({ route, navigation }: any) {
 
       db.runSync(
         'INSERT INTO avaliacoes_cervicais (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, observacoes_json, dimensoes_json, achados_json, sem_cor, com_grade, vista, medidas_json, cards_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), JSON.stringify(achados), semCor ? 1 : 0, mostrarGrade ? 1 : 0, vista, JSON.stringify(medidas), JSON.stringify(cardsMarcados)]
+        [pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), cva ?? 0, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), JSON.stringify(achados), semCor ? 1 : 0, mostrarGrade ? 1 : 0, vista, JSON.stringify(medidas), JSON.stringify(cardsMarcados)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
