@@ -309,7 +309,7 @@ async function rodapeCompleto(): Promise<string> {
 
   return `
     <div style="margin-top:26px;padding-top:12px;border-top:1px solid #E2E8F0;font-size:9px;color:#94A3B8;line-height:1.5;text-align:justify;">
-      <b>Referencias cientificas.</b>
+      <b>Referências científicas.</b>
       Protocolo SAPO (Duarte et al., 2005), base do modulo de avaliacao postural.
       Indices de simetria de tronco POTSI e ATSI (Suzuki et al., 1999).
       Angulo craniovertebral, padrao clinico para avaliacao de cabeca anteriorizada.
@@ -375,7 +375,7 @@ async function rodapeCompleto(): Promise<string> {
     ${terapeutaHtml}
     <div class="rodape">
       <img src="${MARCA_BASE64}" style="height:44px;vertical-align:middle;margin-right:10px;border-radius:8px;" />
-      Postural Global &middot; @fisionofre &mdash; Documento de apoio clinico, nao substitui avaliacao presencial.
+      Postural Global &middot; @fisionofre &mdash; Documento de apoio clínico, não substitui avaliação presencial.
     </div>
   `;
 }
@@ -1148,7 +1148,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   if (pendentes.length > 0 && corpo !== '') {
     corpo += '<h2>Avaliações Complementares</h2><table><tr><th>Avaliação</th><th>Situação</th></tr>';
     pendentes.forEach(nome => {
-      corpo += `<tr><td>${nome}</td><td>Nao realizada</td></tr>`;
+      corpo += `<tr><td>${nome}</td><td>Não realizada</td></tr>`;
     });
     corpo += '</table>';
   }
@@ -1206,9 +1206,9 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (alteradas.length > 0 || discretasResumo.length > 0 || cervicais.length > 0 || pendentes.length > 0 || resumoJoelho.length > 0 || resumoADM.length > 0) {
-    resumo = '<h2>Resumo sugerido dos achados clinicos</h2>';
+    resumo = '<h2>Resumo sugerido dos achados clínicos</h2>';
     if (alteradas.length > 0) {
-      resumo += '<div class="bloco"><b>Alteracoes identificadas</b></div>';
+      resumo += '<div class="bloco"><b>Alterações identificadas</b></div>';
       alteradas.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
     } else if (posturais.length > 0) {
       resumo += '<div class="bloco">Nenhum segmento fora dos parametros adotados.</div>';
@@ -1231,7 +1231,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
       resumoADM.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
     }
     if (pendentes.length > 0) {
-      resumo += `<div class="bloco"><b>Nao realizadas:</b> ${pendentes.join(', ')}</div>`;
+      resumo += `<div class="bloco"><b>Não realizadas:</b> ${pendentes.join(', ')}</div>`;
     }
     resumo += '<div class="bloco">Avaliacao fotogrametrica de triagem. Recomenda-se correlacao com avaliacao clinica presencial e demais testes funcionais.</div>';
   }
