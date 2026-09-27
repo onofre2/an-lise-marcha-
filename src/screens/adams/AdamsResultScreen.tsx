@@ -281,7 +281,7 @@ export default function AdamsResultScreen({ route, navigation }: any) {
         'INSERT INTO avaliacoes_adams (id_paciente, data_avaliacao, foto_uri, pontos_json, angulo, lado_elevado, observacoes_json, dimensoes_json, vista, gibosidade_cm, gibosidade_pct, sem_cor, com_grade, achados_json, exame_clinico_json, radiografias_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [
           pacienteId, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis),
-          resultado ? resultado.angulo : null,
+          resultado ? resultado.angulo : (resultadoLateral ? resultadoLateral.percentual : 0),
           resultado ? resultado.ladoElevado : null,
           JSON.stringify(observacoes),
           JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }),
