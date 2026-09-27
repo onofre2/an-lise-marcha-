@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useTema, Paleta } from '../context/TemaContext';
 import { useFocusEffect } from '@react-navigation/native';
 import db from '../services/database';
 import { FASES_MARCHA } from '../constants/fasesMarcha';
@@ -7,6 +8,9 @@ import CardReferencia from '../components/CardReferencia';
 import { usePacienteAtivo } from '../context/PacienteAtivoContext';
 
 export default function EvaluationScreen({ navigation }: any) {
+  const { cores } = useTema();
+  const styles = useMemo(() => criarEstilos(cores), [cores]);
+
   const { pacienteAtivo } = usePacienteAtivo();
   const [anguloSelecionado, setAnguloSelecionado] = useState<string | null>(null);
   const [protocoloAberto, setProtocoloAberto] = useState(false);
@@ -159,35 +163,35 @@ export default function EvaluationScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  cardAvaliacao: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
-  cardAvaliacaoData: { fontSize: 13, fontWeight: '700', color: '#0F172A', marginBottom: 10 },
+const criarEstilos = (c: Paleta) => StyleSheet.create({
+  cardAvaliacao: { backgroundColor: c.cartao, borderRadius: 14, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: c.borda },
+  cardAvaliacaoData: { fontSize: 13, fontWeight: '700', color: c.texto, marginBottom: 10 },
   gradeEventos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  cardEvento: { width: '47%', backgroundColor: '#F8FAFC', borderRadius: 10, padding: 6, borderWidth: 1, borderColor: '#E2E8F0' },
-  miniFrame: { width: '100%', height: 110, borderRadius: 8, backgroundColor: '#0F172A' },
-  miniFrameVazio: { backgroundColor: '#E2E8F0' },
+  cardEvento: { width: '47%', backgroundColor: c.fundo, borderRadius: 10, padding: 6, borderWidth: 1, borderColor: c.borda },
+  miniFrame: { width: '100%', height: 110, borderRadius: 8, backgroundColor: c.texto },
+  miniFrameVazio: { backgroundColor: c.borda },
   cardEventoNome: { fontSize: 11, color: '#475569', fontWeight: '600', marginTop: 5, textAlign: 'center' },
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: c.fundo },
   content: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: c.textoFraco, marginTop: 20, marginBottom: 12 },
   cardPacienteAtivo: { backgroundColor: '#F0FDF4', padding: 16, borderRadius: 16, borderWidth: 2, borderColor: '#22C55E', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pacienteAtivoNome: { fontSize: 16, fontWeight: 'bold', color: '#0F172A' },
+  pacienteAtivoNome: { fontSize: 16, fontWeight: 'bold', color: c.texto },
   trocarLink: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
   avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
   avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
   protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19, marginTop: 10 },
   imagemProtocolo: { width: '100%', height: 190, borderRadius: 8 },
-  dicaAmpliar: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
+  dicaAmpliar: { fontSize: 11, color: c.textoFraco, textAlign: 'center', marginTop: 6 },
   fundoAmpliado: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
   imagemAmpliada: { width: Dimensions.get('window').width, height: Dimensions.get('window').height * 0.8 },
-  dicaFechar: { color: '#94A3B8', fontSize: 12, marginTop: 12 },
-  protocolCard: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' },
-  protocolText: { fontSize: 14, color: '#0F172A', marginBottom: 6 },
+  dicaFechar: { color: c.textoFraco, fontSize: 12, marginTop: 12 },
+  protocolCard: { backgroundColor: c.cartao, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: c.borda },
+  protocolText: { fontSize: 14, color: c.texto, marginBottom: 6 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  button: { width: '48%', backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0' },
+  button: { width: '48%', backgroundColor: c.cartao, padding: 16, borderRadius: 12, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: c.borda },
   buttonActive: { backgroundColor: '#0284C7', borderColor: '#0284C7' },
-  buttonText: { color: '#64748B', fontWeight: 'bold', fontSize: 14 },
+  buttonText: { color: c.textoFraco, fontWeight: 'bold', fontSize: 14 },
   buttonTextActive: { color: '#FFFFFF' },
   actionButton: { backgroundColor: '#EF4444', padding: 18, borderRadius: 12, marginTop: 24, alignItems: 'center' },
-  actionButtonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 }
+  actionButtonText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
 });
