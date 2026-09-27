@@ -187,6 +187,12 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
   };
 
   const salvarAvaliacao = async () => {
+    // Todas as quatro vistas produzem medida. Lista vazia significa ponto
+    // faltando, e salvar assim criaria registro vazio no historico.
+    if (medidas.length === 0) {
+      Alert.alert('Erro', 'Marque todos os pontos desta vista antes de salvar.');
+      return;
+    }
     try {
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       const fotoPermanente = await salvarMidiaPermanente(fotoUri);
