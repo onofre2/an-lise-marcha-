@@ -234,3 +234,27 @@ export function montarDiagnosticoSugerido(achados: Achado[], vista: string): str
   const frases = achados.map(a => a.descricao.replace(/\.$/, ''));
   return `Avaliacao ${vista.replace('_', ' ')}: ` + frases.join('; ') + '.';
 }
+
+/**
+ * Achado da amplitude de movimento: compara o angulo medido com a referencia do
+ * proprio movimento. Deficit de 10 graus ou mais e sinalizado como alerta,
+ * limite operacional deste aplicativo para acompanhamento, nao valor diagnostico.
+ */
+export function gerarAchadosADM(
+  movimento: string,
+  lado: string | null,
+  angulo: number | null,
+  referencia: number | null,
+): Achado[] {
+  if (angulo === null || referencia === null) return [];
+  const deficit = Number((referencia - angulo).toFixed(1));
+  const fora = deficit >= 10;
+  const qual = lado ? movimento + ' (' + lado + ')' : movimento;
+  return [{
+    titulo: 'Amplitude de movimento',
+    descricao: fora
+      ? qual + ': ' + angulo.toFixed(1) + ' graus, deficit de ' + deficit + ' graus em relacao a referencia de ' + referencia.toFixed(1) + ' graus.'
+      : qual + ': ' + angulo.toFixed(1) + ' graus, dentro do esperado para a referencia de ' + referencia.toFixed(1) + ' graus.',
+    alerta: fora,
+  }];
+}

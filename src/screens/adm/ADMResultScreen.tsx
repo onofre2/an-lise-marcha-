@@ -8,6 +8,7 @@ import { Observacao } from '../../services/observacoes';
 import SetaDesajuste from '../../components/SetaDesajuste';
 import CirculoDestaque, { RAIO_PADRAO } from '../../components/CirculoDestaque';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
+import { gerarAchadosADM } from '../../services/interpretacaoClinica';
 
 interface Ponto { x: number; y: number; }
 
@@ -197,6 +198,11 @@ export default function ADMResultScreen({ route, navigation }: any) {
     };
   }, [pontosEditaveis, referencia, ids]);
 
+  const achados = useMemo(
+    () => gerarAchadosADM(movimento ? movimento.nome : '', lado, angulo, referencia),
+    [movimento, lado, angulo, referencia]
+  );
+
   const salvarAvaliacao = async () => {
     if (angulo === null || !movimento) {
       Alert.alert('Erro', 'Marque os tres pontos antes de salvar.');
@@ -212,8 +218,8 @@ export default function ADMResultScreen({ route, navigation }: any) {
       }
 
       db.runSync(
-        'INSERT INTO avaliacoes_adm (id_paciente, movimento, lado, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json, sem_cor, com_grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, movimento.nome, lado, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo ?? 0, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), semCor ? 1 : 0, mostrarGrade ? 1 : 0]
+        'INSERT INTO avaliacoes_adm (id_paciente, movimento, lado, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json, sem_cor, com_grade, achados_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, movimento.nome, lado, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo ?? 0, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), semCor ? 1 : 0, mostrarGrade ? 1 : 0, JSON.stringify(achados)]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
