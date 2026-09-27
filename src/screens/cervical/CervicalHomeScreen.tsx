@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
-import CardReferencia from '../../components/CardReferencia';
 import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
 
 export type VistaCervical =
@@ -105,7 +104,6 @@ export default function CervicalHomeScreen({ navigation }: any) {
             <Text style={styles.protocoloTexto}>{PROTOCOLOS[vistaSelecionada]}</Text>
           </View>
 
-          <CardReferencia card="cervical" />
 
           <TouchableOpacity style={styles.btnIniciar} onPress={iniciar}>
             <Text style={styles.btnIniciarText}>Abrir Câmera</Text>
@@ -131,7 +129,7 @@ const styles = StyleSheet.create({
   itemText: { fontSize: 13, fontWeight: '600', color: '#334155' },
   itemTextAtivo: { color: '#FFFFFF' },
   cardProtocolo: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', marginTop: 8 },
-  imagemReferencia: { width: '100%', height: 200, borderRadius: 10, backgroundColor: '#F8FAFC' },
+  imagemReferencia: { width: '100%', height: 320, borderRadius: 10, backgroundColor: '#F8FAFC' },
   protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19, marginTop: 10 },
   btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 24, alignItems: 'center', shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },

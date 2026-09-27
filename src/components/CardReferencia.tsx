@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, ScrollView, Dim
 const CARD_ANTERIOR = require('../../assets/referencias/card-anterior.jpg');
 const CARD_POSTERIOR = require('../../assets/referencias/card-posterior.jpg');
 const CARD_LATERAL = require('../../assets/referencias/card-lateral.jpg');
-const CARD_CERVICAL = require('../../assets/referencias/card-cervical-vistas.jpg');
+const CARD_CERVICAL = require('../../assets/referencias/cervical-pontos.jpg');
 const CARD_ADM = require('../../assets/referencias/card-adm.jpg');
 const CARD_MARCHA = require('../../assets/referencias/card-marcha.jpg');
 const CARD_ADAMS = require('../../assets/referencias/teste-adams.jpg');
