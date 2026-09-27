@@ -393,9 +393,6 @@ function AssinaturaCriador() {
     <View style={styles.assinatura}>
       <Image source={require('../../assets/marca/criador.png')} style={styles.assinaturaImg} resizeMode="contain" />
       <Text style={styles.assinaturaApp}>Postural Global</Text>
-      <View style={[styles.linhaLampada, tema === 'escuro' && styles.lampadaAcesa]}>
-        <Ionicons name="bulb" size={20} color={tema === 'escuro' ? '#FBBF24' : cores.borda} />
-      </View>
       <Text style={styles.assinaturaAutor}>Desenvolvido por @fisionofre</Text>
       <TouchableOpacity onPress={() => Linking.openURL('tel:+5532984143217')}>
         <Text style={styles.assinaturaLink}>(32) 98414-3217</Text>
@@ -453,6 +450,4 @@ const criarEstilos = (c: Paleta) => StyleSheet.create({
   btnSalvar: { backgroundColor: '#0284C7', marginLeft: 8 },
   btnText: { color: '#FFFFFF', fontWeight: 'bold' },
   btnTextCancelar: { color: c.texto, fontWeight: 'bold' },
-  linhaLampada: { alignItems: 'center', marginBottom: 2 },
-  lampadaAcesa: { shadowColor: '#FBBF24', shadowOpacity: 0.9, shadowRadius: 10, elevation: 6 },
 });

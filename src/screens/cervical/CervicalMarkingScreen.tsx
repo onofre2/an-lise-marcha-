@@ -10,12 +10,12 @@ const IMAGE_WIDTH = Dimensions.get('window').width;
 // Pontos marcados em cada vista. A anterior e foto de registro, sem medicao.
 const PONTOS_POR_VISTA: Record<string, { id: string; nome: string }[]> = {
   anterior: [
-    { id: 'topo_cabeca', nome: 'Topo da Cabeca' },
     { id: 'acromial_d', nome: 'Processo Acromial Anterior Direito' },
-    { id: 'esternoclavicular_d', nome: 'Articulacao Esternoclavicular Direita' },
-    { id: 'manubrio', nome: 'Manubrio do Esterno' },
-    { id: 'esternoclavicular_e', nome: 'Articulacao Esternoclavicular Esquerda' },
     { id: 'acromial_e', nome: 'Processo Acromial Anterior Esquerdo' },
+    { id: 'esternoclavicular_d', nome: 'Articulacao Esternoclavicular Direita' },
+    { id: 'esternoclavicular_e', nome: 'Articulacao Esternoclavicular Esquerda' },
+    { id: 'topo_cabeca', nome: 'Topo da Cabeca' },
+    { id: 'manubrio', nome: 'Manubrio do Esterno' },
   ],
   posterior: [
     { id: 'c7', nome: 'Processo Espinhoso de C7' },
