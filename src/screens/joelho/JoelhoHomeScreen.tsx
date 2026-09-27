@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useTema, Paleta } from '../../context/TemaContext';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import CardReferencia from '../../components/CardReferencia';
 import { usePacienteAtivo } from '../../context/PacienteAtivoContext';
@@ -40,6 +41,9 @@ const PROTOCOLOS: Record<string, string> = {
 };
 
 export default function JoelhoHomeScreen({ navigation }: any) {
+  const { cores } = useTema();
+  const styles = useMemo(() => criarEstilos(cores), [cores]);
+
   const { pacienteAtivo } = usePacienteAtivo();
   const [vistaSelecionada, setVistaSelecionada] = useState<string | null>(null);
 
@@ -127,21 +131,21 @@ export default function JoelhoHomeScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+const criarEstilos = (c: Paleta) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.fundo },
   content: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: c.textoFraco, marginTop: 20, marginBottom: 12 },
   cardPacienteAtivo: { backgroundColor: '#F0FDF4', padding: 16, borderRadius: 16, borderWidth: 2, borderColor: '#22C55E', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pacienteAtivoNome: { fontSize: 16, fontWeight: 'bold', color: '#0F172A' },
+  pacienteAtivoNome: { fontSize: 16, fontWeight: 'bold', color: c.texto },
   trocarLink: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
   avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
   avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  botaoGrid: { width: '48%', backgroundColor: '#FFFFFF', borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 10 },
+  botaoGrid: { width: '48%', backgroundColor: c.cartao, borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: c.borda, marginBottom: 10 },
   botaoGridAtivo: { backgroundColor: '#0284C7', borderColor: '#0284C7' },
   itemText: { fontSize: 13, fontWeight: '600', color: '#334155' },
   itemTextAtivo: { color: '#FFFFFF' },
-  cardProtocolo: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+  cardProtocolo: { backgroundColor: c.cartao, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: c.borda },
   protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19 },
   btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 16, alignItems: 'center' },
   btnPisada: { backgroundColor: '#0284C7', padding: 18, borderRadius: 16, marginTop: 16, alignItems: 'center' },

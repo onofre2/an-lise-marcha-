@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useTema, Paleta } from '../../context/TemaContext';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { Vista } from '../../constants/posturalPoints';
 import CardReferencia, { CardId } from '../../components/CardReferencia';
@@ -13,6 +14,9 @@ const IMAGENS_VISTA: Record<string, any> = {
 };
 
 export default function PosturalHomeScreen({ navigation }: any) {
+  const { cores } = useTema();
+  const styles = useMemo(() => criarEstilos(cores), [cores]);
+
   const { pacienteAtivo } = usePacienteAtivo();
   const [vistaSelecionada, setVistaSelecionada] = useState<Vista | null>(null);
 
@@ -90,26 +94,26 @@ export default function PosturalHomeScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+const criarEstilos = (c: Paleta) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.fundo },
   content: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: c.textoFraco, marginTop: 20, marginBottom: 12 },
   cardPacienteAtivo: { backgroundColor: '#F0FDF4', padding: 16, borderRadius: 16, borderWidth: 2, borderColor: '#22C55E', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  pacienteAtivoNome: { fontSize: 16, fontWeight: 'bold', color: '#0F172A' },
+  pacienteAtivoNome: { fontSize: 16, fontWeight: 'bold', color: c.texto },
   trocarLink: { color: '#16A34A', fontWeight: 'bold', fontSize: 13 },
   avisoSemPaciente: { backgroundColor: '#FEF3C7', padding: 14, borderRadius: 12 },
   avisoTexto: { color: '#92400E', fontSize: 13, lineHeight: 18 },
-  card: { backgroundColor: '#FFFFFF', padding: 12, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  card: { backgroundColor: c.cartao, padding: 12, borderRadius: 16, borderWidth: 1, borderColor: c.borda, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   alertText: { color: '#EF4444', fontSize: 14, textAlign: 'center' },
-  item: { padding: 14, borderRadius: 10, marginBottom: 6, backgroundColor: '#F8FAFC' },
+  item: { padding: 14, borderRadius: 10, marginBottom: 6, backgroundColor: c.fundo },
   itemAtivo: { backgroundColor: '#22C55E' },
   itemText: { color: '#475569', fontWeight: '600', fontSize: 14 },
   itemTextAtivo: { color: '#FFFFFF' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  botaoGrid: { width: '48%', backgroundColor: '#FFFFFF', padding: 18, borderRadius: 16, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  botaoGrid: { width: '48%', backgroundColor: c.cartao, padding: 18, borderRadius: 16, marginBottom: 12, alignItems: 'center', borderWidth: 1, borderColor: c.borda, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   botaoGridAtivo: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
-  cardProtocolo: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, borderWidth: 1, borderColor: '#E2E8F0', marginTop: 8 },
-  imagemReferencia: { width: '100%', height: 240, borderRadius: 10, backgroundColor: '#F8FAFC' },
+  cardProtocolo: { backgroundColor: c.cartao, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: c.borda, marginTop: 8 },
+  imagemReferencia: { width: '100%', height: 240, borderRadius: 10, backgroundColor: c.fundo },
   protocoloTexto: { fontSize: 12, color: '#475569', lineHeight: 19, marginTop: 10 },
   btnIniciar: { backgroundColor: '#22C55E', padding: 18, borderRadius: 16, marginTop: 24, alignItems: 'center', shadowColor: '#22C55E', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   btnIniciarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
