@@ -1112,10 +1112,10 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (adamses.length > 0) {
-    corpo += '<h2>Teste de Inclinação de Adams</h2><table><tr><th>Data</th><th>Inclinação</th><th>Lado elevado</th><th>Situação</th></tr>';
+    corpo += '<h2>Teste de Inclinação de Adams</h2><table><tr><th>Data</th><th>Inclinação</th><th>Lado elevado</th><th>Região</th><th>Situação</th></tr>';
     adamses.forEach(av => {
       const alterado = av.angulo >= 5;
-      corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td>${av.lado_elevado || '-'}</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Assimetria observada' : 'Sem assimetria significativa'}</td></tr>`;
+      corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td>${av.lado_elevado || '-'}</td><td>${(() => { try { return JSON.parse(av.exame_clinico_json || '{}').localizacao || '-'; } catch { return '-'; } })()}</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Assimetria observada' : 'Sem assimetria significativa'}</td></tr>`;
     });
     corpo += '</table>';
     for (const av of adamses) {
