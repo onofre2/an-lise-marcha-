@@ -490,6 +490,15 @@ async function montarImagensMarcha(av: any): Promise<string> {
     try { observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {}; } catch {}
     const CADEIA = ['tronco', 'quadril', 'joelho', 'tornozelo', 'pe'];
 
+    // Mesma tecnica das outras abas: um unico svg com viewBox, no lugar da
+    // sobreposicao absoluta com altura em porcentagem, que o expo-print
+    // resolve mal e deslocava os pontos no relatorio.
+    let D = { largura: 343, altura: 400 };
+    try {
+      const d = av.dimensoes_json ? JSON.parse(av.dimensoes_json) : null;
+      if (d && d.largura && d.altura) D = { largura: d.largura, altura: d.altura };
+    } catch {}
+
     let html = '';
     for (const [faseId, uri] of Object.entries(frames)) {
       const base64 = await fotoParaBase64(uri);
@@ -500,23 +509,23 @@ async function montarImagensMarcha(av: any): Promise<string> {
         const a = pts[CADEIA[i]];
         const b = pts[CADEIA[i + 1]];
         if (!a || !b) continue;
-        camadas += `<line x1="${a.x * 100}%" y1="${a.y * 100}%" x2="${b.x * 100}%" y2="${b.y * 100}%" stroke="#22C55E" stroke-width="2" />`;
+        camadas += `<line x1="${a.x * D.largura}" y1="${a.y * D.altura}" x2="${b.x * D.largura}" y2="${b.y * D.altura}" stroke="#22C55E" stroke-width="2" />`;
       }
       for (const id of CADEIA) {
         const pt = pts[id];
         if (!pt) continue;
-        camadas += `<circle cx="${pt.x * 100}%" cy="${pt.y * 100}%" r="6" fill="none" stroke="#22C55E" stroke-width="2.5" />`;
+        camadas += `<circle cx="${pt.x * D.largura}" cy="${pt.y * D.altura}" r="6" fill="none" stroke="#22C55E" stroke-width="2.5" />`;
       }
       for (const pt of Object.values(observacoes[faseId] || {})) {
-        camadas += `<circle cx="${pt.x * 100}%" cy="${pt.y * 100}%" r="14" fill="none" stroke="#EF4444" stroke-width="2.5" />`;
+        camadas += `<circle cx="${pt.x * D.largura}" cy="${pt.y * D.altura}" r="14" fill="none" stroke="#EF4444" stroke-width="2.5" />`;
       }
       html += `
-        <div style="margin-top:12px;">
+        <div style="margin-top:12px;page-break-inside:avoid;">
           <div class="bloco"><b>${nomes[faseId] || faseId}</b></div>
-          <div style="position:relative;width:100%;">
-            <img src="${base64}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;display:block;" />
-            <svg style="position:absolute;top:0;left:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg">${camadas}</svg>
-          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${D.largura} ${D.altura}" style="width:100%;border:1px solid #E2E8F0;border-radius:8px;background:#000;">
+            <image href="${base64}" x="0" y="0" width="${D.largura}" height="${D.altura}" preserveAspectRatio="xMidYMid meet" />
+            ${camadas}
+          </svg>
         </div>
       `;
     }
