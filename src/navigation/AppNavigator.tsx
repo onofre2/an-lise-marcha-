@@ -33,6 +33,7 @@ import JoelhoCaptureScreen from '../screens/joelho/JoelhoCaptureScreen';
 import JoelhoMarkingScreen from '../screens/joelho/JoelhoMarkingScreen';
 import JoelhoResultScreen from '../screens/joelho/JoelhoResultScreen';
 import { useIdioma } from '../context/IdiomaContext';
+import { useTema } from '../context/TemaContext';
 
 const Tab = createMaterialTopTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -123,6 +124,7 @@ function JoelhoStack() {
 export default function AppNavigator() {
   const insets = useSafeAreaInsets();
   const { t } = useIdioma();
+  const { cores } = useTema();
   return (
     <Tab.Navigator
       tabBarPosition="bottom"
@@ -131,8 +133,8 @@ export default function AppNavigator() {
         tabBarShowIcon: true,
         tabBarShowLabel: true,
         tabBarIndicatorStyle: { height: 0 },
-        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', elevation: 0, shadowOpacity: 0, height: 56 + insets.bottom, paddingBottom: insets.bottom, paddingTop: 6 },
-        tabBarActiveTintColor: '#0284C7',
+        tabBarStyle: { backgroundColor: cores.cartao, borderTopWidth: 1, borderTopColor: cores.borda, elevation: 0, shadowOpacity: 0, height: 56 + insets.bottom, paddingBottom: insets.bottom, paddingTop: 6 },
+        tabBarActiveTintColor: cores.azul,
         tabBarInactiveTintColor: '#94A3B8',
         tabBarLabelStyle: { fontSize: 11, textTransform: 'none', margin: 0 },
         tabBarItemStyle: { padding: 0 },
