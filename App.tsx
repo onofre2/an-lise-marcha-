@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/navigation/AppNavigator';
 import { initDatabase } from './src/services/database';
 import { PacienteAtivoProvider } from './src/context/PacienteAtivoContext';
+import { TemaProvider } from './src/context/TemaContext';
 
 export default function App() {
   useEffect(() => {
@@ -14,12 +15,14 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <PacienteAtivoProvider>
+      <TemaProvider>
+        <PacienteAtivoProvider>
         <NavigationContainer>
           <StatusBar style="light" />
           <AppNavigator />
         </NavigationContainer>
-      </PacienteAtivoProvider>
+        </PacienteAtivoProvider>
+      </TemaProvider>
     </SafeAreaProvider>
   );
 }

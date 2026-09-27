@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
+import { useTema, Paleta } from '../../context/TemaContext';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,6 +18,10 @@ export default function ConfiguracoesScreen() {
   const [registro, setRegistro] = useState('');
   const [logoUri, setLogoUri] = useState<string | null>(null);
   const [assinaturaUri, setAssinaturaUri] = useState<string | null>(null);
+  const { tema, cores, definirTema } = useTema();
+  // Estilos montados dentro do componente: StyleSheet.create fora congela as
+  // cores no arranque e o tema so mudaria reabrindo o aplicativo.
+  const styles = useMemo(() => criarEstilos(cores), [cores]);
 
   const carregar = () => {
     try {
@@ -104,12 +109,21 @@ export default function ConfiguracoesScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.sectionTitle}>Aparencia</Text>
+      <View style={styles.linhaTema}>
+        <TouchableOpacity style={[styles.btnTema, tema === 'claro' && styles.btnTemaAtivo]} onPress={() => definirTema('claro')}>
+          <Text style={[styles.btnTemaTexto, tema === 'claro' && styles.btnTemaTextoAtivo]}>Claro</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.btnTema, tema === 'escuro' && styles.btnTemaAtivo]} onPress={() => definirTema('escuro')}>
+          <Text style={[styles.btnTemaTexto, tema === 'escuro' && styles.btnTemaTextoAtivo]}>Escuro</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.sectionTitle}>Dados do Terapeuta</Text>
       <View style={styles.card}>
         <Text style={styles.label}>Nome Completo</Text>
-        <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Seu nome" placeholderTextColor="#94A3B8" />
+        <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Seu nome" placeholderTextColor={cores.textoFraco} />
         <Text style={styles.label}>Numero de Registro</Text>
-        <TextInput style={styles.input} value={registro} onChangeText={setRegistro} placeholderTextColor="#94A3B8" />
+        <TextInput style={styles.input} value={registro} onChangeText={setRegistro} placeholderTextColor={cores.textoFraco} />
       </View>
 
       <Text style={styles.sectionTitle}>Logo da Clinica</Text>
@@ -258,22 +272,27 @@ export default function ConfiguracoesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+const criarEstilos = (c: Paleta) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: c.fundo },
   content: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#64748B', marginTop: 20, marginBottom: 12 },
-  card: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' },
-  label: { fontSize: 12, color: '#64748B', fontWeight: '600', marginBottom: 6, marginTop: 10 },
-  input: { backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 10, padding: 12, fontSize: 14, color: '#0F172A' },
-  imagemBox: { backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', borderStyle: 'dashed', height: 100, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: c.textoFraco, marginTop: 20, marginBottom: 12 },
+  card: { backgroundColor: c.cartao, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: c.borda },
+  label: { fontSize: 12, color: c.textoFraco, fontWeight: '600', marginBottom: 6, marginTop: 10 },
+  input: { backgroundColor: c.campo, borderWidth: 1, borderColor: c.borda, borderRadius: 10, padding: 12, fontSize: 14, color: c.texto },
+  imagemBox: { backgroundColor: c.cartao, borderRadius: 16, borderWidth: 1, borderColor: c.borda, borderStyle: 'dashed', height: 100, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
   imagemPreview: { width: '90%', height: '90%' },
-  imagemPlaceholder: { color: '#94A3B8', fontSize: 13 },
-  dica: { color: '#94A3B8', fontSize: 11, marginTop: 8, lineHeight: 16 },
+  imagemPlaceholder: { color: c.textoFraco, fontSize: 13 },
+  dica: { color: c.textoFraco, fontSize: 11, marginTop: 8, lineHeight: 16 },
   btnRemover: { backgroundColor: '#FEE2E2', padding: 12, borderRadius: 12, alignItems: 'center', marginTop: 8, borderWidth: 1, borderColor: '#FCA5A5' },
   btnRemoverTexto: { color: '#B91C1C', fontWeight: 'bold', fontSize: 13 },
   btnSalvar: { backgroundColor: '#22C55E', padding: 16, borderRadius: 16, alignItems: 'center', marginTop: 24 },
   btnSalvarText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 },
-  cardReferencias: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' },
-  refTitulo: { fontSize: 13, fontWeight: 'bold', color: '#0F172A', marginTop: 10 },
-  refTexto: { fontSize: 12, color: '#64748B', marginTop: 2, lineHeight: 17 },
+  cardReferencias: { backgroundColor: c.cartao, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: c.borda },
+  refTitulo: { fontSize: 13, fontWeight: 'bold', color: c.texto, marginTop: 10 },
+  refTexto: { fontSize: 12, color: c.textoFraco, marginTop: 2, lineHeight: 17 },
+  linhaTema: { flexDirection: 'row', gap: 10 },
+  btnTema: { flex: 1, backgroundColor: c.cartao, borderWidth: 1, borderColor: c.borda, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  btnTemaAtivo: { backgroundColor: c.azul, borderColor: c.azul },
+  btnTemaTexto: { color: c.texto, fontWeight: '700', fontSize: 13 },
+  btnTemaTextoAtivo: { color: '#FFFFFF' },
 });
