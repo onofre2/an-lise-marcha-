@@ -258,8 +258,6 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
           onPress={() => navigation.navigate('NovaAvaliacaoTab', {
             screen: 'VideoEdit',
             params: {
-              semCor: registro.sem_cor === 1,
-              comGrade: registro.com_grade === 1,
               videoUri: registro.video_uri,
               pacienteId: registro.id_paciente,
               angulo: registro.angulo,
