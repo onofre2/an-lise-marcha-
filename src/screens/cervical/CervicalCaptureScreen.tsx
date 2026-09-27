@@ -2,23 +2,12 @@ import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import { PONTOS_POR_VISTA } from './CervicalMarkingScreen';
 
 export default function CervicalCaptureScreen({ route, navigation }: any) {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
   const { pacienteId, vista } = route.params as { pacienteId: number; vista: string };
 
-  // A vista anterior e apenas registro fotografico, sem ponto a marcar. Mandar
-  // para a marcacao abriria uma tela sem nada a fazer, mostrando 0/0.
-  const seguir = (uri: string) => {
-    const pontos = PONTOS_POR_VISTA[vista] || [];
-    if (pontos.length === 0) {
-      navigation.navigate('CervicalResult', { fotoUri: uri, pacienteId, vista, pontos: {} });
-    } else {
-      navigation.navigate('CervicalMarking', { fotoUri: uri, pacienteId, vista });
-    }
-  };
 
   if (!permission) {
     return <View style={styles.container}><Text style={styles.text}>Carregando permissões...</Text></View>;
@@ -44,7 +33,7 @@ export default function CervicalCaptureScreen({ route, navigation }: any) {
       quality: 0.8,
     });
     if (!resultado.canceled && resultado.assets && resultado.assets[0]) {
-      seguir(resultado.assets[0].uri);
+      navigation.navigate('CervicalMarking', { fotoUri: resultado.assets[0].uri, pacienteId, vista });
     }
   }
 
@@ -52,7 +41,7 @@ export default function CervicalCaptureScreen({ route, navigation }: any) {
     if (cameraRef.current) {
       try {
         const foto = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-        seguir(foto.uri);
+        navigation.navigate('CervicalMarking', { fotoUri: foto.uri, pacienteId, vista });
       } catch (error) {
         console.error('Erro ao tirar foto:', error);
       }

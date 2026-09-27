@@ -8,8 +8,15 @@ interface Ponto { x: number; y: number; }
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.62;
 const IMAGE_WIDTH = Dimensions.get('window').width;
 // Pontos marcados em cada vista. A anterior e foto de registro, sem medicao.
-export const PONTOS_POR_VISTA: Record<string, { id: string; nome: string }[]> = {
-  anterior: [],
+const PONTOS_POR_VISTA: Record<string, { id: string; nome: string }[]> = {
+  anterior: [
+    { id: 'topo_cabeca', nome: 'Topo da Cabeca' },
+    { id: 'acromial_d', nome: 'Processo Acromial Anterior Direito' },
+    { id: 'esternoclavicular_d', nome: 'Articulacao Esternoclavicular Direita' },
+    { id: 'manubrio', nome: 'Manubrio do Esterno' },
+    { id: 'esternoclavicular_e', nome: 'Articulacao Esternoclavicular Esquerda' },
+    { id: 'acromial_e', nome: 'Processo Acromial Anterior Esquerdo' },
+  ],
   posterior: [
     { id: 'c7', nome: 'Processo Espinhoso de C7' },
     { id: 'acromioclavicular_d', nome: 'Articulacao Acromioclavicular Direita' },

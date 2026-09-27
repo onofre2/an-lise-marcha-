@@ -189,8 +189,57 @@ function calcularSuperior(p: PontosCervicais): MedidaCervical[] {
 }
 
 /** Fonte unica de calculo da aba cervical. A vista anterior e foto de registro. */
+/**
+ * Desalinhamento em graus. Usa o mesmo criterio ja aplicado na avaliacao
+ * postural deste aplicativo: ate 1,5 grau preservado, de 1,5 a 3 desajuste
+ * discreto, a partir de 3 alteracao.
+ */
+function classificarDesalinhamento(graus: number): ClassificacaoCervical {
+  const v = Math.abs(graus);
+  if (v < 1.5) return 'preservado';
+  if (v <= 3) return 'discreto';
+  return 'alterado';
+}
+
+/** Medidas da vista anterior: alinhamentos horizontais e vertical da cabeca. */
+function calcularAnterior(p: PontosCervicais): MedidaCervical[] {
+  const saida: MedidaCervical[] = [];
+
+  // O primeiro ponto e sempre o do lado direito do paciente, que na foto de
+  // frente aparece a esquerda. y cresce para baixo: menor y e mais elevado.
+  const horizontal = (d: Ponto, e: Ponto, nome: string) => {
+    const graus = Number(Math.abs(Math.atan2(e.y - d.y, e.x - d.x) * (180 / Math.PI)).toFixed(1));
+    const ladoAlto = d.y < e.y ? 'direito' : 'esquerdo';
+    saida.push({
+      label: graus === 0 ? nome : nome + ' - ' + ladoAlto + ' mais alto',
+      valor: graus,
+      unidade: '\u00b0',
+      classificacao: classificarDesalinhamento(graus),
+    });
+  };
+
+  if (p.acromial_d && p.acromial_e) horizontal(p.acromial_d, p.acromial_e, 'Alinhamento dos Acromios');
+  if (p.esternoclavicular_d && p.esternoclavicular_e) horizontal(p.esternoclavicular_d, p.esternoclavicular_e, 'Alinhamento das Esternoclaviculares');
+
+  if (p.topo_cabeca && p.manubrio) {
+    const dx = p.topo_cabeca.x - p.manubrio.x;
+    const dy = p.manubrio.y - p.topo_cabeca.y;
+    const graus = Number(Math.abs(Math.atan2(dx, dy) * (180 / Math.PI)).toFixed(1));
+    const lado = dx >= 0 ? 'esquerda' : 'direita';
+    saida.push({
+      label: graus === 0 ? 'Alinhamento Vertical da Cabeca' : 'Alinhamento Vertical da Cabeca - desvio para a ' + lado,
+      valor: graus,
+      unidade: '\u00b0',
+      classificacao: classificarDesalinhamento(graus),
+    });
+  }
+
+  return saida;
+}
+
 export function calcularCervical(vista: string, pontos: PontosCervicais): MedidaCervical[] {
   if (vista === 'lateral_direita' || vista === 'lateral_esquerda') return calcularLateral(pontos);
+  if (vista === 'anterior') return calcularAnterior(pontos);
   if (vista === 'posterior') return calcularPosterior(pontos);
   if (vista === 'superior') return calcularSuperior(pontos);
   return [];
