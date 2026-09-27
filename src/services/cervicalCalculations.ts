@@ -244,3 +244,21 @@ export function calcularCervical(vista: string, pontos: PontosCervicais): Medida
   if (vista === 'superior') return calcularSuperior(pontos);
   return [];
 }
+
+/** Retas que ligam os pontos em cada vista, para leitura visual do desalinhamento. */
+export const LIGACOES_CERVICAIS: Record<string, [string, string][]> = {
+  anterior: [
+    ['acromial_d', 'acromial_e'],
+    ['esternoclavicular_d', 'esternoclavicular_e'],
+    ['topo_cabeca', 'manubrio'],
+  ],
+  posterior: [
+    ['acromioclavicular_d', 'acromioclavicular_e'],
+    ['mastoide_d', 'mastoide_e'],
+    ['c7', 'mastoide_d'],
+    ['c7', 'mastoide_e'],
+  ],
+  lateral_direita: [['c7', 'trago'], ['acromio', 'c7']],
+  lateral_esquerda: [['c7', 'trago'], ['acromio', 'c7']],
+  superior: [['topo_cabeca', 'apice_nariz'], ['manubrio', 'topo_cabeca']],
+};

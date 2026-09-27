@@ -7,6 +7,7 @@ import { calcularDesajustes, Desajuste } from '../../services/posturalCalculatio
 import { MOVIMENTOS } from '../../constants/movimentos';
 import { FASES_MARCHA } from '../../constants/fasesMarcha';
 import { calcularFase, calcularParametrosTemporais, calcularParametrosEspaciais, passoEmPixels, escalaPixelsPorMetro } from '../../services/marchaCalculations';
+import { LIGACOES_CERVICAIS } from '../../services/cervicalCalculations';
 
 interface Ponto { x: number; y: number; }
 
@@ -491,8 +492,11 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
             );
           })()}
 
-          {tipo === 'cervical' && pontosDesenho.c7 && pontosDesenho.trago && <Linha a={pontosDesenho.c7} b={pontosDesenho.trago} />}
-          {tipo === 'cervical' && pontosDesenho.c7 && pontosDesenho.acromio && <Linha a={pontosDesenho.acromio} b={pontosDesenho.c7} />}
+          {tipo === 'cervical' && (LIGACOES_CERVICAIS[registro.vista] || []).map(([ia, ib]) => (
+            pontosDesenho[ia] && pontosDesenho[ib]
+              ? <Linha key={`lig-${ia}-${ib}`} a={pontosDesenho[ia]} b={pontosDesenho[ib]} />
+              : null
+          ))}
 
           {tipo === 'adm' && idsADM.length === 3 && pontosDesenho[idsADM[1]] && pontosDesenho[idsADM[0]] && (
             <Linha a={pontosDesenho[idsADM[1]]} b={pontosDesenho[idsADM[0]]} />

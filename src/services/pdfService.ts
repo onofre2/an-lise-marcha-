@@ -12,6 +12,7 @@ import { calcularFase, calcularParametrosTemporais, calcularParametrosEspaciais,
 import { FASES_MARCHA } from '../constants/fasesMarcha';
 import { calcularDesajustes } from './posturalCalculations';
 import { File } from 'expo-file-system';
+import { LIGACOES_CERVICAIS } from './cervicalCalculations';
 
 interface Paciente {
   id: number;
@@ -421,7 +422,7 @@ async function montarImagemCervical(av: any): Promise<string> {
     const dimensoes = av.dimensoes_json ? JSON.parse(av.dimensoes_json) : { largura: 343, altura: 400 };
 
     const alerta = av.angulo < 48;
-    const ligacoes: [string, string][] = [['c7', 'trago'], ['acromio', 'c7']];
+    const ligacoes: [string, string][] = LIGACOES_CERVICAIS[av.vista] || [['c7', 'trago'], ['acromio', 'c7']];
     const valor = { texto: `${av.angulo}\u00b0`, alerta, ancora: 'trago' };
 
     return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes, av.sem_cor === 1, av.com_grade === 1);
