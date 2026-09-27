@@ -88,8 +88,10 @@ export default function JoelhoResultScreen({ route, navigation }: any) {
   const [modoObservacao, setModoObservacao] = useState(false);
   const [cardsMarcados, setCardsMarcados] = useState<string[]>([]);
   const [pisada, setPisada] = useState<Record<string, string>>({});
-  const [semCor, setSemCor] = useState(false);
-  const [mostrarGrade, setMostrarGrade] = useState(false);
+  // Lidos de route.params: reabrir a avaliacao precisa devolver a grade e o
+  // preto e branco gravados, e nao voltar ao padrao.
+  const [semCor, setSemCor] = useState(route.params?.semCor === true);
+  const [mostrarGrade, setMostrarGrade] = useState(route.params?.comGrade === true);
 
   // Achados marcados: numero do achado para o lado escolhido.
   const [achados, setAchados] = useState<Record<number, string>>({});
