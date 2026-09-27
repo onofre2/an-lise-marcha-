@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTema, Paleta } from '../context/TemaContext';
+import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking , KeyboardAvoidingView, Platform} from 'react-native';
 import db from '../services/database';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -27,6 +29,11 @@ interface Paciente {
 type AbaOrdenacao = 'recentes' | 'az' | 'sessoes';
 
 export default function HomeScreen() {
+  const { tema, cores } = useTema();
+  // Estilos montados aqui dentro: fora do componente as cores congelam no
+  // arranque e a tela nao acompanharia a troca de tema.
+  const styles = useMemo(() => criarEstilos(cores), [cores]);
+
   const navigation = useNavigation<any>();
   const { pacienteAtivo, definirPacienteAtivo } = usePacienteAtivo();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
@@ -380,10 +387,15 @@ export default function HomeScreen() {
 }
 
 function AssinaturaCriador() {
+  const { tema, cores } = useTema();
+  const styles = useMemo(() => criarEstilos(cores), [cores]);
   return (
     <View style={styles.assinatura}>
       <Image source={require('../../assets/marca/criador.png')} style={styles.assinaturaImg} resizeMode="contain" />
       <Text style={styles.assinaturaApp}>Postural Global</Text>
+      <View style={[styles.linhaLampada, tema === 'escuro' && styles.lampadaAcesa]}>
+        <Ionicons name="bulb" size={20} color={tema === 'escuro' ? '#FBBF24' : cores.borda} />
+      </View>
       <Text style={styles.assinaturaAutor}>Desenvolvido por @fisionofre</Text>
       <TouchableOpacity onPress={() => Linking.openURL('tel:+5532984143217')}>
         <Text style={styles.assinaturaLink}>(32) 98414-3217</Text>
@@ -392,53 +404,55 @@ function AssinaturaCriador() {
   );
 }
 
-const styles = StyleSheet.create({
-  assinatura: { alignItems: 'center', paddingVertical: 28, marginTop: 20, borderTopWidth: 1, borderTopColor: '#E2E8F0' },
+const criarEstilos = (c: Paleta) => StyleSheet.create({
+  assinatura: { alignItems: 'center', paddingVertical: 28, marginTop: 20, borderTopWidth: 1, borderTopColor: c.borda },
   assinaturaImg: { width: 88, height: 132, marginBottom: 10 },
-  assinaturaApp: { fontSize: 15, fontWeight: 'bold', color: '#0F172A' },
-  assinaturaAutor: { fontSize: 12, color: '#64748B', marginTop: 3, marginBottom: 8 },
+  assinaturaApp: { fontSize: 15, fontWeight: 'bold', color: c.texto },
+  assinaturaAutor: { fontSize: 12, color: c.textoFraco, marginTop: 3, marginBottom: 8 },
   assinaturaLink: { fontSize: 12, color: '#16A34A', fontWeight: '600', marginTop: 3 },
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 20 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#0F172A', marginBottom: 12, marginTop: 10 },
-  searchInput: { backgroundColor: '#FFFFFF', color: '#0F172A', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 12 },
+  container: { flex: 1, backgroundColor: c.fundo, padding: 20 },
+  title: { fontSize: 22, fontWeight: 'bold', color: c.texto, marginBottom: 12, marginTop: 10 },
+  searchInput: { backgroundColor: c.cartao, color: c.texto, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: c.borda, marginBottom: 12 },
   tabsRow: { flexDirection: 'row', marginBottom: 16, gap: 8 },
   tabBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center', backgroundColor: '#F1F5F9' },
   tabBtnActive: { backgroundColor: '#0284C7' },
-  tabBtnText: { color: '#64748B', fontWeight: '600', fontSize: 13 },
+  tabBtnText: { color: c.textoFraco, fontWeight: '600', fontSize: 13 },
   tabBtnTextActive: { color: '#FFFFFF' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { color: '#64748B', fontSize: 16, fontWeight: 'bold' },
-  subEmptyText: { color: '#94A3B8', fontSize: 14, marginTop: 4 },
-  card: { backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#E2E8F0', shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  emptyText: { color: c.textoFraco, fontSize: 16, fontWeight: 'bold' },
+  subEmptyText: { color: c.textoFraco, fontSize: 14, marginTop: 4 },
+  card: { backgroundColor: c.cartao, padding: 16, borderRadius: 12, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: c.borda, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
   cardAtivo: { borderColor: '#22C55E', borderWidth: 2, backgroundColor: '#F0FDF4' },
-  btnAtivar: { marginLeft: 10, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
+  btnAtivar: { marginLeft: 10, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: c.borda },
   btnAtivarOn: { backgroundColor: '#22C55E', borderColor: '#22C55E' },
   btnAtivarText: { fontSize: 11, fontWeight: 'bold', color: '#475569' },
   btnAtivarTextOn: { color: '#FFFFFF' },
   cardFoto: { width: 44, height: 44, borderRadius: 22, marginRight: 12 },
   cardFotoVazia: { width: 44, height: 44, borderRadius: 22, marginRight: 12, backgroundColor: '#0284C7', justifyContent: 'center', alignItems: 'center' },
   cardFotoInicial: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
-  cardNome: { fontSize: 16, fontWeight: 'bold', color: '#0F172A' },
-  cardDetalhes: { fontSize: 14, color: '#64748B', marginTop: 4 },
+  cardNome: { fontSize: 16, fontWeight: 'bold', color: c.texto },
+  cardDetalhes: { fontSize: 14, color: c.textoFraco, marginTop: 4 },
   cardRight: { alignItems: 'flex-end' },
-  cardData: { fontSize: 12, color: '#94A3B8' },
+  cardData: { fontSize: 12, color: c.textoFraco },
   sessoesBadge: { backgroundColor: '#EFF6FF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginTop: 6 },
   sessoesBadgeText: { fontSize: 11, color: '#0284C7', fontWeight: '600' },
   fab: { position: 'absolute', bottom: 30, right: 20, backgroundColor: '#0284C7', width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 5, shadowColor: '#0284C7', shadowOpacity: 0.4, shadowRadius: 5 },
   fabText: { color: '#FFFFFF', fontSize: 30, fontWeight: '300' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 20 },
-  modalContent: { backgroundColor: '#FFFFFF', padding: 24, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', maxHeight: '85%' },
-  fotoBox: { height: 110, borderRadius: 14, borderWidth: 1, borderColor: '#E2E8F0', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', marginBottom: 14, overflow: 'hidden', backgroundColor: '#F8FAFC' },
+  modalContent: { backgroundColor: c.cartao, padding: 24, borderRadius: 16, borderWidth: 1, borderColor: c.borda, maxHeight: '85%' },
+  fotoBox: { height: 110, borderRadius: 14, borderWidth: 1, borderColor: c.borda, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', marginBottom: 14, overflow: 'hidden', backgroundColor: c.fundo },
   fotoPreview: { width: '100%', height: '100%' },
-  fotoPlaceholder: { color: '#94A3B8', fontSize: 13 },
-  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#0F172A', marginBottom: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: '#64748B', marginBottom: 6 },
-  input: { backgroundColor: '#F8FAFC', color: '#0F172A', padding: 14, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+  fotoPlaceholder: { color: c.textoFraco, fontSize: 13 },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: c.texto, marginBottom: 16 },
+  label: { fontSize: 13, fontWeight: '600', color: c.textoFraco, marginBottom: 6 },
+  input: { backgroundColor: c.fundo, color: c.texto, padding: 14, borderRadius: 8, marginBottom: 12, borderWidth: 1, borderColor: c.borda },
   inputMultiline: { minHeight: 70, textAlignVertical: 'top' },
   modalButtons: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
   btn: { flex: 1, padding: 14, borderRadius: 8, alignItems: 'center' },
   btnCancelar: { backgroundColor: '#F1F5F9', marginRight: 8 },
   btnSalvar: { backgroundColor: '#0284C7', marginLeft: 8 },
   btnText: { color: '#FFFFFF', fontWeight: 'bold' },
-  btnTextCancelar: { color: '#0F172A', fontWeight: 'bold' }
+  btnTextCancelar: { color: c.texto, fontWeight: 'bold' },
+  linhaLampada: { alignItems: 'center', marginBottom: 2 },
+  lampadaAcesa: { shadowColor: '#FBBF24', shadowOpacity: 0.9, shadowRadius: 10, elevation: 6 },
 });
