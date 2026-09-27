@@ -58,6 +58,10 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
   const [observacoes, setObservacoes] = useState<Record<string, Observacao>>({});
   const [modoObservacao, setModoObservacao] = useState(false);
+  // Grade e preto e branco: lidos de route.params para que reabrir a avaliacao
+  // nao apague as escolhas feitas antes.
+  const [mostrarGrade, setMostrarGrade] = useState(route.params?.comGrade === true);
+  const [semCor, setSemCor] = useState(route.params?.semCor === true);
 
   const adicionarObservacao = (evt: any) => {
     if (!modoObservacao) return;
@@ -208,8 +212,8 @@ export default function ADMResultScreen({ route, navigation }: any) {
       }
 
       db.runSync(
-        'INSERT INTO avaliacoes_adm (id_paciente, movimento, lado, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, movimento.nome, lado, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo ?? 0, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
+        'INSERT INTO avaliacoes_adm (id_paciente, movimento, lado, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json, sem_cor, com_grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [pacienteId, movimento.nome, lado, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo ?? 0, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT }), semCor ? 1 : 0, mostrarGrade ? 1 : 0]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
@@ -269,7 +273,18 @@ export default function ADMResultScreen({ route, navigation }: any) {
         }}
         onResponderRelease={adicionarObservacao}
       >
-        <Image source={{ uri: fotoUri }} style={styles.image} resizeMode="contain" />
+        <Image source={{ uri: fotoUri }} style={[styles.image, semCor && styles.imagemSemCor]} resizeMode="contain" />
+        {semCor && <View pointerEvents="none" style={styles.camadaSemCor} />}
+        {mostrarGrade && (
+          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+            {Array.from({ length: 11 }).map((_, i) => (
+              <View key={`gv-${i}`} style={[styles.gradeLinhaV, { left: (IMAGE_WIDTH / 10) * i }]} />
+            ))}
+            {Array.from({ length: 13 }).map((_, i) => (
+              <View key={`gh-${i}`} style={[styles.gradeLinhaH, { top: (IMAGE_HEIGHT / 12) * i }]} />
+            ))}
+          </View>
+        )}
         {ids.length === 3 && pontosPx[ids[0]] && pontosPx[ids[1]] && (
           <LinhaSegmento a={pontosPx[ids[1]]} b={pontosPx[ids[0]]} />
         )}
@@ -388,6 +403,14 @@ export default function ADMResultScreen({ route, navigation }: any) {
         <Text style={styles.btnRestaurarText}>Restaurar posicoes originais</Text>
       </TouchableOpacity>
 
+      <View style={styles.linhaBotoesVisual}>
+        <TouchableOpacity style={[styles.btnVisual, mostrarGrade && styles.btnVisualAtivo]} onPress={() => setMostrarGrade(!mostrarGrade)}>
+          <Text style={[styles.btnVisualText, mostrarGrade && styles.btnVisualTextAtivo]}>Grade</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.btnVisual, semCor && styles.btnVisualAtivo]} onPress={() => setSemCor(!semCor)}>
+          <Text style={[styles.btnVisualText, semCor && styles.btnVisualTextAtivo]}>P e B</Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity style={styles.btnSalvar} onPress={salvarAvaliacao}>
         <Text style={styles.btnSalvarText}>Salvar no Historico do Paciente</Text>
       </TouchableOpacity>
@@ -421,6 +444,15 @@ function BadgeNoVertice({ ponto, valor, alerta }: { ponto: Ponto; valor: number;
 }
 
 const styles = StyleSheet.create({
+  btnVisual: { flex: 1, backgroundColor: '#E0F2FE', paddingVertical: 11, borderRadius: 12, alignItems: 'center', borderWidth: 1, borderColor: '#7DD3FC' },
+  btnVisualAtivo: { backgroundColor: '#0EA5E9', borderColor: '#0EA5E9' },
+  btnVisualText: { color: '#0369A1', fontWeight: '700', fontSize: 13 },
+  btnVisualTextAtivo: { color: '#FFFFFF' },
+  imagemSemCor: { opacity: 0.55 },
+  camadaSemCor: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.18 },
+  gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  gradeLinhaH: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  linhaBotoesVisual: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, marginTop: 12 },
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { padding: 16, paddingBottom: 40 },
   resumoCard: { padding: 14, borderRadius: 14, marginBottom: 16, borderWidth: 1 },
