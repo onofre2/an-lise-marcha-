@@ -58,7 +58,7 @@ const ESTILO = `
 
 
 /**
- * Medidas da avaliacao postural. Recalcula a partir dos pontos em vez de usar
+ * Medidas da avaliação postural. Recalcula a partir dos pontos em vez de usar
  * o valor gravado: avaliacoes antigas foram salvas com a formula anterior, que
  * devolvia angulos proximos de 180 em vez do desvio real.
  */
@@ -66,7 +66,7 @@ function medidasDaAvaliacao(av: any): Medida[] {
   try {
     const pontos = av.pontos_json ? JSON.parse(av.pontos_json) : {};
     if (Object.keys(pontos).length > 0) {
-      // A altura fica na tabela de pacientes, não na avaliacao.
+      // A altura fica na tabela de pacientes, não na avaliação.
       const pac = db.getFirstSync(
         'SELECT altura_cm FROM pacientes WHERE id = ?',
         [av.id_paciente]
@@ -207,11 +207,11 @@ function cabecalho(p: Paciente, titulo: string, logoTopo?: string | null): strin
       ângulos, distâncias e o alinhamento corporal de forma precisa.
     </div>
     <div class="sub" style="font-size:11px;line-height:1.5;background:#F1F5F9;border-left:3px solid #64748B;padding:8px 10px;margin-top:8px;">
-      O Postural Global reune diferentes parametros de avaliacao para ampliar a
+      O Postural Global reune diferentes parametros de avaliação para ampliar a
       observacao do alinhamento corporal. A analise conjunta de diferentes angulos,
       planos e medidas permite identificar padroes e possiveis relacoes entre os
       achados, tornando as evidencias mais consistentes para a interpretacao do
-      avaliador. Os resultados sao recursos de apoio a avaliacao clínica e devem ser
+      avaliador. Os resultados sao recursos de apoio a avaliação clínica e devem ser
       correlacionados com o exame fisico e demais testes funcionais.
     </div>
     <div class="sub">${titulo} &middot; Emitido em ${hoje}</div>
@@ -310,9 +310,9 @@ async function rodapeCompleto(): Promise<string> {
   return `
     <div style="margin-top:26px;padding-top:12px;border-top:1px solid #E2E8F0;font-size:9px;color:#94A3B8;line-height:1.5;text-align:justify;">
       <b>Referências científicas.</b>
-      Protocolo SAPO (Duarte et al., 2005), base do modulo de avaliacao postural.
+      Protocolo SAPO (Duarte et al., 2005), base do modulo de avaliação postural.
       Indices de simetria de tronco POTSI e ATSI (Suzuki et al., 1999).
-      Ângulo craniovertebral, padrao clínico para avaliacao de cabeca anteriorizada.
+      Ângulo craniovertebral, padrão clínico para avaliação de cabeça anteriorizada.
       Ângulo Q, formado no centro da patela entre a linha vinda da espinha iliaca
       antero-superior e a linha vinda da tuberosidade da tibia, com referencia usual
       de cerca de 13 graus em homens e 18 em mulheres; acima de 20 graus ha maior
@@ -350,7 +350,7 @@ async function rodapeCompleto(): Promise<string> {
       confiabilidade do metodo, mas não estabelece um limiar universal de
       desvio: os cortes acima sao criterios operacionais de triagem, escolhidos
       para oferecer a maior precisao possivel sem que a variacao natural da
-      marcacao seja interpretada como achado clínico. Não constituem valores
+      marcação seja interpretada como achado clínico. Não constituem valores
       diagnosticos universais.
       As medidas obtidas por fotogrametria em ortostatismo servem como triagem e
       não substituem exame de imagem nem medida instrumental.
@@ -389,7 +389,7 @@ async function gerarEcompartilhar(html: string) {
   return uri;
 }
 
-// Monta a imagem da avaliacao postural com todos os elementos ajustados pelo terapeuta
+// Monta a imagem da avaliação postural com todos os elementos ajustados pelo terapeuta
 async function montarImagemPostural(av: any): Promise<string> {
   try {
     const fotoBase64 = await fotoParaBase64(av.foto_uri);
@@ -405,12 +405,12 @@ async function montarImagemPostural(av: any): Promise<string> {
     const segmentos = SEGMENTOS_RAPIDA[av.vista as Vista] || [];
     return imagemPostural(fotoBase64, pontos, segmentos, medidas, dimensoes, observacoes, av.sem_cor === 1, av.com_grade === 1);
   } catch (e) {
-    console.error('Erro ao montar imagem da avaliacao:', e);
+    console.error('Erro ao montar imagem da avaliação:', e);
     return '';
   }
 }
 
-// Monta a imagem de uma avaliacao cervical
+// Monta a imagem de uma avaliação cervical
 async function montarImagemCervical(av: any): Promise<string> {
   try {
     const fotoBase64 = await fotoParaBase64(av.foto_uri);
@@ -431,7 +431,7 @@ async function montarImagemCervical(av: any): Promise<string> {
   }
 }
 
-// Monta a imagem de uma avaliacao de amplitude de movimento
+// Monta a imagem de uma avaliação de amplitude de movimento
 async function montarImagemADM(av: any): Promise<string> {
   try {
     const fotoBase64 = await fotoParaBase64(av.foto_uri);
@@ -456,12 +456,12 @@ async function montarImagemADM(av: any): Promise<string> {
   }
 }
 
-// Monta as imagens das fases da marcha capturadas durante a marcacao
+// Monta as imagens das fases da marcha capturadas durante a marcação
 // Dimensoes de referencia da area de video onde os pontos da marcha foram
 // marcados. Usadas para converter as coordenadas normalizadas de volta.
 // Dimensoes da area onde os pontos foram marcados, gravadas junto com a
-// avaliacao. Avaliacoes antigas não tem esse dado: nesse caso usamos o
-// tamanho padrao vigente na epoca, que e melhor que não calcular nada.
+// avaliação. Avaliacoes antigas não tem esse dado: nesse caso usamos o
+// tamanho padrão vigente na epoca, que e melhor que não calcular nada.
 function dimensoesDaAvaliacao(registro: any): { largura: number; altura: number } {
   try {
     if (registro?.dimensoes_json) {
@@ -527,10 +527,10 @@ async function montarImagensMarcha(av: any): Promise<string> {
   }
 }
 
-// Relatorio de uma unica avaliacao postural
+// Relatorio de uma unica avaliação postural
 export async function gerarRelatorioPostural(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_posturais WHERE id = ?', [idAvaliacao]) as any;
-  if (!av) throw new Error('Avaliacao não encontrada');
+  if (!av) throw new Error('Avaliação não encontrada');
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
   const medidas: Medida[] = medidasDaAvaliacao(av);
   const rodapeHtml = await rodapeCompleto();
@@ -539,9 +539,9 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Relatorio de Avaliacao Postural', logoHtml)}
+      ${cabecalho(p, 'Relatorio de Avaliação Postural', logoHtml)}
       ${blocoAchados(av.achados_json)}
-      <h2>Avaliacao ${av.vista.replace('_', ' ')} - ${av.data_avaliacao}</h2>
+      <h2>Avaliação ${av.vista.replace('_', ' ')} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       ${tabelaMedidas(medidas)}
       ${diagramasMedidas(medidas)}
@@ -551,10 +551,10 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
   return gerarEcompartilhar(html);
 }
 
-// Relatorio de uma unica avaliacao cervical
+// Relatorio de uma unica avaliação cervical
 export async function gerarRelatorioCervical(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_cervicais WHERE id = ?', [idAvaliacao]) as any;
-  if (!av) throw new Error('Avaliacao não encontrada');
+  if (!av) throw new Error('Avaliação não encontrada');
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
@@ -618,7 +618,7 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
   const ehSuperior = vista === 'superior';
 
   const ressalvas =
-    '<div class="bloco">Referência: angulo craniovertebral normal a partir de 48 graus. Valores menores indicam anteriorizacao da cabeca.</div>' +
+    '<div class="bloco">Referência: angulo craniovertebral normal a partir de 48 graus. Valores menores indicam anteriorizacao da cabeça.</div>' +
     (temLordose
       ? '<div class="bloco">A lordose cervical e uma curvatura ossea e a fotogrametria mede a superficie corporal. O valor apresentado e uma aproximacao de superficie, validada contra goniometria, não contra radiografia.</div>'
       : '') +
@@ -631,13 +631,13 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Relatorio de Avaliacao Cervical', logoHtml)}
+      ${cabecalho(p, 'Relatorio de Avaliação Cervical', logoHtml)}
       ${blocoAchados(av.achados_json)}
-      <h2>${NOME_VISTA[vista] || 'Avaliacao Cervical'} - ${av.data_avaliacao}</h2>
+      <h2>${NOME_VISTA[vista] || 'Avaliação Cervical'} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       ${medidas.length > 0
         ? `<table><tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>${linhas}</table>`
-        : '<div class="bloco">Vista de registro fotografico, sem medicao angular.</div>'}
+        : '<div class="bloco">Vista de registro fotografico, sem medição angular.</div>'}
       ${cardsHtml}
       ${ressalvas}
       ${rodapeHtml}
@@ -646,10 +646,10 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
   return gerarEcompartilhar(html);
 }
 
-// Relatorio de uma unica avaliacao de amplitude de movimento
+// Relatorio de uma unica avaliação de amplitude de movimento
 export async function gerarRelatorioADM(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_adm WHERE id = ?', [idAvaliacao]) as any;
-  if (!av) throw new Error('Avaliacao não encontrada');
+  if (!av) throw new Error('Avaliação não encontrada');
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
@@ -681,7 +681,7 @@ export async function gerarRelatorioADM(idAvaliacao: number) {
 // Relatorio de uma unica analise de marcha
 export async function gerarRelatorioMarcha(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes WHERE id = ?', [idAvaliacao]) as any;
-  if (!av) throw new Error('Avaliacao não encontrada');
+  if (!av) throw new Error('Avaliação não encontrada');
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
@@ -715,7 +715,7 @@ export async function gerarRelatorioMarcha(idAvaliacao: number) {
       ${cabecalho(p, 'Relatorio de Analise de Marcha', logoHtml)}
       <h2>Captura ${av.angulo} - ${av.data_avaliacao}</h2>
       ${imagensHtml}
-      ${tabelaFases || '<div class="info">Sem marcacoes por fase registradas nesta avaliacao.</div>'}
+      ${tabelaFases || '<div class="info">Sem marcacoes por fase registradas nesta avaliação.</div>'}
       ${blocoEspacial(av, p.altura_cm || null)}
       ${blocoTemporalMarcha(av.tempos_json)}
       ${(() => {
@@ -821,10 +821,10 @@ async function montarImagemJoelho(av: any): Promise<string> {
   }
 }
 
-// Relatorio de uma avaliacao de joelhos.
+// Relatorio de uma avaliação de joelhos.
 export async function gerarRelatorioJoelho(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_joelho WHERE id = ?', [idAvaliacao]) as any;
-  if (av == null) throw new Error('Avaliacao não encontrada');
+  if (av == null) throw new Error('Avaliação não encontrada');
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
@@ -920,8 +920,8 @@ export async function gerarRelatorioJoelho(idAvaliacao: number) {
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Relatorio de Avaliacao dos Joelhos', logoHtml)}
-      <h2>${NOME_VISTA[vista] || 'Avaliacao'} - ${av.data_avaliacao}</h2>
+      ${cabecalho(p, 'Relatorio de Avaliação dos Joelhos', logoHtml)}
+      <h2>${NOME_VISTA[vista] || 'Avaliação'} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
       ${medidas.length > 0
         ? '<table><tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>' + linhas + '</table>'
@@ -939,7 +939,7 @@ export async function gerarRelatorioJoelho(idAvaliacao: number) {
 
 export async function gerarRelatorioAdams(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_adams WHERE id = ?', [idAvaliacao]) as any;
-  if (!av) throw new Error('Avaliacao não encontrada');
+  if (!av) throw new Error('Avaliação não encontrada');
   const p = db.getFirstSync('SELECT * FROM pacientes WHERE id = ?', [av.id_paciente]) as Paciente;
 
   const rodapeHtml = await rodapeCompleto();
@@ -966,8 +966,8 @@ export async function gerarRelatorioAdams(idAvaliacao: number) {
       </table>
       <div class="bloco">
         Este teste e uma triagem visual de assimetria do tronco realizada por fotografia.
-        Não substitui a medicao com escoliometro nem exame de imagem. Valores a partir de 5 graus
-        sugerem avaliacao clínica complementar.
+        Não substitui a medição com escoliometro nem exame de imagem. Valores a partir de 5 graus
+        sugerem avaliação clínica complementar.
       </div>
       ${radiografiasHtml}
       ${rodapeHtml}
@@ -1144,7 +1144,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   if (adamses.length === 0) pendentes.push('Teste de Adams');
   if (marchas.length === 0) pendentes.push('Analise de marcha');
   if (adms.length === 0) pendentes.push('Amplitude de movimento');
-  if (cervicais.length === 0) pendentes.push('Avaliacao cervical');
+  if (cervicais.length === 0) pendentes.push('Avaliação cervical');
   if (pendentes.length > 0 && corpo !== '') {
     corpo += '<h2>Avaliações Complementares</h2><table><tr><th>Avaliação</th><th>Situação</th></tr>';
     pendentes.forEach(nome => {
@@ -1154,7 +1154,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (corpo === '') {
-    corpo = '<div class="info">Nenhuma avaliacao registrada para este paciente.</div>';
+    corpo = '<div class="info">Nenhuma avaliação registrada para este paciente.</div>';
   }
 
   let clínico = '';
@@ -1220,7 +1220,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     if (cervicais.length > 0) {
       const ultima = cervicais[0];
       const alt = ultima.angulo < 48;
-      resumo += `<div class="bloco"><b>Ângulo craniovertebral:</b> ${ultima.angulo} graus - ${alt ? 'cabeca anteriorizada' : 'dentro da referencia'}</div>`;
+      resumo += `<div class="bloco"><b>Ângulo craniovertebral:</b> ${ultima.angulo} graus - ${alt ? 'cabeça anteriorizada' : 'dentro da referencia'}</div>`;
     }
     if (resumoJoelho.length > 0) {
       resumo += '<div class="bloco"><b>Joelhos e pisada</b></div>';
@@ -1233,7 +1233,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     if (pendentes.length > 0) {
       resumo += `<div class="bloco"><b>Não realizadas:</b> ${pendentes.join(', ')}</div>`;
     }
-    resumo += '<div class="bloco">Avaliacao fotogrametrica de triagem. Recomenda-se correlacao com avaliacao clínica presencial e demais testes funcionais.</div>';
+    resumo += '<div class="bloco">Avaliação fotogrametrica de triagem. Recomenda-se correlacao com avaliação clínica presencial e demais testes funcionais.</div>';
   }
 
   const rodapeHtml2 = await rodapeCompleto();
