@@ -672,6 +672,7 @@ export async function gerarRelatorioADM(idAvaliacao: number) {
       <div class="diagramas">
         <div class="diagrama">${diagramaAmplitude(av.movimento, av.angulo, av.referencia)}</div>
       </div>
+      ${blocoAchados(av.achados_json)}
       ${rodapeHtml}
     </body></html>
   `;
