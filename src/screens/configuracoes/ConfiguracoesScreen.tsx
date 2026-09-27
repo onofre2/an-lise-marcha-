@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useTema, Paleta } from '../../context/TemaContext';
+import { useIdioma } from '../../context/IdiomaContext';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
@@ -19,6 +20,7 @@ export default function ConfiguracoesScreen() {
   const [logoUri, setLogoUri] = useState<string | null>(null);
   const [assinaturaUri, setAssinaturaUri] = useState<string | null>(null);
   const { tema, cores, definirTema } = useTema();
+  const { idioma, definirIdioma, t } = useIdioma();
   // Estilos montados dentro do componente: StyleSheet.create fora congela as
   // cores no arranque e o tema so mudaria reabrindo o aplicativo.
   const styles = useMemo(() => criarEstilos(cores), [cores]);
@@ -109,13 +111,23 @@ export default function ConfiguracoesScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.sectionTitle}>Aparencia</Text>
+      <Text style={styles.sectionTitle}>{t('config.aparencia')}</Text>
       <View style={styles.linhaTema}>
         <TouchableOpacity style={[styles.btnTema, tema === 'claro' && styles.btnTemaAtivo]} onPress={() => definirTema('claro')}>
-          <Text style={[styles.btnTemaTexto, tema === 'claro' && styles.btnTemaTextoAtivo]}>Claro</Text>
+          <Text style={[styles.btnTemaTexto, tema === 'claro' && styles.btnTemaTextoAtivo]}>{t('config.claro')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.btnTema, tema === 'escuro' && styles.btnTemaAtivo]} onPress={() => definirTema('escuro')}>
-          <Text style={[styles.btnTemaTexto, tema === 'escuro' && styles.btnTemaTextoAtivo]}>Escuro</Text>
+          <Text style={[styles.btnTemaTexto, tema === 'escuro' && styles.btnTemaTextoAtivo]}>{t('config.escuro')}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.sectionTitle}>{t('config.idioma')}</Text>
+      <View style={styles.linhaTema}>
+        <TouchableOpacity style={[styles.btnTema, idioma === 'pt' && styles.btnTemaAtivo]} onPress={() => definirIdioma('pt')}>
+          <Text style={[styles.btnTemaTexto, idioma === 'pt' && styles.btnTemaTextoAtivo]}>{t('config.portugues')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.btnTema, idioma === 'en' && styles.btnTemaAtivo]} onPress={() => definirIdioma('en')}>
+          <Text style={[styles.btnTemaTexto, idioma === 'en' && styles.btnTemaTextoAtivo]}>{t('config.ingles')}</Text>
         </TouchableOpacity>
       </View>
       <Text style={styles.sectionTitle}>Dados do Terapeuta</Text>

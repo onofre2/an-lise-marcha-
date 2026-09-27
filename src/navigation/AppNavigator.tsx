@@ -32,6 +32,7 @@ import JoelhoHomeScreen from '../screens/joelho/JoelhoHomeScreen';
 import JoelhoCaptureScreen from '../screens/joelho/JoelhoCaptureScreen';
 import JoelhoMarkingScreen from '../screens/joelho/JoelhoMarkingScreen';
 import JoelhoResultScreen from '../screens/joelho/JoelhoResultScreen';
+import { useIdioma } from '../context/IdiomaContext';
 
 const Tab = createMaterialTopTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -121,6 +122,7 @@ function JoelhoStack() {
 
 export default function AppNavigator() {
   const insets = useSafeAreaInsets();
+  const { t } = useIdioma();
   return (
     <Tab.Navigator
       tabBarPosition="bottom"
@@ -136,14 +138,14 @@ export default function AppNavigator() {
         tabBarItemStyle: { padding: 0 },
       }}
     >
-      <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: 'Histórico', tabBarIcon: ({ color }) => <Ionicons name="people" size={22} color={color} /> }} />
-      <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: 'Postural', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human-handsdown" size={22} color={color} /> }} />
-      <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: 'Cervical', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human" size={22} color={color} /> }} />
-      <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: 'ADM', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="angle-acute" size={22} color={color} /> }} />
-      <Tab.Screen name="JoelhoTab" component={JoelhoStack} options={{ title: 'Joelhos', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human-handsdown" size={22} color={color} /> }} />
-      <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: 'Marcha', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="walk" size={22} color={color} /> }} />
-      <Tab.Screen name="AdamsTab" component={AdamsStack} options={{ title: 'Adams', tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human-greeting" size={22} color={color} /> }} />
-      <Tab.Screen name="ConfiguracoesTab" component={ConfiguracoesScreen} options={{ title: 'Config', tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} /> }} />
+      <Tab.Screen name="Pacientes" component={PacientesStack} options={{ title: t('aba.historico'), tabBarIcon: ({ color }) => <Ionicons name="people" size={22} color={color} /> }} />
+      <Tab.Screen name="PosturalTab" component={PosturalStack} options={{ title: t('aba.postural'), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human-handsdown" size={22} color={color} /> }} />
+      <Tab.Screen name="CervicalTab" component={CervicalStack} options={{ title: t('aba.cervical'), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human" size={22} color={color} /> }} />
+      <Tab.Screen name="ADMTab" component={ADMStack} options={{ title: t('aba.adm'), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="angle-acute" size={22} color={color} /> }} />
+      <Tab.Screen name="JoelhoTab" component={JoelhoStack} options={{ title: t('aba.joelhos'), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human-handsdown" size={22} color={color} /> }} />
+      <Tab.Screen name="NovaAvaliacaoTab" component={EvaluationStack} options={{ title: t('aba.marcha'), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="walk" size={22} color={color} /> }} />
+      <Tab.Screen name="AdamsTab" component={AdamsStack} options={{ title: t('aba.adams'), tabBarIcon: ({ color }) => <MaterialCommunityIcons name="human-greeting" size={22} color={color} /> }} />
+      <Tab.Screen name="ConfiguracoesTab" component={ConfiguracoesScreen} options={{ title: t('aba.config'), tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={22} color={color} /> }} />
     </Tab.Navigator>
   );
 }
