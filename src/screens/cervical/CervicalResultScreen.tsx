@@ -9,6 +9,7 @@ import { Observacao } from '../../services/observacoes';
 import SetaDesajuste from '../../components/SetaDesajuste';
 import CirculoDestaque, { RAIO_PADRAO } from '../../components/CirculoDestaque';
 import MarcadorComLupa from '../../components/MarcadorComLupa';
+import { LIGACOES_CERVICAIS } from '../../services/cervicalCalculations';
 
 interface Ponto { x: number; y: number; }
 
@@ -355,6 +356,13 @@ export default function CervicalResultScreen({ route, navigation }: any) {
             <BadgeNaLinha a={pontosPx.acromio} b={pontosPx.c7} valor={anguloOmbro} alerta={alertaOmbro} />
           </>
         )}
+        {vista !== 'lateral_direita' && vista !== 'lateral_esquerda' &&
+          (LIGACOES_CERVICAIS[vista] || []).map(([ia, ib]) => (
+            pontosPx[ia] && pontosPx[ib]
+              ? <LinhaSegmento key={`lig-${ia}-${ib}`} a={pontosPx[ia]} b={pontosPx[ib]} />
+              : null
+          ))}
+
         {Object.entries(pontosPx).map(([id, p]) => (
           <MarcadorComLupa
             key={id}
