@@ -305,7 +305,8 @@ export default function AvaliacaoDetailScreen({ route, navigation }: any) {
               avaliacaoId: registro.id,
               fotoUri: registro.foto_uri,
               pacienteId: registro.id_paciente,
-              movimentoId: registro.movimento,
+              // O banco grava o nome; a tela de resultado procura pelo id.
+              movimentoId: movimento ? movimento.id : registro.movimento,
               lado: registro.lado || 'Direito',
               pontos,
             },
