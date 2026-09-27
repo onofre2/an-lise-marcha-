@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, TextInput } from 'react-native';
+import { PanResponder, View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Alert, Dimensions, TextInput } from 'react-native';
 import db from '../../services/database';
 import { gerarAchadosAdams } from '../../services/interpretacaoClinica';
 import { salvarMidiaPermanente } from '../../services/armazenamento';
@@ -79,6 +79,20 @@ export default function AdamsResultScreen({ route, navigation }: any) {
   // Radiografias anexadas, cada uma com a posicao da linha de prumo.
   // Ao reabrir uma avaliacao, as radiografias precisam voltar do banco:
   // sem isso o estado comeca vazio e o proximo salvamento as apagaria.
+
+  // Linha divisoria vertical: o terapeuta alinha com a coluna e o app usa
+  // como referencia para saber de que lado cada ponto esta.
+  const [linhaX, setLinhaX] = useState(0.5);
+
+  const panLinha = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (_e: any, g: any) => {
+        setLinhaX(prev => Math.min(Math.max(prev + g.dx / IMAGE_WIDTH / 12, 0.05), 0.95));
+      },
+    })
+  ).current;
   const [radiografias, setRadiografias] = useState<Radiografia[]>(() => {
     if (avaliacaoId == null) return [];
     try {
@@ -232,10 +246,12 @@ export default function AdamsResultScreen({ route, navigation }: any) {
 
     const angulo = Number((Math.atan2(dy, dx) * (180 / Math.PI)).toFixed(1));
     // No eixo da tela, y menor significa mais alto na imagem
-    const ladoElevado = d.y < e.y ? 'Direito' : 'Esquerdo';
+    // O ponto mais alto define a gibosidade; a linha divisoria define o lado.
+    const maisAlto = d.y < e.y ? d : e;
+    const ladoElevado = maisAlto.x < linhaX * IMAGE_WIDTH ? 'Direito' : 'Esquerdo';
 
     return { angulo, ladoElevado, alerta: angulo >= LIMIAR };
-  }, [pontosEditaveis]);
+  }, [pontosEditaveis, linhaX]);
 
   // Gibosidade em centimetros: na lateral vem do resultado; na posterior,
   // convertida a partir da assimetria entre os lados quando ha altura.
@@ -362,6 +378,13 @@ export default function AdamsResultScreen({ route, navigation }: any) {
           style={[styles.image, semCor && styles.imagemSemCor]}
           resizeMode="contain"
         />
+
+        {vista !== "lateral" && (
+          <View style={[styles.linhaDivisoria, { left: linhaX * IMAGE_WIDTH - 1 }]} pointerEvents="none" />
+        )}
+        {vista !== "lateral" && (
+          <View {...panLinha.panHandlers} style={[styles.alcaDivisoria, { left: linhaX * IMAGE_WIDTH - 22 }]} />
+        )}
         {semCor && <View pointerEvents="none" style={styles.camadaSemCor} />}
 
         {mostrarGrade && (
@@ -712,6 +735,8 @@ const styles = StyleSheet.create({
   btnVisualTextAtivo: { color: '#FFFFFF' },
   imagemSemCor: { opacity: 0.55 },
   camadaSemCor: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', opacity: 0.18 },
+  linhaDivisoria: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E', zIndex: 8 },
+  alcaDivisoria: { position: 'absolute', top: 0, bottom: 0, width: 44, zIndex: 9 },
   eixoIdeal: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#22C55E' },
   eixoReal: { position: 'absolute', height: 2, backgroundColor: '#EF4444' },
   gradeLinhaV: { position: 'absolute', top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
