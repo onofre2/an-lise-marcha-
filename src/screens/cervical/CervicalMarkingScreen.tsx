@@ -8,7 +8,7 @@ interface Ponto { x: number; y: number; }
 const IMAGE_HEIGHT = Dimensions.get('window').height * 0.62;
 const IMAGE_WIDTH = Dimensions.get('window').width;
 // Pontos marcados em cada vista. A anterior e foto de registro, sem medicao.
-const PONTOS_POR_VISTA: Record<string, { id: string; nome: string }[]> = {
+export const PONTOS_POR_VISTA: Record<string, { id: string; nome: string }[]> = {
   anterior: [],
   posterior: [
     { id: 'c7', nome: 'Processo Espinhoso de C7' },
