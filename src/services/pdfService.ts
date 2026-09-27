@@ -234,7 +234,7 @@ function tabelaMedidas(medidas: Medida[]): string {
       <td class="${faixaDaMedida(m)}">${ROTULO_FAIXA[faixaDaMedida(m)]}</td>
     </tr>
   `).join('');
-  return `<table><tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>${linhas}</table>`;
+  return `<table><tr><th>Medida</th><th>Valor</th><th>Situação</th></tr>${linhas}</table><div class="info" style="font-size:10px;margin-top:4px;">Referência: abaixo de 1,5 grau alinhamento preservado; de 1,5 a 3 graus desajuste discreto; 3 graus ou mais alteração postural. Desvios da linha de prumo: até 4 por cento da altura.</div>`;
 }
 
 // Gera diagramas visuais para as medidas expressas em graus
