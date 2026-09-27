@@ -1006,10 +1006,11 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     corpo += '<h2>Avaliacoes Posturais</h2>';
     for (const av of posturais) {
       const medidas: Medida[] = medidasDaAvaliacao(av);
-      corpo += `<div class="bloco"><b>${av.vista.replace('_', ' ')}</b> - ${av.data_avaliacao}</div>`;
+      corpo += `<div style="page-break-inside:avoid;"><div class="bloco"><b>${av.vista.replace("_", " ")}</b> - ${av.data_avaliacao}</div>`;
       corpo += await montarImagemPostural(av);
       corpo += tabelaMedidas(medidas);
       corpo += diagramasMedidas(medidas);
+      corpo += '</div>';
     }
   }
 
@@ -1052,7 +1053,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
 
     corpo += '<h2>Avaliacao dos Joelhos</h2>';
     for (const av of joelhos) {
-      corpo += `<div class="bloco"><b>${NOME_VISTA_J[av.vista] || av.vista}</b> - ${av.data_avaliacao}</div>`;
+      corpo += `<div style="page-break-inside:avoid;"><div class="bloco"><b>${NOME_VISTA_J[av.vista] || av.vista}</b> - ${av.data_avaliacao}</div>`;
 
       corpo += await montarImagemJoelho(av);
 
@@ -1106,6 +1107,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
           }
         } catch {}
       }
+      corpo += '</div>';
     }
   }
 

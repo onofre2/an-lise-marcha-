@@ -209,7 +209,7 @@ export default function ADMResultScreen({ route, navigation }: any) {
 
       db.runSync(
         'INSERT INTO avaliacoes_adm (id_paciente, movimento, lado, data_avaliacao, foto_uri, pontos_json, angulo, referencia, observacoes_json, dimensoes_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [pacienteId, movimento.nome, lado, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
+        [pacienteId, movimento.nome, lado, dataHoje, fotoPermanente, JSON.stringify(pontosEditaveis), angulo ?? 0, referencia, JSON.stringify(observacoes), JSON.stringify({ largura: IMAGE_WIDTH, altura: IMAGE_HEIGHT })]
       );
       const nova = db.getFirstSync('SELECT last_insert_rowid() as id') as { id: number };
       Alert.alert('Sucesso', 'Avaliacao salva! Deseja gerar o relatorio em PDF?', [
