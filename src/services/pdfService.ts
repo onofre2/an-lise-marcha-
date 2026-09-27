@@ -560,6 +560,31 @@ export async function gerarRelatorioPostural(idAvaliacao: number) {
   return gerarEcompartilhar(html);
 }
 
+// Nome legivel da vista cervical, para o relatorio nao sair com o identificador
+// interno nem sem indicacao nenhuma de qual vista foi avaliada.
+function rotuloVista(v: string | null | undefined): string {
+  const mapa: Record<string, string> = {
+    anterior: 'Anterior',
+    posterior: 'Posterior',
+    lateral_direita: 'Lateral Direita',
+    lateral_esquerda: 'Lateral Esquerda',
+    superior: 'Superior',
+  };
+  return v ? (mapa[v] || v.replace('_', ' ')) : 'Vista nao registrada';
+}
+
+// As medidas variam por vista: o craniovertebral so existe nas laterais, e as
+// demais vistas trazem alinhamentos e rotacao. O texto sai do proprio registro.
+function medidasCervicaisTexto(av: any): string {
+  try {
+    const ms = av.medidas_json ? JSON.parse(av.medidas_json) : [];
+    if (!Array.isArray(ms) || ms.length === 0) return '-';
+    return ms.map((m: any) => `${m.label}: ${m.valor}${m.unidade}`).join('; ');
+  } catch {
+    return '-';
+  }
+}
+
 // Relatorio de uma unica avaliação cervical
 export async function gerarRelatorioCervical(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_cervicais WHERE id = ?', [idAvaliacao]) as any;
@@ -640,7 +665,7 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
 
   const html = `
     <html><head><meta charset="utf-8">${ESTILO}</head><body>
-      ${cabecalho(p, 'Relatorio de Avaliação Cervical', logoHtml)}
+      ${cabecalho(p, `Relatorio de Avaliação Cervical - ${rotuloVista(av.vista)}`, logoHtml)}
       ${blocoAchados(av.achados_json)}
       <h2>${NOME_VISTA[vista] || 'Avaliação Cervical'} - ${av.data_avaliacao}</h2>
       ${imagemHtml}
@@ -1025,14 +1050,19 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   }
 
   if (cervicais.length > 0) {
-    corpo += '<h2>Avaliacoes Cervicais</h2><table><tr><th>Data</th><th>Ângulo Craniovertebral</th><th>Situação</th></tr>';
+    corpo += '<h2>Avaliacoes Cervicais</h2><table><tr><th>Data</th><th>Vista</th><th>Medidas</th><th>Situação</th></tr>';
     cervicais.forEach(av => {
-      const alterado = av.angulo < 48;
-      corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Cabeca anteriorizada' : 'Normal'}</td></tr>`;
+      const ehLateral = av.vista === 'lateral_direita' || av.vista === 'lateral_esquerda';
+      const alterado = ehLateral && av.angulo < 48;
+      const valor = ehLateral ? `Angulo craniovertebral: ${av.angulo} graus` : medidasCervicaisTexto(av);
+      const situacao = ehLateral ? (alterado ? 'Cabeca anteriorizada' : 'Normal') : '-';
+      corpo += `<tr><td>${av.data_avaliacao}</td><td>${rotuloVista(av.vista)}</td><td>${valor}</td><td class="${alterado ? 'alerta' : 'ok'}">${situacao}</td></tr>`;
     });
     corpo += '</table>';
     for (const av of cervicais) {
+      corpo += `<div style="page-break-inside:avoid;"><div class="bloco"><b>${rotuloVista(av.vista)}</b> - ${av.data_avaliacao}</div>`;
       corpo += await montarImagemCervical(av);
+      corpo += '</div>';
     }
   }
 

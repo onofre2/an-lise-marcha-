@@ -77,9 +77,9 @@ export default function PatientDetailScreen() {
       ) as { id: number; vista: string; modo: string; data_avaliacao: string; medidas_json: string | null }[];
 
       const cervicais = db.getAllSync(
-      'SELECT id, angulo, data_avaliacao FROM avaliacoes_cervicais WHERE id_paciente = ?',
+      'SELECT id, angulo, data_avaliacao, vista, medidas_json FROM avaliacoes_cervicais WHERE id_paciente = ?',
       [id]
-    ) as { id: number; angulo: number; data_avaliacao: string }[];
+    ) as { id: number; angulo: number; data_avaliacao: string; vista?: string; medidas_json?: string }[];
 
     const adms = db.getAllSync(
       'SELECT id, movimento, lado, angulo, referencia, data_avaliacao FROM avaliacoes_adm WHERE id_paciente = ?',
@@ -122,13 +122,22 @@ export default function PatientDetailScreen() {
         };
       });
 
-      const itensCervical: ItemAvaliacao[] = cervicais.map((c2) => ({
-      id: c2.id,
-      tipo: 'cervical',
-      data_avaliacao: c2.data_avaliacao,
-      detalhe: 'Cervical — Angulo Craniovertebral',
-      info_extra: `${c2.angulo} graus`,
-    }));
+      const itensCervical: ItemAvaliacao[] = cervicais.map((c2) => {
+      // A vista precisa aparecer: sem ela, cinco exames diferentes ficam com o
+      // mesmo rotulo no historico.
+      let qtd = 0;
+      try {
+        const ms = c2.medidas_json ? JSON.parse(c2.medidas_json) : [];
+        qtd = Array.isArray(ms) ? ms.length : 0;
+      } catch {}
+      return {
+        id: c2.id,
+        tipo: 'cervical' as const,
+        data_avaliacao: c2.data_avaliacao,
+        detalhe: `Cervical — ${c2.vista || 'vista nao registrada'}`,
+        info_extra: qtd > 0 ? `${qtd} medida${qtd === 1 ? '' : 's'}` : undefined,
+      };
+    });
 
     const itensADM: ItemAvaliacao[] = adms.map((a2) => ({
       id: a2.id,
