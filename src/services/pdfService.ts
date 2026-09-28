@@ -421,9 +421,12 @@ async function montarImagemCervical(av: any): Promise<string> {
     const observacoes = av.observacoes_json ? JSON.parse(av.observacoes_json) : {};
     const dimensoes = av.dimensoes_json ? JSON.parse(av.dimensoes_json) : { largura: 343, altura: 400 };
 
-    const alerta = av.angulo < 48;
+    // O craniovertebral so existe nas laterais. Nas demais vistas a coluna
+    // guarda zero, por ser NOT NULL, e desenhar esse zero criava medida falsa.
+    const ehLateral = av.vista === 'lateral_direita' || av.vista === 'lateral_esquerda';
+    const alerta = ehLateral && av.angulo < 48;
     const ligacoes: [string, string][] = LIGACOES_CERVICAIS[av.vista] || [['c7', 'trago'], ['acromio', 'c7']];
-    const valor = { texto: `${av.angulo}\u00b0`, alerta, ancora: 'trago' };
+    const valor = ehLateral ? { texto: `${av.angulo}\u00b0`, alerta, ancora: 'trago' } : null;
 
     return imagemSimples(fotoBase64, pontos, ligacoes, valor, dimensoes, observacoes, av.sem_cor === 1, av.com_grade === 1);
   } catch (e) {
@@ -610,7 +613,8 @@ export async function gerarRelatorioCervical(idAvaliacao: number) {
     try { medidas = JSON.parse(av.medidas_json); } catch { medidas = []; }
   }
   // Avaliacoes anteriores as cinco vistas gravavam apenas o craniovertebral.
-  if (medidas.length === 0 && typeof av.angulo === 'number') {
+  const vistaLateral = av.vista === 'lateral_direita' || av.vista === 'lateral_esquerda';
+  if (medidas.length === 0 && vistaLateral && typeof av.angulo === 'number') {
     medidas = [{ label: 'Ângulo Craniovertebral', valor: av.angulo, unidade: ' graus' }];
   }
 
@@ -1156,11 +1160,14 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     corpo += '<h2>Teste de Inclinação de Adams</h2><table><tr><th>Data</th><th>Inclinação</th><th>Lado elevado</th><th>Região</th><th>Situação</th></tr>';
     adamses.forEach(av => {
       const alterado = av.angulo >= 5;
-      corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td>${av.lado_elevado || '-'}</td><td>${(() => { try { return JSON.parse(av.exame_clinico_json || '{}').localizacao || '-'; } catch { return '-'; } })()}</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Assimetria observada' : 'Sem assimetria significativa'}</td></tr>`;
+      corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td>${av.lado_elevado || '-'} (foto)</td><td>${(() => { try { return JSON.parse(av.exame_clinico_json || '{}').localizacao || '-'; } catch { return '-'; } })()} (exame)</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Assimetria observada' : 'Sem assimetria significativa'}</td></tr>`;
     });
     corpo += '</table>';
     for (const av of adamses) {
       corpo += await montarImagemAdams(av);
+      // Sem a data o bloco parece pertencer a linha de cima da tabela, o que
+      // fazia registro de uma avaliacao parecer contradizer outra.
+      corpo += `<div class="bloco"><b>Registro clinico - ${av.data_avaliacao}</b></div>`;
       corpo += blocoExameAdams(av.exame_clinico_json);
       corpo += await montarRadiografias(av);
     }
@@ -1182,6 +1189,23 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   // Deixa explicito o que não foi realizado: a ausencia de um teste e um dado
   // clínico, não um vazio no relatorio.
   const pendentes: string[] = [];
+  const realizados: string[] = [];
+  if (posturais.length > 0) realizados.push('Avaliação postural');
+  if (cervicais.length > 0) realizados.push('Avaliação cervical');
+  if (adamses.length > 0) realizados.push('Teste de Adams');
+  if (adms.length > 0) realizados.push('Amplitude de movimento');
+  if (joelhos.length > 0) realizados.push('Avaliação dos joelhos');
+  if (marchas.length > 0) realizados.push('Análise de marcha');
+
+  // Achados do teste de Adams, ausentes do resumo ate agora.
+  const resumoAdams: string[] = [];
+  for (const av of adamses) {
+    if (av.angulo >= 5) {
+      const lado = av.lado_elevado ? ` a ${av.lado_elevado}` : '';
+      resumoAdams.push(`Teste de Adams: ${av.angulo} graus${lado}, assimetria observada`);
+    }
+  }
+
   if (adamses.length === 0) pendentes.push('Teste de Adams');
   if (marchas.length === 0) pendentes.push('Analise de marcha');
   if (adms.length === 0) pendentes.push('Amplitude de movimento');
@@ -1270,6 +1294,14 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     if (resumoADM.length > 0) {
       resumo += '<div class="bloco"><b>Amplitude de movimento</b></div>';
       resumoADM.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
+    }
+    if (realizados.length > 0) {
+      resumo += '<div class="bloco"><b>Modulos realizados</b></div>';
+      resumo += `<div class="bloco">${realizados.join(', ')}</div>`;
+    }
+    if (resumoAdams.length > 0) {
+      resumo += '<div class="bloco"><b>Teste de Adams</b></div>';
+      resumoAdams.forEach(l => { resumo += `<div class="bloco">${l}</div>`; });
     }
     if (pendentes.length > 0) {
       resumo += `<div class="bloco"><b>Não realizadas:</b> ${pendentes.join(', ')}</div>`;
