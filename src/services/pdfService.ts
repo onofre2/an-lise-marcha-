@@ -589,6 +589,20 @@ function medidasCervicaisTexto(av: any): string {
   }
 }
 
+// O lado marcado pelo terapeuta prevalece sobre o calculado pela foto: quem
+// examina o paciente ve a gibosidade diretamente. Quando os dois coincidem, o
+// relatorio registra a concordancia.
+function ladoGibosidade(av: any): string {
+  let ladoExame = '';
+  try { ladoExame = (JSON.parse(av.exame_clinico_json || '{}').lado || '').trim(); } catch {}
+  const ladoApp = (av.lado_elevado || '').trim();
+  if (ladoExame && ladoApp && ladoExame.toLowerCase() === ladoApp.toLowerCase()) {
+    return `${ladoExame} (foto e exame concordam)`;
+  }
+  if (ladoExame) return `${ladoExame} (exame clinico)`;
+  return ladoApp ? `${ladoApp} (foto)` : '-';
+}
+
 // Relatorio de uma unica avaliação cervical
 export async function gerarRelatorioCervical(idAvaliacao: number) {
   const av = db.getFirstSync('SELECT * FROM avaliacoes_cervicais WHERE id = ?', [idAvaliacao]) as any;
@@ -1002,7 +1016,7 @@ export async function gerarRelatorioAdams(idAvaliacao: number) {
           <td class="${alerta ? 'alerta' : 'ok'}">${av.angulo} graus</td>
           <td class="${alerta ? 'alerta' : 'ok'}">${alerta ? 'Assimetria observada' : 'Sem assimetria significativa'}</td>
         </tr>
-        <tr><td>Lado mais elevado</td><td colspan="2">${av.lado_elevado || '-'}</td></tr>
+        <tr><td>Lado da gibosidade</td><td colspan="2">${ladoGibosidade(av)}</td></tr>
       </table>
       <div class="bloco">
         Este teste e uma triagem visual de assimetria do tronco realizada por fotografia.
@@ -1160,7 +1174,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
     corpo += '<h2>Teste de Inclinação de Adams</h2><table><tr><th>Data</th><th>Inclinação</th><th>Lado elevado</th><th>Região</th><th>Situação</th></tr>';
     adamses.forEach(av => {
       const alterado = av.angulo >= 5;
-      corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td>${av.lado_elevado || '-'} (foto)</td><td>${(() => { try { return JSON.parse(av.exame_clinico_json || '{}').localizacao || '-'; } catch { return '-'; } })()} (exame)</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Assimetria observada' : 'Sem assimetria significativa'}</td></tr>`;
+      corpo += `<tr><td>${av.data_avaliacao}</td><td>${av.angulo} graus</td><td>${ladoGibosidade(av)}</td><td>${(() => { try { return JSON.parse(av.exame_clinico_json || '{}').localizacao || '-'; } catch { return '-'; } })()} (exame)</td><td class="${alterado ? 'alerta' : 'ok'}">${alterado ? 'Assimetria observada' : 'Sem assimetria significativa'}</td></tr>`;
     });
     corpo += '</table>';
     for (const av of adamses) {
@@ -1201,8 +1215,7 @@ export async function gerarRelatorioCompleto(idPaciente: number) {
   const resumoAdams: string[] = [];
   for (const av of adamses) {
     if (av.angulo >= 5) {
-      const lado = av.lado_elevado ? ` a ${av.lado_elevado}` : '';
-      resumoAdams.push(`Teste de Adams: ${av.angulo} graus${lado}, assimetria observada`);
+      resumoAdams.push(`Teste de Adams: ${av.angulo} graus, gibosidade ${ladoGibosidade(av)}`);
     }
   }
 
